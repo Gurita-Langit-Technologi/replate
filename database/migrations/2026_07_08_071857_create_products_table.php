@@ -6,37 +6,56 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations. (Tempat membuat tabel & kolom)
-     */
     public function up(): void
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); 
-            $table->foreignId('partner_id')->nullable()->constrained('users')->onDelete('set null'); 
-            
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+
+            // Info produk
             $table->string('title');
             $table->text('description');
-            $table->string('photo')->nullable();
-            $table->integer('quantity');
-            $table->string('unit')->default('porsi');
-            $table->dateTime('expiry_time'); 
-            
-            $table->boolean('can_barter')->default(false);
-            $table->text('barter_note')->nullable(); 
-            
+            $table->string('photo'); // path foto produk (wajib)
+
+            // Klasifikasi
+            $table->enum('category', ['mentah', 'olahan', 'hasil_bumi']);
+            $table->enum('condition', ['layak_konsumsi', 'layak_olah', 'layak_pakan_kompos']);
+
+            // Berat (dalam gram, minimal 500)
+            $table->integer('weight_grams');
+
+            // Mode transaksi
+            $table->enum('transaction_mode', ['sell', 'barter', 'sell_and_barter', 'donate']);
+
+            // Harga (nullable karena barter/donasi tidak perlu)
+            $table->integer('price')->nullable(); // dalam Rupiah
+            $table->integer('discounted_price')->nullable(); // harga setelah timeout tahap 1
+
+            // Barter
+            $table->text('barter_description')->nullable(); // "Menerima barter dalam bentuk..."
+
+            // Lokasi (otomatis dari profil user, bisa override)
+            $table->string('desa');
+            $table->string('kecamatan');
+
+            // Timeout system
+            $table->timestamp('timeout_at'); // dihitung otomatis dari condition
+            $table->timestamp('timeout_stage1_at')->nullable(); // 75% dari durasi
             $table->enum('status', [
-                'AVAILABLE', 'BOOKED', 'SOLD', 'DONATION_POOL', 'DONATION_SUCCESS'
-            ])->default('AVAILABLE');
+                'active',              // sedang tayang
+                'timeout_stage_1',     // harga turun, badge "segera habis"
+                'timeout_stage_2',     // masuk jalur donasi
+                'timeout_stage_3',     // dialihkan ke partner
+                'sold',                // terjual
+                'bartered',            // terbarter
+                'donated',             // terdonasi
+                'transferred',         // dialihkan ke partner (selesai)
+            ])->default('active');
 
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations. (Tempat menghancurkan tabel jika di-rollback)
-     */
     public function down(): void
     {
         Schema::dropIfExists('products');

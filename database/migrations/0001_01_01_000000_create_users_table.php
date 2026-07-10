@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -18,10 +15,20 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
 
-            $table->enum('role', ['user', 'partner', 'admin'])->default('user'); 
-            $table->string('whatsapp_number'); // Wajib untuk link wa.me/nomorhp
-            $table->string('wilayah_dusun');   // Pengganti GPS (Contoh: Dusun A, Dusun B)
-            // ----------------------------------
+            // Role: user (default), verified_seller, partner, admin
+            $table->enum('role', ['user', 'verified_seller', 'partner', 'admin'])->default('user');
+
+            // Kontak
+            $table->string('whatsapp_number')->nullable();
+            $table->string('profile_photo')->nullable();
+
+            // Lokasi (untuk filter marketplace)
+            $table->string('desa')->nullable();
+            $table->string('kecamatan')->nullable();
+
+            // Sistem report / blacklist
+            $table->integer('report_count')->default(0);
+            $table->boolean('is_blacklisted')->default(false);
 
             $table->rememberToken();
             $table->timestamps();
@@ -43,9 +50,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');
