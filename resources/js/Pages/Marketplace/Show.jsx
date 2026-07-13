@@ -1,9 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+
 
 export default function Show({ product }) {
     const hoursLeft = Math.max(0, Math.floor((new Date(product.timeout_at) - new Date()) / (1000 * 60 * 60)));
-
+ 
     return (
         <AuthenticatedLayout>
             <Head title={product.title} />
@@ -93,14 +94,24 @@ export default function Show({ product }) {
                         {/* Action Buttons */}
                         <div className="flex gap-3">
                             {(product.transaction_mode === 'sell' || product.transaction_mode === 'sell_and_barter') && (
-                                <button className="flex-1 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">
-                                    Beli Produk
+                                <button  onClick={() => {
+                                            if (confirm('Yakin ingin membeli produk ini?')) {
+                                                router.post(`/products/${product.id}/buy`);
+                                            }
+                                        }}
+                                        className="flex-1 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition"
+                                    >
+                                        Beli Produk
                                 </button>
+                                       
                             )}
                             {(product.transaction_mode === 'barter' || product.transaction_mode === 'sell_and_barter') && (
-                                <button className="flex-1 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition">
+                                <Link
+                                    href={`/products/${product.id}/barter`}
+                                    className="flex-1 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition text-center"
+                                >
                                     Ajukan Barter
-                                </button>
+                                </Link>
                             )}
                             {product.transaction_mode === 'donate' && (
                                 <button className="flex-1 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
