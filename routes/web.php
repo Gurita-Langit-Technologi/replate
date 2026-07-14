@@ -5,6 +5,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\BarterOfferController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -40,6 +41,7 @@ Route::middleware('auth')->group(function () {
 
     // Transaksi
     Route::post('/products/{product}/buy', [TransactionController::class, 'buy'])->name('transactions.buy');
+    Route::post('/products/{product}/claim-donation', [TransactionController::class, 'claimDonation'])->name('transactions.claimDonation');
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
     Route::patch('/transactions/{transaction}/confirm', [TransactionController::class, 'confirm'])->name('transactions.confirm');
@@ -52,6 +54,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/products/{product}/barter', [BarterOfferController::class, 'store'])->name('barter.store');
     Route::patch('/barter/{offer}/accept', [BarterOfferController::class, 'accept'])->name('barter.accept');
     Route::patch('/barter/{offer}/reject', [BarterOfferController::class, 'reject'])->name('barter.reject');
+
+    // Notifikasi
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
 });
 
 // ============ ADMIN ONLY ============

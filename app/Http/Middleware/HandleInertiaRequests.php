@@ -34,6 +34,11 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'unreadNotifications' => $request->user()
+            ? \App\Models\Notification::where('user_id', $request->user()->id)
+                ->where('is_read', false)
+                ->count()
+            : 0,
         ];
     }
 }

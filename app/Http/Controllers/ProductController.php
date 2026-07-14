@@ -15,8 +15,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $query = Product::with('user')
-            ->where('status', 'active')
-            ->orWhere('status', 'timeout_stage_1');
+            ->whereIn('status', ['active', 'timeout_stage_1', 'timeout_stage_2']);
 
         // Filter berdasarkan kategori
         if ($request->filled('category')) {

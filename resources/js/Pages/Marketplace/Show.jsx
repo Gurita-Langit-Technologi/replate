@@ -113,8 +113,15 @@ export default function Show({ product }) {
                                     Ajukan Barter
                                 </Link>
                             )}
-                            {product.transaction_mode === 'donate' && (
-                                <button className="flex-1 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
+                            {(product.transaction_mode === 'donate' || product.status === 'timeout_stage_2') && (
+                                <button
+                                    onClick={() => {
+                                        if (confirm('Yakin ingin mengklaim donasi ini?')) {
+                                            router.post(`/products/${product.id}/claim-donation`);
+                                        }
+                                    }}
+                                    className="flex-1 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+                                >
                                     Klaim Donasi
                                 </button>
                             )}

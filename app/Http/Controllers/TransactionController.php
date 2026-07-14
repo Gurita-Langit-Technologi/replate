@@ -196,4 +196,56 @@ class TransactionController extends Controller
             'transactions' => $transactions,
         ]);
     }
+
+    /**
+     * Klaim donasi
+     */
+    public function claimDonation(Request $request, Product $product)
+    {
+        $user = $request->user();
+
+        // Tidak bisa klaim donasi sendiri
+        if ($product->user_id === $user->id) {
+            return back()->with('error', 'Tidak bisa mengklaim donasi produk sendiri.');
+        }
+
+        // Produk harus mode donasi atau sudah masuk jalur donasi (timeout stage 2)
+        $isDonation = $product->transaction_mode === 'donate' && in_array($product->status, ['active', 'timeout_stage_1']);
+        $isTimeoutDonation = $product->status === 'timeout_stage_2';
+
+        if (!$isDonation && !$isTimeoutDonation) {
+            return back()->with('error', 'Produk ini tidak tersedia untuk donasi.');
+        }
+
+        // Cek apakah sudah ada klaim pending
+        $existing = Transaction::where('product_id', $product->id)
+            ->where('status', 'pending')
+            ->first();
+
+        if ($existing) {
+            return back()->with('error', 'Produk sudah diklaim oleh orang lain.');
+        }
+
+        // Buat transaksi donasi
+        $transaction = Transaction::create([
+            'product_id' => $product->id,
+            'buyer_id' => $user->id,
+            'seller_id' => $product->user_id,
+            'type' => 'donation',
+            'status' => 'pending',
+        ]);
+
+        // Notifikasi ke pendonor
+        Notification::create([
+            'user_id' => $product->user_id,
+            'title' => 'Donasi Anda diklaim!',
+            'message' => "{$user->name} ingin mengambil donasi \"{$product->title}\".",
+            'type' => 'transaction',
+            'related_id' => $transaction->id,
+            'related_type' => Transaction::class,
+        ]);
+
+        return redirect("/transactions/{$transaction->id}");
+    }
+
 }
