@@ -86,13 +86,34 @@ class DashboardController extends Controller
             'stats' => $stats,
         ]);
     }
-
     public function partner(Request $request)
     {
-        $transferred = Product::where('status', 'transferred')->get();
+        $user = $request->user();
+
+        $pending = Transaction::with('product')
+            ->where('type', 'partner_transfer')
+            ->where('partner_id', $user->id)
+            ->where('status', 'pending')
+            ->get();
+
+        $completed = Transaction::with('product')
+            ->where('type', 'partner_transfer')
+            ->where('partner_id', $user->id)
+            ->where('status', 'completed')
+            ->orderBy('updated_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        $totalWeight = Transaction::where('type', 'partner_transfer')
+            ->where('partner_id', $user->id)
+            ->where('status', 'completed')
+            ->join('products', 'transactions.product_id', '=', 'products.id')
+            ->sum('products.weight_grams');
 
         return Inertia::render('Partner/Dashboard', [
-            'transferredProducts' => $transferred,
+            'pending' => $pending,
+            'completed' => $completed,
+            'totalWeight' => $totalWeight,
         ]);
     }
 }

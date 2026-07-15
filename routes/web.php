@@ -6,6 +6,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\BarterOfferController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SellerVerificationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -55,18 +58,39 @@ Route::middleware('auth')->group(function () {
     Route::patch('/barter/{offer}/accept', [BarterOfferController::class, 'accept'])->name('barter.accept');
     Route::patch('/barter/{offer}/reject', [BarterOfferController::class, 'reject'])->name('barter.reject');
 
+    // Report
+    Route::post('/products/{product}/report', [ReportController::class, 'store'])->name('reports.store');
+
+    // Pengajuan penjual olahan
+    Route::get('/seller/apply', [SellerVerificationController::class, 'create'])->name('seller.apply');
+    Route::post('/seller/apply', [SellerVerificationController::class, 'store'])->name('seller.store');
+    
     // Notifikasi
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
 });
 
 // ============ ADMIN ONLY ============
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/verifications', [AdminController::class, 'verifications'])->name('verifications');
+    Route::patch('/verifications/{verification}/approve', [AdminController::class, 'approveVerification'])->name('verifications.approve');
+    Route::patch('/verifications/{verification}/reject', [AdminController::class, 'rejectVerification'])->name('verifications.reject');
+    Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
+    Route::patch('/reports/{report}/review', [AdminController::class, 'reviewReport'])->name('reports.review');
+    Route::patch('/reports/{report}/dismiss', [AdminController::class, 'dismissReport'])->name('reports.dismiss');
+    Route::get('/partners', [AdminController::class, 'partners'])->name('partners');
+    Route::post('/partners', [AdminController::class, 'storePartner'])->name('partners.store');
+    Route::patch('/partners/{profile}/toggle', [AdminController::class, 'togglePartner'])->name('partners.toggle');
+    Route::get('/users', [AdminController::class, 'users'])->name('users');
+    Route::patch('/users/{user}/toggle-blacklist', [AdminController::class, 'toggleBlacklist'])->name('users.toggleBlacklist');
 });
 
 // ============ PARTNER ONLY ============
 Route::middleware(['auth', 'role:partner'])->prefix('partner')->name('partner.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'partner'])->name('dashboard');
+    Route::patch('/transactions/{transaction}/confirm', [TransactionController::class, 'confirm'])->name('confirm');
 });
+
+
 
 require __DIR__.'/auth.php';

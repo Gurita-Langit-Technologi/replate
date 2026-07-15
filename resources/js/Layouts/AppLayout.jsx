@@ -14,6 +14,7 @@ import {
     X,
     LogOut,
     Leaf,
+    Users,
 } from 'lucide-react';
 
 const NAV_ITEMS = {
@@ -26,6 +27,10 @@ const NAV_ITEMS = {
     ],
     admin: [
         { label: 'Admin Panel', href: '/admin/dashboard', icon: Shield },
+        { label: 'Verifikasi', href: '/admin/verifications', icon: Shield },
+        { label: 'Laporan', href: '/admin/reports', icon: Shield },
+        { label: 'Partner', href: '/admin/partners', icon: Handshake },
+        { label: 'Pengguna', href: '/admin/users', icon: Users },
     ],
     partner: [
         { label: 'Partner Panel', href: '/partner/dashboard', icon: Handshake },

@@ -1,68 +1,160 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import {
+    Search,
+    SlidersHorizontal,
+    Package,
+    Clock,
+    MapPin,
+    Scale,
+    ArrowLeftRight,
+    ShoppingBasket,
+    Heart,
+    Plus,
+    X,
+} from 'lucide-react';
+
+const conditionLabels = {
+    layak_konsumsi: 'Layak konsumsi',
+    layak_olah: 'Layak olah',
+    layak_pakan_kompos: 'Pakan / kompos',
+};
+
+const conditionColors = {
+    layak_konsumsi: 'bg-green-50 text-green-700 border-green-200',
+    layak_olah: 'bg-amber-50 text-amber-700 border-amber-200',
+    layak_pakan_kompos: 'bg-red-50 text-red-700 border-red-200',
+};
 
 function ProductCard({ product }) {
     const isTimeout = product.status === 'timeout_stage_1';
+    const isDonation = product.status === 'timeout_stage_2' || product.transaction_mode === 'donate';
     const timeLeft = new Date(product.timeout_at) - new Date();
     const hoursLeft = Math.max(0, Math.floor(timeLeft / (1000 * 60 * 60)));
 
     return (
-        <Link href={`/products/${product.id}`} className="block border rounded-lg overflow-hidden hover:shadow-lg transition bg-white">
-            <div className="h-48 bg-gray-200 flex items-center justify-center">
+        <Link
+            href={`/products/${product.id}`}
+            className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md hover:border-gray-200 transition-all"
+        >
+            {/* Image */}
+            <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
                 {product.photo ? (
-                    <img src={`/storage/${product.photo}`} alt={product.title} className="w-full h-full object-cover" />
+                    <img
+                        src={`/storage/${product.photo}`}
+                        alt={product.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                 ) : (
-                    <span className="text-gray-400">No Image</span>
+                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                        <Package size={36} />
+                    </div>
                 )}
-            </div>
-            <div className="p-4">
-                <div className="flex gap-2 mb-2">
-                    <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">
-                        {product.condition.replace('_', ' ')}
-                    </span>
-                    {product.transaction_mode.includes('barter') && (
-                        <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded">
-                            Barter
+
+                {/* Overlay badges */}
+                <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                    {isTimeout && (
+                        <span className="text-[10px] font-medium px-2 py-0.5 bg-red-500 text-white rounded-full">
+                            Diskon 25%
                         </span>
                     )}
-                    {isTimeout && (
-                        <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded">
-                            Segera Habis!
+                    {isDonation && (
+                        <span className="text-[10px] font-medium px-2 py-0.5 bg-blue-500 text-white rounded-full flex items-center gap-0.5">
+                            <Heart size={10} /> Donasi
+                        </span>
+                    )}
+                    {product.transaction_mode.includes('barter') && !isDonation && (
+                        <span className="text-[10px] font-medium px-2 py-0.5 bg-purple-500 text-white rounded-full flex items-center gap-0.5">
+                            <ArrowLeftRight size={10} /> Barter
                         </span>
                     )}
                 </div>
-                <h3 className="font-semibold text-gray-800 truncate">{product.title}</h3>
-                <p className="text-sm text-gray-500 mt-1">{product.weight_grams}g · {product.desa}</p>
-                <div className="mt-2 flex items-center justify-between">
+
+                {/* Countdown */}
+                <div className="absolute bottom-2 right-2">
+                    <span className="text-[10px] font-medium px-2 py-0.5 bg-black/60 text-white rounded-full flex items-center gap-1">
+                        <Clock size={10} />
+                        {hoursLeft}j lagi
+                    </span>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-3.5">
+                {/* Condition badge */}
+                <span className={`inline-flex text-[10px] font-medium px-2 py-0.5 rounded-full border mb-2 ${conditionColors[product.condition]}`}>
+                    {conditionLabels[product.condition]}
+                </span>
+
+                {/* Title */}
+                <h3 className="text-sm font-semibold text-gray-900 truncate group-hover:text-green-600 transition">
+                    {product.title}
+                </h3>
+
+                {/* Meta */}
+                <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+                    <span className="flex items-center gap-0.5">
+                        <Scale size={10} />
+                        {(product.weight_grams / 1000).toFixed(1)}kg
+                    </span>
+                    <span className="flex items-center gap-0.5">
+                        <MapPin size={10} />
+                        {product.desa}
+                    </span>
+                </div>
+
+                {/* Price */}
+                <div className="mt-2">
                     {product.price ? (
-                        <div>
+                        <div className="flex items-baseline gap-1.5">
                             {product.discounted_price ? (
                                 <>
-                                    <span className="text-red-500 font-bold">Rp {product.discounted_price.toLocaleString()}</span>
-                                    <span className="text-xs text-gray-400 line-through ml-1">Rp {product.price.toLocaleString()}</span>
+                                    <span className="text-base font-bold text-red-500">
+                                        Rp {product.discounted_price.toLocaleString()}
+                                    </span>
+                                    <span className="text-xs text-gray-400 line-through">
+                                        Rp {product.price.toLocaleString()}
+                                    </span>
                                 </>
                             ) : (
-                                <span className="text-green-600 font-bold">Rp {product.price.toLocaleString()}</span>
+                                <span className="text-base font-bold text-green-600">
+                                    Rp {product.price.toLocaleString()}
+                                </span>
                             )}
                         </div>
                     ) : (
-                        <span className="text-blue-600 font-semibold">
-                            {product.transaction_mode === 'donate' ? 'Donasi' : 'Barter'}
+                        <span className="text-base font-bold text-purple-600">
+                            {product.transaction_mode === 'donate' ? 'Gratis' : 'Barter'}
                         </span>
                     )}
-                    <span className="text-xs text-gray-400">{hoursLeft}j lagi</span>
                 </div>
             </div>
         </Link>
     );
 }
 
+function FilterPill({ label, active, onClick }) {
+    return (
+        <button
+            onClick={onClick}
+            className={`text-xs font-medium px-3 py-1.5 rounded-full border transition whitespace-nowrap
+                ${active
+                    ? 'bg-green-600 text-white border-green-600'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                }`}
+        >
+            {label}
+        </button>
+    );
+}
+
 export default function Index({ products, filters }) {
     const [search, setSearch] = useState(filters.search || '');
+    const [showFilters, setShowFilters] = useState(false);
 
     function handleFilter(key, value) {
-        router.get('/marketplace', { ...filters, [key]: value }, {
+        router.get('/marketplace', { ...filters, [key]: value || undefined }, {
             preserveState: true,
             preserveScroll: true,
         });
@@ -73,94 +165,173 @@ export default function Index({ products, filters }) {
         handleFilter('search', search);
     }
 
+    function clearFilters() {
+        router.get('/marketplace', {}, { preserveState: true });
+        setSearch('');
+    }
+
+    const hasActiveFilters = filters.category || filters.condition || filters.mode || filters.search;
+
     return (
-        <AuthenticatedLayout>
+        <AppLayout>
             <Head title="Marketplace" />
 
-            <div className="max-w-7xl mx-auto py-6 px-4">
-                <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold text-gray-800">Marketplace</h1>
+            <div className="max-w-6xl mx-auto">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-5">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">Marketplace</h1>
+                        <p className="text-sm text-gray-500 mt-0.5">
+                            {products.total || products.data?.length || 0} produk tersedia
+                        </p>
+                    </div>
                     <Link
                         href="/products/create"
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                        className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white text-sm font-medium rounded-xl hover:bg-green-700 transition"
                     >
-                        + Upload Produk
+                        <Plus size={16} />
+                        Upload produk
                     </Link>
                 </div>
 
-                {/* Search & Filters */}
-                <div className="bg-white p-4 rounded-lg shadow mb-6">
-                    <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Cari produk..."
-                            className="flex-1 border rounded-lg px-4 py-2"
-                        />
-                        <button type="submit" className="px-4 py-2 bg-gray-800 text-white rounded-lg">
+                {/* Search bar */}
+                <div className="bg-white rounded-xl border border-gray-100 p-3 mb-4">
+                    <form onSubmit={handleSearch} className="flex gap-2">
+                        <div className="flex-1 relative">
+                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Cari produk food waste..."
+                                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            className="px-5 py-2.5 bg-green-600 text-white text-sm font-medium rounded-xl hover:bg-green-700 transition"
+                        >
                             Cari
                         </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowFilters(!showFilters)}
+                            className={`px-3 py-2.5 border rounded-xl transition ${showFilters ? 'border-green-400 bg-green-50 text-green-600' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                        >
+                            <SlidersHorizontal size={16} />
+                        </button>
                     </form>
-                    <div className="flex gap-2 flex-wrap">
-                        <select
-                            value={filters.category || ''}
-                            onChange={(e) => handleFilter('category', e.target.value)}
-                            className="border rounded px-3 py-1 text-sm"
-                        >
-                            <option value="">Semua Kategori</option>
-                            <option value="mentah">Mentah</option>
-                            <option value="olahan">Olahan</option>
-                            <option value="hasil_bumi">Hasil Bumi</option>
-                        </select>
-                        <select
-                            value={filters.condition || ''}
-                            onChange={(e) => handleFilter('condition', e.target.value)}
-                            className="border rounded px-3 py-1 text-sm"
-                        >
-                            <option value="">Semua Kondisi</option>
-                            <option value="layak_konsumsi">Layak Konsumsi</option>
-                            <option value="layak_olah">Layak Olah</option>
-                            <option value="layak_pakan_kompos">Pakan/Kompos</option>
-                        </select>
-                        <select
-                            value={filters.mode || ''}
-                            onChange={(e) => handleFilter('mode', e.target.value)}
-                            className="border rounded px-3 py-1 text-sm"
-                        >
-                            <option value="">Semua Mode</option>
-                            <option value="sell">Jual</option>
-                            <option value="barter">Barter</option>
-                            <option value="sell_and_barter">Jual & Barter</option>
-                            <option value="donate">Donasi</option>
-                        </select>
-                        <select
-                            value={filters.sort || 'newest'}
-                            onChange={(e) => handleFilter('sort', e.target.value)}
-                            className="border rounded px-3 py-1 text-sm"
-                        >
-                            <option value="newest">Terbaru</option>
-                            <option value="price_low">Harga Terendah</option>
-                            <option value="price_high">Harga Tertinggi</option>
-                            <option value="timeout">Mendekati Timeout</option>
-                        </select>
-                    </div>
+
+                    {/* Expandable filters */}
+                    {showFilters && (
+                        <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
+                            {/* Category */}
+                            <div>
+                                <p className="text-xs font-medium text-gray-400 mb-1.5">Kategori</p>
+                                <div className="flex gap-2 flex-wrap">
+                                    <FilterPill label="Semua" active={!filters.category} onClick={() => handleFilter('category', '')} />
+                                    <FilterPill label="Mentah" active={filters.category === 'mentah'} onClick={() => handleFilter('category', 'mentah')} />
+                                    <FilterPill label="Olahan" active={filters.category === 'olahan'} onClick={() => handleFilter('category', 'olahan')} />
+                                    <FilterPill label="Hasil bumi" active={filters.category === 'hasil_bumi'} onClick={() => handleFilter('category', 'hasil_bumi')} />
+                                </div>
+                            </div>
+
+                            {/* Condition */}
+                            <div>
+                                <p className="text-xs font-medium text-gray-400 mb-1.5">Kondisi</p>
+                                <div className="flex gap-2 flex-wrap">
+                                    <FilterPill label="Semua" active={!filters.condition} onClick={() => handleFilter('condition', '')} />
+                                    <FilterPill label="Layak konsumsi" active={filters.condition === 'layak_konsumsi'} onClick={() => handleFilter('condition', 'layak_konsumsi')} />
+                                    <FilterPill label="Layak olah" active={filters.condition === 'layak_olah'} onClick={() => handleFilter('condition', 'layak_olah')} />
+                                    <FilterPill label="Pakan / kompos" active={filters.condition === 'layak_pakan_kompos'} onClick={() => handleFilter('condition', 'layak_pakan_kompos')} />
+                                </div>
+                            </div>
+
+                            {/* Mode */}
+                            <div>
+                                <p className="text-xs font-medium text-gray-400 mb-1.5">Mode transaksi</p>
+                                <div className="flex gap-2 flex-wrap">
+                                    <FilterPill label="Semua" active={!filters.mode} onClick={() => handleFilter('mode', '')} />
+                                    <FilterPill label="Jual" active={filters.mode === 'sell'} onClick={() => handleFilter('mode', 'sell')} />
+                                    <FilterPill label="Barter" active={filters.mode === 'barter'} onClick={() => handleFilter('mode', 'barter')} />
+                                    <FilterPill label="Jual & barter" active={filters.mode === 'sell_and_barter'} onClick={() => handleFilter('mode', 'sell_and_barter')} />
+                                    <FilterPill label="Donasi" active={filters.mode === 'donate'} onClick={() => handleFilter('mode', 'donate')} />
+                                </div>
+                            </div>
+
+                            {/* Sort */}
+                            <div>
+                                <p className="text-xs font-medium text-gray-400 mb-1.5">Urutkan</p>
+                                <div className="flex gap-2 flex-wrap">
+                                    <FilterPill label="Terbaru" active={!filters.sort || filters.sort === 'newest'} onClick={() => handleFilter('sort', 'newest')} />
+                                    <FilterPill label="Harga terendah" active={filters.sort === 'price_low'} onClick={() => handleFilter('sort', 'price_low')} />
+                                    <FilterPill label="Harga tertinggi" active={filters.sort === 'price_high'} onClick={() => handleFilter('sort', 'price_high')} />
+                                    <FilterPill label="Segera habis" active={filters.sort === 'timeout'} onClick={() => handleFilter('sort', 'timeout')} />
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
+                {/* Active filters indicator */}
+                {hasActiveFilters && (
+                    <div className="flex items-center gap-2 mb-4">
+                        <span className="text-xs text-gray-400">Filter aktif:</span>
+                        {filters.category && (
+                            <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full border border-green-200">
+                                {filters.category}
+                            </span>
+                        )}
+                        {filters.condition && (
+                            <span className="text-xs px-2 py-1 bg-amber-50 text-amber-700 rounded-full border border-amber-200">
+                                {conditionLabels[filters.condition]}
+                            </span>
+                        )}
+                        {filters.mode && (
+                            <span className="text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded-full border border-purple-200">
+                                {filters.mode.replace(/_/g, ' ')}
+                            </span>
+                        )}
+                        {filters.search && (
+                            <span className="text-xs px-2 py-1 bg-gray-50 text-gray-600 rounded-full border border-gray-200">
+                                "{filters.search}"
+                            </span>
+                        )}
+                        <button onClick={clearFilters} className="text-xs text-red-500 hover:text-red-600 flex items-center gap-0.5">
+                            <X size={12} /> Hapus filter
+                        </button>
+                    </div>
+                )}
+
                 {/* Product Grid */}
-                {products.data.length > 0 ? (
+                {products.data && products.data.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {products.data.map((product) => (
                             <ProductCard key={product.id} product={product} />
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-12 text-gray-500">
-                        Belum ada produk yang tersedia.
+                    <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
+                        <ShoppingBasket size={48} className="mx-auto text-gray-200 mb-3" />
+                        <p className="text-gray-500 mb-1">Tidak ada produk yang ditemukan</p>
+                        {hasActiveFilters ? (
+                            <button onClick={clearFilters} className="text-sm text-green-600 hover:underline mt-2">
+                                Hapus semua filter
+                            </button>
+                        ) : (
+                            <p className="text-sm text-gray-400">Jadilah yang pertama upload produk</p>
+                        )}
                     </div>
                 )}
+
+                {/* Mobile FAB */}
+                <Link
+                    href="/products/create"
+                    className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-700 transition z-20"
+                >
+                    <Plus size={24} />
+                </Link>
             </div>
-        </AuthenticatedLayout>
+        </AppLayout>
     );
 }
-
