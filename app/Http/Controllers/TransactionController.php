@@ -109,6 +109,10 @@ class TransactionController extends Controller
 
         $transaction->update(['status' => 'completed']);
 
+        \App\Models\BarterOffer::where('product_id', $transaction->product_id)
+            ->where('status', 'pending')
+            ->update(['status' => 'rejected']);
+
         // Update status produk
         $transaction->product->update(['status' => 'sold']);
 
@@ -156,6 +160,36 @@ class TransactionController extends Controller
         ]);
 
         return back()->with('success', 'Transaksi dibatalkan.');
+    }
+
+    /**
+     * Partner konfirmasi pengambilan
+     */
+    public function partnerConfirm(Request $request, Transaction $transaction)
+    {
+        $user = $request->user();
+
+        if ($transaction->partner_id !== $user->id) {
+            return back()->with('error', 'Anda tidak memiliki akses.');
+        }
+
+        if ($transaction->status !== 'pending') {
+            return back()->with('error', 'Transaksi sudah diproses.');
+        }
+
+        $transaction->update(['status' => 'completed']);
+        $transaction->product->update(['status' => 'transferred']);
+
+        Notification::create([
+            'user_id' => $transaction->seller_id,
+            'title' => 'Produk diambil oleh partner',
+            'message' => "Partner telah mengambil \"{$transaction->product->title}\".",
+            'type' => 'partner_transfer',
+            'related_id' => $transaction->id,
+            'related_type' => Transaction::class,
+        ]);
+
+        return back()->with('success', 'Pengambilan dikonfirmasi.');
     }
 
     /**

@@ -16,6 +16,7 @@ import {
     Leaf,
     Users,
 } from 'lucide-react';
+import Toast from '@/Components/Toast';
 
 const NAV_ITEMS = {
     user: [
@@ -71,6 +72,7 @@ export default function AppLayout({ children }) {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            <Toast />
             {/* Mobile overlay */}
             {sidebarOpen && (
                 <div

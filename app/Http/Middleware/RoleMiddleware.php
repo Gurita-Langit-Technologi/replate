@@ -9,14 +9,18 @@ class RoleMiddleware
 {
     public function handle(Request $request, Closure $next, string ...$roles): mixed
     {
-        // Cek apakah user sudah login
         if (!$request->user()) {
             return redirect()->route('login');
         }
 
-        // Cek apakah role user termasuk dalam daftar role yang diizinkan
+        // Cek blacklist
+        if ($request->user()->is_blacklisted) {
+            auth()->logout();
+            $request->session()->invalidate();
+            return redirect()->route('login')->with('error', 'Akun Anda ditangguhkan. Hubungi admin untuk banding.');
+        }
+
         if (!in_array($request->user()->role, $roles)) {
-            // Kalau tidak, redirect ke dashboard sesuai role-nya
             return redirect()->route('dashboard');
         }
 
