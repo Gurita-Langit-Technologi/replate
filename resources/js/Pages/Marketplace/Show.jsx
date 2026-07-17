@@ -11,6 +11,7 @@ import {
     Heart,
     Flag,
     User,
+    MessageCircle,
 } from 'lucide-react';
 
 function Badge({ children, color = 'gray' }) {
@@ -266,6 +267,14 @@ export default function Show({ product }) {
                                         Klaim donasi
                                     </button>
                                 )}
+
+                                <Link
+                                    href={`/products/${product.id}/chat`}
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-xl transition"
+                                >
+                                    <MessageCircle size={16} />
+                                    Chat dengan penjual
+                                </Link>
 
                                 <button
                                     onClick={handleReport}

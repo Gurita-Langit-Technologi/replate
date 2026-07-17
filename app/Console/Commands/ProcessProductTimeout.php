@@ -68,6 +68,10 @@ class ProcessProductTimeout extends Command
             $product->status = 'timeout_stage_2';
             $product->save();
 
+            \App\Models\BarterOffer::where('product_id', $product->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'rejected']);
+
             // Notifikasi ke penjual
             Notification::create([
                 'user_id' => $product->user_id,
@@ -117,6 +121,10 @@ class ProcessProductTimeout extends Command
 
                 $product->status = 'timeout_stage_3';
                 $product->save();
+
+                \App\Models\BarterOffer::where('product_id', $product->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'rejected']);
 
                 // Notifikasi ke partner
                 Notification::create([

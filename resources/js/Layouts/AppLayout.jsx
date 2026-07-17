@@ -15,6 +15,7 @@ import {
     LogOut,
     Leaf,
     Users,
+    MessageCircle,
 } from 'lucide-react';
 import Toast from '@/Components/Toast';
 
@@ -25,6 +26,7 @@ const NAV_ITEMS = {
         { label: 'Produk Saya', href: '/my-products', icon: Package },
         { label: 'Transaksi', href: '/transactions', icon: Receipt },
         { label: 'Barter', href: '/barter', icon: ArrowLeftRight },
+        { label: 'Chat', href: '/chat', icon: MessageCircle },
     ],
     admin: [
         { label: 'Admin Panel', href: '/admin/dashboard', icon: Shield },
@@ -92,13 +94,8 @@ export default function AppLayout({ children }) {
             >
                 {/* Logo */}
                 <div className="h-16 flex items-center gap-3 px-5 border-b border-gray-100">
-                    <div className="w-9 h-9 bg-green-600 rounded-lg flex items-center justify-center">
-                        <Leaf className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                        <span className="text-lg font-bold text-gray-900 tracking-tight">Replate</span>
-                        <p className="text-[10px] text-gray-400 leading-none -mt-0.5">Sirkulasi Sumber Daya Desa</p>
-                    </div>
+                    <img src="/image/logo.png" alt="Replate" className="w-9 h-9 rounded-lg object-cover" />
+                    <span className="text-lg font-bold text-gray-900 tracking-tight">Replate</span>
                     <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-gray-400">
                         <X size={20} />
                     </button>

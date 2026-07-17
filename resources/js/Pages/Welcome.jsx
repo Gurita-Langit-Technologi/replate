@@ -1,12 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
 import {
-    Leaf,
     ShoppingBasket,
     ArrowLeftRight,
     Heart,
     Handshake,
     Clock,
-    Shield,
     BarChart3,
     ArrowRight,
     ChevronRight,
@@ -63,9 +61,7 @@ export default function Welcome({ auth }) {
                 <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-gray-100">
                     <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
-                            <div className="w-9 h-9 bg-green-600 rounded-lg flex items-center justify-center">
-                                <Leaf className="w-5 h-5 text-white" />
-                            </div>
+                            <img src="/image/logo.png" alt="Replate" className="w-9 h-9 rounded-lg object-cover" />
                             <span className="text-lg font-bold text-gray-900">Replate</span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -101,12 +97,15 @@ export default function Welcome({ auth }) {
                     <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-white to-emerald-50" />
                     <div className="absolute top-20 right-0 w-96 h-96 bg-green-200/20 rounded-full blur-3xl" />
                     <div className="absolute bottom-0 left-0 w-72 h-72 bg-emerald-200/20 rounded-full blur-3xl" />
+                    <div className="absolute inset-0 opacity-[0.03]" style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                    }} />
 
                     <div className="relative max-w-6xl mx-auto px-4 py-20 md:py-32">
                         <div className="max-w-3xl">
                             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 text-xs font-medium rounded-full mb-6">
-                                <Leaf size={14} />
-                                Platform Sirkulasi Sumber Daya Desa
+                                <img src="/image/logo.png" alt="" className="w-4 h-4 rounded object-cover" />
+                                Platform Circular Economy Food Waste
                             </div>
                             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight mb-6">
                                 Dari Sisa{' '}
@@ -312,11 +311,8 @@ export default function Welcome({ auth }) {
                     <div className="max-w-6xl mx-auto px-4 py-10">
                         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                             <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                                    <Leaf className="w-4 h-4 text-white" />
-                                </div>
+                                <img src="/image/logo.png" alt="Replate" className="w-8 h-8 rounded-lg object-cover" />
                                 <span className="font-bold text-gray-900">Replate</span>
-                                <span className="text-sm text-gray-400">· Sirkulasi Sumber Daya Desa</span>
                             </div>
                             <p className="text-sm text-gray-400">
                                 Circular economy untuk kemandirian desa berkelanjutan

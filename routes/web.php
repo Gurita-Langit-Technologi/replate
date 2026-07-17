@@ -9,6 +9,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SellerVerificationController;
+use App\Http\Controllers\MessageController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -91,6 +92,10 @@ Route::middleware(['auth', 'role:partner'])->prefix('partner')->name('partner.')
     Route::patch('/transactions/{transaction}/confirm', [TransactionController::class, 'partnerConfirm'])->name('confirm');
 });
 
-
+// Chat
+    Route::get('/chat', [MessageController::class, 'index'])->name('chat.index');
+    Route::get('/chat/{partner}/{product?}', [MessageController::class, 'show'])->name('chat.show');
+    Route::post('/chat/{partner}', [MessageController::class, 'store'])->name('chat.store');
+    Route::get('/products/{product}/chat', [MessageController::class, 'startFromProduct'])->name('chat.start');
 
 require __DIR__.'/auth.php';

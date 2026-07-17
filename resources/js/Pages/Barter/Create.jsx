@@ -1,4 +1,4 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import AppLayout from '@/Layouts/AppLayout';
 import { Head, useForm, Link } from '@inertiajs/react';
 
 export default function Create({ product }) {
@@ -13,7 +13,7 @@ export default function Create({ product }) {
     }
 
     return (
-        <AuthenticatedLayout>
+        <AppLayout>
             <Head title="Ajukan Barter" />
             <div className="max-w-2xl mx-auto py-6 px-4">
                 <Link href={`/products/${product.id}`} className="text-blue-600 hover:underline mb-4 inline-block">
@@ -66,6 +66,6 @@ export default function Create({ product }) {
                     </button>
                 </form>
             </div>
-        </AuthenticatedLayout>
+        </AppLayout>
     );
 }

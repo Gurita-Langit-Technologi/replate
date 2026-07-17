@@ -83,7 +83,19 @@ class ProductController extends Controller
      * Simpan produk baru
      */
     public function store(Request $request)
-    {
+    {   
+        $user = $request->user();
+
+        // Cek lokasi
+        if (empty($user->desa) || empty($user->kecamatan)) {
+            return redirect()->route('profile.edit')->with('error', 'Lengkapi lokasi (desa & kecamatan) di profil Anda sebelum upload produk.');
+        }
+
+        // Cek olahan hanya untuk verified seller
+        if ($request->category === 'olahan' && $user->role !== 'verified_seller') {
+            return back()->withErrors(['category' => 'Hanya penjual olahan terverifikasi yang bisa upload produk olahan.']);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -171,6 +183,10 @@ class ProductController extends Controller
     {
         if ($product->user_id !== $request->user()->id) {
             return redirect()->route('products.mine')->with('error', 'Anda tidak memiliki akses.');
+        }
+
+        if ($request->category === 'olahan' && $request->user()->role !== 'verified_seller') {
+            return back()->withErrors(['category' => 'Hanya penjual olahan terverifikasi yang bisa upload produk olahan.']);
         }
 
         $validated = $request->validate([
