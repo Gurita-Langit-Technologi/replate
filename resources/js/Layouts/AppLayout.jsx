@@ -94,8 +94,7 @@ export default function AppLayout({ children }) {
             >
                 {/* Logo */}
                 <div className="h-16 flex items-center gap-3 px-5 border-b border-gray-100">
-                    <img src="/image/logo.png" alt="Replate" className="w-9 h-9 rounded-lg object-cover" />
-                    <span className="text-lg font-bold text-gray-900 tracking-tight">Replate</span>
+                    <img src="/image/logo(2).png" alt="Replate" className=" weight-auto h-12 rounded-lg object-cover" />  
                     <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-gray-400">
                         <X size={20} />
                     </button>

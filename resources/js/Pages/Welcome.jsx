@@ -76,8 +76,7 @@ export default function Welcome({ auth }) {
                 <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-gray-100">
                     <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
-                            <img src="/image/logo.png" alt="Replate" className="w-9 h-9 rounded-lg object-cover" />
-                            <span className="text-lg font-bold text-gray-900">Replate</span>
+                            <img src="/image/logo(2).png" alt="Replate" className="w-auto h-12 rounded-lg object-cover" />
                         </div>
 
                         {/* Tambah ini di tengah */}
