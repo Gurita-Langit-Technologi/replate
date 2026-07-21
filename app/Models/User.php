@@ -21,6 +21,7 @@ use Illuminate\Notifications\Notifiable;
     'kecamatan',
     'report_count',
     'is_blacklisted',
+    'address',
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable

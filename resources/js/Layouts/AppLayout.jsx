@@ -117,7 +117,7 @@ export default function AppLayout({ children }) {
                 </div>
 
                 {/* Navigation */}
-                <nav className="px-3 py-4 flex-1">
+                <nav className="px-3 py-4 flex-1 overflow-y-auto">
                     <p className="px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Menu</p>
                     <div className="space-y-0.5">
                         {navItems.map((item) => {

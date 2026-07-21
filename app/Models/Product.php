@@ -11,30 +11,26 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'title',
-        'description',
-        'photo',
-        'category',
-        'condition',
-        'weight_grams',
+        'user_id', 'title', 'description', 'photo',
+        'category', 'condition',
+        'weight_grams', 'quantity', 'unit',
         'transaction_mode',
-        'price',
-        'discounted_price',
-        'barter_description',
-        'desa',
-        'kecamatan',
-        'timeout_at',
-        'timeout_stage1_at',
-        'status',
+        'price', 'discounted_price', 'barter_description',
+        'desa', 'kecamatan',
+        'pickup_address', 'pickup_notes', 'pickup_type',
+        'timeout_at', 'timeout_stage1_at', 'status',
+        'timer_paused', 'timer_paused_at',
     ];
 
     protected $casts = [
         'timeout_at' => 'datetime',
         'timeout_stage1_at' => 'datetime',
+        'timer_paused_at' => 'datetime',
+        'timer_paused' => 'boolean',
         'price' => 'integer',
         'discounted_price' => 'integer',
         'weight_grams' => 'integer',
+        'quantity' => 'integer',
     ];
 
     // ==================== RELASI ====================

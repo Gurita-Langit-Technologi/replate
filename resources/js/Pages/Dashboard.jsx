@@ -1,292 +1,250 @@
 import AppLayout from '@/Layouts/AppLayout';
-import { Head, useForm, Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import {
-    ArrowLeft,
-    Upload,
-    Image,
-    Tag,
-    Scale,
-    ShoppingBasket,
+    Package,
     ArrowLeftRight,
-    Heart,
-    AlertTriangle,
-    X,
+    Leaf,
+    TrendingUp,
+    Clock,
+    ShoppingBasket,
+    ArrowRight,
+    Receipt,
 } from 'lucide-react';
 
-const modeOptions = [
-    { value: 'sell', label: 'Jual', icon: ShoppingBasket, desc: 'Jual dengan harga yang ditentukan', color: 'border-green-400 bg-green-50 text-green-700' },
-    { value: 'barter', label: 'Barter', icon: ArrowLeftRight, desc: 'Tukar dengan barang lain', color: 'border-purple-400 bg-purple-50 text-purple-700' },
-    { value: 'sell_and_barter', label: 'Jual & Barter', icon: Tag, desc: 'Bisa dijual atau dibarter', color: 'border-amber-400 bg-amber-50 text-amber-700' },
-    { value: 'donate', label: 'Donasi', icon: Heart, desc: 'Berikan gratis untuk yang membutuhkan', color: 'border-blue-400 bg-blue-50 text-blue-700' },
-];
+function StatCard({ icon: Icon, label, value, unit, color }) {
+    const colorClasses = {
+        green: 'bg-green-50 text-green-600',
+        blue: 'bg-blue-50 text-blue-600',
+        purple: 'bg-purple-50 text-purple-600',
+        amber: 'bg-amber-50 text-amber-600',
+    };
 
-const conditionOptions = [
-    { value: 'layak_konsumsi', label: 'Layak konsumsi', desc: 'Masih bisa dimakan langsung', color: 'border-green-400 bg-green-50' },
-    { value: 'layak_olah', label: 'Layak olah ulang', desc: 'Perlu diolah sebelum dikonsumsi', color: 'border-amber-400 bg-amber-50' },
-    { value: 'layak_pakan_kompos', label: 'Pakan / kompos', desc: 'Untuk pakan ternak atau kompos', color: 'border-red-400 bg-red-50' },
-];
+    return (
+        <div className="bg-white rounded-xl border border-gray-100 p-5">
+            <div className="flex items-center gap-3 mb-3">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClasses[color]}`}>
+                    <Icon size={20} />
+                </div>
+                <span className="text-sm text-gray-500">{label}</span>
+            </div>
+            <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold text-gray-900">{value}</span>
+                {unit && <span className="text-sm text-gray-400">{unit}</span>}
+            </div>
+        </div>
+    );
+}
 
-export default function Create() {
-    const { data, setData, post, processing, errors } = useForm({
-        title: '',
-        description: '',
-        photo: null,
-        category: 'mentah',
-        condition: 'layak_konsumsi',
-        weight_grams: '',
-        transaction_mode: 'sell',
-        price: '',
-        barter_description: '',
-    });
+function ProductRow({ product }) {
+    const timeLeft = Math.max(0, Math.floor((new Date(product.timeout_at) - new Date()) / (1000 * 60 * 60)));
 
-    const [preview, setPreview] = useState(null);
+    const statusStyles = {
+        active: 'bg-green-50 text-green-700',
+        timeout_stage_1: 'bg-amber-50 text-amber-700',
+        timeout_stage_2: 'bg-orange-50 text-orange-700',
+        sold: 'bg-blue-50 text-blue-700',
+        bartered: 'bg-purple-50 text-purple-700',
+        donated: 'bg-pink-50 text-pink-700',
+    };
 
-    function handlePhoto(e) {
-        const file = e.target.files[0];
-        if (file) {
-            setData('photo', file);
-            setPreview(URL.createObjectURL(file));
-        }
-    }
+    const statusLabels = {
+        active: 'Aktif',
+        timeout_stage_1: 'Diskon',
+        timeout_stage_2: 'Donasi',
+        sold: 'Terjual',
+        bartered: 'Terbarter',
+        donated: 'Terdonasi',
+    };
 
-    function removePhoto() {
-        setData('photo', null);
-        setPreview(null);
-    }
+    const modeIcons = {
+        sell: '💰',
+        barter: '🔄',
+        sell_and_barter: '💰🔄',
+        donate: '🎁',
+    };
 
-    function handleSubmit(e) {
-        e.preventDefault();
-        post('/products');
-    }
+    return (
+        <Link href={`/products/${product.id}`} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition group">
+            <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
+                {product.photo ? (
+                    <img src={`/storage/${product.photo}`} alt="" className="w-full h-full object-cover" />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                        <Package size={20} />
+                    </div>
+                )}
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">{product.title}</p>
+                <p className="text-xs text-gray-400">
+                    {(product.weight_grams / 1000).toFixed(1)}kg · {modeIcons[product.transaction_mode]}
+                    {product.price && ` · Rp ${(product.discounted_price || product.price).toLocaleString()}`}
+                </p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+                {product.status === 'active' && (
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                        <Clock size={12} />
+                        {timeLeft}j
+                    </span>
+                )}
+                <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${statusStyles[product.status] || 'bg-gray-100 text-gray-600'}`}>
+                    {statusLabels[product.status] || product.status}
+                </span>
+            </div>
+        </Link>
+    );
+}
+
+function SectionHeader({ title, href, linkText }) {
+    return (
+        <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+            {href && (
+                <Link href={href} className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1">
+                    {linkText || 'Lihat semua'} <ArrowRight size={14} />
+                </Link>
+            )}
+        </div>
+    );
+}
+
+export default function Dashboard({ stats, recentProducts, recentTransactions, incomingBarters }) {
+    const { auth } = usePage().props;
 
     return (
         <AppLayout>
-            <Head title="Upload Produk" />
+            <Head title="Dashboard" />
 
-            <div className="max-w-2xl mx-auto">
-                <Link href="/marketplace" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-4">
-                    <ArrowLeft size={16} />
-                    Kembali ke marketplace
-                </Link>
-
+            <div className="max-w-6xl mx-auto">
                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Upload produk</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">Bagikan food waste agar tidak terbuang sia-sia</p>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        Halo, {auth.user.name}!
+                    </h1>
+                    <p className="text-gray-500 text-sm mt-1">
+                        Selamat datang di Replate — mari kurangi food waste bersama.
+                    </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Foto */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <StatCard icon={Package} label="Produk Aktif" value={stats.myProducts} color="green" />
+                    <StatCard icon={TrendingUp} label="Total Transaksi" value={stats.totalTransactions} color="blue" />
+                    <StatCard icon={Leaf} label="Waste Terselamatkan" value={(stats.totalWeightSaved / 1000).toFixed(1)} unit="kg" color="purple" />
+                    <StatCard icon={ArrowLeftRight} label="Tawaran Barter" value={stats.incomingBarterCount || 0} color="amber" />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="bg-white rounded-xl border border-gray-100 p-5">
-                        <label className="block text-sm font-medium text-gray-900 mb-3">
-                            <span className="flex items-center gap-2"><Image size={16} className="text-gray-400" /> Foto produk *</span>
-                        </label>
-                        {preview ? (
-                            <div className="relative">
-                                <img src={preview} alt="Preview" className="w-full h-56 object-cover rounded-xl" />
-                                <button
-                                    type="button"
-                                    onClick={removePhoto}
-                                    className="absolute top-2 right-2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70"
-                                >
-                                    <X size={16} />
-                                </button>
+                        <SectionHeader title="Produk Aktif Saya" href="/my-products" />
+                        {recentProducts && recentProducts.length > 0 ? (
+                            <div className="divide-y divide-gray-50">
+                                {recentProducts.map((product) => (
+                                    <ProductRow key={product.id} product={product} />
+                                ))}
                             </div>
                         ) : (
-                            <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-green-400 hover:bg-green-50/30 transition">
-                                <Upload size={28} className="text-gray-300 mb-2" />
-                                <p className="text-sm text-gray-500">Klik untuk upload foto</p>
-                                <p className="text-xs text-gray-400 mt-0.5">JPG, PNG (maks. 2MB)</p>
-                                <input type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
-                            </label>
+                            <div className="text-center py-8">
+                                <Package size={32} className="mx-auto text-gray-200 mb-2" />
+                                <p className="text-sm text-gray-400 mb-3">Belum ada produk aktif</p>
+                                <Link href="/products/create" className="text-sm text-green-600 hover:underline">
+                                    Upload produk pertama →
+                                </Link>
+                            </div>
                         )}
-                        {errors.photo && <p className="text-red-500 text-sm mt-2">{errors.photo}</p>}
                     </div>
 
-                    {/* Info Produk */}
-                    <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
-                        <p className="text-sm font-medium text-gray-900">Informasi produk</p>
-
-                        <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1.5">Judul produk *</label>
-                            <input
-                                type="text"
-                                value={data.title}
-                                onChange={e => setData('title', e.target.value)}
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
-                                placeholder="Contoh: Nasi Kotak Sisa Katering"
-                            />
-                            {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1.5">Deskripsi *</label>
-                            <textarea
-                                value={data.description}
-                                onChange={e => setData('description', e.target.value)}
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
-                                rows={3}
-                                placeholder="Jelaskan kondisi, asal, dan kelayakan produk..."
-                            />
-                            {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1.5">Kategori *</label>
-                                <select
-                                    value={data.category}
-                                    onChange={e => setData('category', e.target.value)}
-                                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
-                                >
-                                    <option value="mentah">Mentah</option>
-                                    <option value="olahan">Olahan</option>
-                                    <option value="hasil_bumi">Hasil bumi</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
-                                    <Scale size={12} /> Berat (gram) *
-                                </label>
-                                <input
-                                    type="number"
-                                    value={data.weight_grams}
-                                    onChange={e => setData('weight_grams', e.target.value)}
-                                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
-                                    min="500"
-                                    placeholder="Min. 500"
-                                />
-                                {errors.weight_grams && <p className="text-red-500 text-xs mt-1">{errors.weight_grams}</p>}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Kondisi */}
                     <div className="bg-white rounded-xl border border-gray-100 p-5">
-                        <p className="text-sm font-medium text-gray-900 mb-3">Kondisi produk *</p>
-                        <div className="space-y-2">
-                            {conditionOptions.map((opt) => (
-                                <label
-                                    key={opt.value}
-                                    className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition
-                                        ${data.condition === opt.value ? opt.color + ' border-opacity-100' : 'border-gray-100 hover:border-gray-200'}`}
-                                >
-                                    <input
-                                        type="radio"
-                                        name="condition"
-                                        value={opt.value}
-                                        checked={data.condition === opt.value}
-                                        onChange={e => setData('condition', e.target.value)}
-                                        className="hidden"
-                                    />
-                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0
-                                        ${data.condition === opt.value ? 'border-green-500' : 'border-gray-300'}`}>
-                                        {data.condition === opt.value && <div className="w-2 h-2 rounded-full bg-green-500" />}
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">{opt.label}</p>
-                                        <p className="text-xs text-gray-500">{opt.desc}</p>
-                                    </div>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
+                        <SectionHeader title="Transaksi Terbaru" href="/transactions" />
+                        {recentTransactions && recentTransactions.length > 0 ? (
+                            <div className="space-y-2">
+                                {recentTransactions.map((t) => {
+                                    const statusStyles = {
+                                        pending: 'bg-yellow-400',
+                                        confirmed: 'bg-blue-400',
+                                        completed: 'bg-green-400',
+                                        cancelled: 'bg-gray-300',
+                                    };
+                                    const statusLabels = {
+                                        pending: 'Menunggu',
+                                        confirmed: 'Dikonfirmasi',
+                                        completed: 'Selesai',
+                                        cancelled: 'Dibatalkan',
+                                    };
+                                    const typeLabels = {
+                                        sale: 'Jual',
+                                        barter: 'Barter',
+                                        donation: 'Donasi',
+                                        partner_transfer: 'Partner',
+                                    };
 
-                    {/* Mode Transaksi */}
-                    <div className="bg-white rounded-xl border border-gray-100 p-5">
-                        <p className="text-sm font-medium text-gray-900 mb-3">Mode transaksi *</p>
-                        <div className="grid grid-cols-2 gap-2">
-                            {modeOptions.map((opt) => {
-                                const Icon = opt.icon;
-                                const isSelected = data.transaction_mode === opt.value;
-                                return (
-                                    <label
-                                        key={opt.value}
-                                        className={`flex flex-col items-center gap-1.5 p-4 rounded-xl border-2 cursor-pointer transition text-center
-                                            ${isSelected ? opt.color + ' border-opacity-100' : 'border-gray-100 hover:border-gray-200'}`}
-                                    >
-                                        <input
-                                            type="radio"
-                                            name="transaction_mode"
-                                            value={opt.value}
-                                            checked={isSelected}
-                                            onChange={e => setData('transaction_mode', e.target.value)}
-                                            className="hidden"
-                                        />
-                                        <Icon size={22} className={isSelected ? '' : 'text-gray-400'} />
-                                        <p className="text-sm font-medium">{opt.label}</p>
-                                        <p className="text-[10px] text-gray-500 leading-tight">{opt.desc}</p>
-                                    </label>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Harga */}
-                    {(data.transaction_mode === 'sell' || data.transaction_mode === 'sell_and_barter') && (
-                        <div className="bg-white rounded-xl border border-gray-100 p-5">
-                            <label className="block text-sm font-medium text-gray-900 mb-3">Harga *</label>
-                            <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">Rp</span>
-                                <input
-                                    type="number"
-                                    value={data.price}
-                                    onChange={e => setData('price', e.target.value)}
-                                    className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
-                                    min="0"
-                                    placeholder="25000"
-                                />
+                                    return (
+                                        <Link
+                                            key={t.id}
+                                            href={`/transactions/${t.id}`}
+                                            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition"
+                                        >
+                                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${statusStyles[t.status]}`} />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-gray-900 truncate">
+                                                    {t.product?.title || 'Produk'}
+                                                </p>
+                                                <p className="text-xs text-gray-400">
+                                                    {typeLabels[t.type]} · {statusLabels[t.status]}
+                                                    {t.price && ` · Rp ${t.price.toLocaleString()}`}
+                                                </p>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
                             </div>
-                            {errors.price && <p className="text-red-500 text-xs mt-2">{errors.price}</p>}
-                        </div>
-                    )}
-
-                    {/* Barter Description */}
-                    {(data.transaction_mode === 'barter' || data.transaction_mode === 'sell_and_barter') && (
-                        <div className="bg-white rounded-xl border border-purple-100 p-5">
-                            <label className="flex items-center gap-2 text-sm font-medium text-purple-700 mb-3">
-                                <ArrowLeftRight size={16} />
-                                Menerima barter dalam bentuk *
-                            </label>
-                            <textarea
-                                value={data.barter_description}
-                                onChange={e => setData('barter_description', e.target.value)}
-                                className="w-full border border-purple-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400 bg-purple-50/30"
-                                rows={2}
-                                placeholder="Contoh: Mau ditukar dengan telur, beras, singkong, atau hasil kebun lainnya"
-                            />
-                            {errors.barter_description && <p className="text-red-500 text-xs mt-2">{errors.barter_description}</p>}
-                        </div>
-                    )}
-
-                    {/* Disclaimer */}
-                    <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                        <AlertTriangle size={18} className="text-amber-500 flex-shrink-0 mt-0.5" />
-                        <div>
-                            <p className="text-sm text-amber-700 font-medium">Perhatian</p>
-                            <p className="text-xs text-amber-600 mt-0.5">
-                                Dengan mengunggah produk, Anda bertanggung jawab atas kondisi produk yang diunggah.
-                                Produk yang berjamur, berlendir, atau tidak layak akan dihapus oleh admin.
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Submit */}
-                    <button
-                        type="submit"
-                        disabled={processing}
-                        className="w-full py-3.5 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                        {processing ? (
-                            'Mengunggah...'
                         ) : (
-                            <>
-                                <Upload size={18} />
-                                Upload produk
-                            </>
+                            <div className="text-center py-8">
+                                <Receipt size={32} className="mx-auto text-gray-200 mb-2" />
+                                <p className="text-sm text-gray-400">Belum ada transaksi</p>
+                            </div>
                         )}
-                    </button>
-                </form>
+                    </div>
+
+                    {incomingBarters && incomingBarters.length > 0 && (
+                        <div className="bg-white rounded-xl border border-gray-100 p-5 lg:col-span-2">
+                            <SectionHeader title="Tawaran Barter Masuk" href="/barter" linkText="Lihat semua tawaran" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {incomingBarters.map((offer) => (
+                                    <div key={offer.id} className="flex items-start gap-3 p-3 rounded-lg bg-purple-50/50 border border-purple-100">
+                                        <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-semibold text-xs flex-shrink-0">
+                                            {offer.offerer?.name?.charAt(0) || '?'}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm">
+                                                <span className="font-medium text-gray-900">{offer.offerer?.name}</span>
+                                                <span className="text-gray-500"> menawarkan barter untuk </span>
+                                                <span className="font-medium text-gray-900">{offer.product?.title}</span>
+                                            </p>
+                                            <p className="text-xs text-purple-600 mt-1 truncate">"{offer.offer_description}"</p>
+                                        </div>
+                                        <Link
+                                            href="/barter"
+                                            className="text-xs px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex-shrink-0"
+                                        >
+                                            Lihat
+                                        </Link>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mt-6 lg:hidden">
+                    <Link href="/marketplace" className="flex items-center gap-3 bg-white rounded-xl border border-gray-100 p-4 hover:border-green-200 transition">
+                        <ShoppingBasket size={20} className="text-green-600" />
+                        <span className="text-sm font-medium text-gray-900">Marketplace</span>
+                    </Link>
+                    <Link href="/products/create" className="flex items-center gap-3 bg-white rounded-xl border border-gray-100 p-4 hover:border-green-200 transition">
+                        <Package size={20} className="text-green-600" />
+                        <span className="text-sm font-medium text-gray-900">Upload</span>
+                    </Link>
+                </div>
             </div>
         </AppLayout>
     );

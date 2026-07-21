@@ -1,5 +1,31 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, useForm, Link } from '@inertiajs/react';
+import { useState } from 'react';
+import {
+    ArrowLeft,
+    Upload,
+    Image,
+    Tag,
+    Scale,
+    ShoppingBasket,
+    ArrowLeftRight,
+    Heart,
+    X,
+    MapPin,
+} from 'lucide-react';
+
+const modeOptions = [
+    { value: 'sell', label: 'Jual', icon: ShoppingBasket, color: 'border-green-400 bg-green-50 text-green-700' },
+    { value: 'barter', label: 'Barter', icon: ArrowLeftRight, color: 'border-purple-400 bg-purple-50 text-purple-700' },
+    { value: 'sell_and_barter', label: 'Jual & Barter', icon: Tag, color: 'border-amber-400 bg-amber-50 text-amber-700' },
+    { value: 'donate', label: 'Donasi', icon: Heart, color: 'border-blue-400 bg-blue-50 text-blue-700' },
+];
+
+const conditionOptions = [
+    { value: 'layak_konsumsi', label: 'Layak konsumsi', desc: 'Masih bisa dimakan langsung', color: 'border-green-400 bg-green-50' },
+    { value: 'layak_olah', label: 'Layak olah ulang', desc: 'Perlu diolah sebelum dikonsumsi', color: 'border-amber-400 bg-amber-50' },
+    { value: 'layak_pakan_kompos', label: 'Pakan / kompos', desc: 'Untuk pakan ternak atau kompos', color: 'border-red-400 bg-red-50' },
+];
 
 export default function Edit({ product }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -9,11 +35,31 @@ export default function Edit({ product }) {
         photo: null,
         category: product.category,
         condition: product.condition,
-        weight_grams: product.weight_grams,
+        weight_grams: product.weight_grams || '',
+        quantity: product.quantity || 1,
+        unit: product.unit || 'gram',
         transaction_mode: product.transaction_mode,
         price: product.price || '',
         barter_description: product.barter_description || '',
+        pickup_type: product.pickup_type || 'rumah',
+        pickup_address: product.pickup_address || '',
+        pickup_notes: product.pickup_notes || '',
     });
+
+    const [preview, setPreview] = useState(null);
+
+    function handlePhoto(e) {
+        const file = e.target.files[0];
+        if (file) {
+            setData('photo', file);
+            setPreview(URL.createObjectURL(file));
+        }
+    }
+
+    function removePhoto() {
+        setData('photo', null);
+        setPreview(null);
+    }
 
     function handleSubmit(e) {
         e.preventDefault();
@@ -23,84 +69,249 @@ export default function Edit({ product }) {
     return (
         <AppLayout>
             <Head title="Edit Produk" />
-            <div className="max-w-2xl mx-auto py-6 px-4">
-                <Link href="/my-products" className="text-blue-600 hover:underline mb-4 inline-block">
-                    ← Kembali ke Produk Saya
+
+            <div className="max-w-2xl mx-auto">
+                <Link href="/my-products" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-4">
+                    <ArrowLeft size={16} />
+                    Kembali ke produk saya
                 </Link>
-                <h1 className="text-2xl font-bold mb-6">Edit Produk</h1>
 
-                <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Judul Produk *</label>
-                        <input type="text" value={data.title} onChange={e => setData('title', e.target.value)} className="w-full border rounded-lg px-4 py-2" />
-                        {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+                <div className="mb-6">
+                    <h1 className="text-2xl font-bold text-gray-900">Edit produk</h1>
+                    <p className="text-sm text-gray-500 mt-0.5">Perbarui informasi produk Anda</p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Foto */}
+                    <div className="bg-white rounded-xl border border-gray-100 p-5">
+                        <label className="block text-sm font-medium text-gray-900 mb-3">
+                            <span className="flex items-center gap-2"><Image size={16} className="text-gray-400" /> Ganti foto (opsional)</span>
+                        </label>
+                        {/* Current photo */}
+                        {!preview && product.photo && (
+                            <div className="mb-3">
+                                <img src={`/storage/${product.photo}`} alt="Foto saat ini" className="w-full h-48 object-cover rounded-xl" />
+                                <p className="text-xs text-gray-400 mt-1">Foto saat ini</p>
+                            </div>
+                        )}
+                        {preview ? (
+                            <div className="relative">
+                                <img src={preview} alt="Preview" className="w-full h-48 object-cover rounded-xl" />
+                                <button
+                                    type="button"
+                                    onClick={removePhoto}
+                                    className="absolute top-2 right-2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        ) : (
+                            <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-green-400 hover:bg-green-50/30 transition">
+                                <Upload size={24} className="text-gray-300 mb-1" />
+                                <p className="text-sm text-gray-500">Klik untuk upload foto baru</p>
+                                <input type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
+                            </label>
+                        )}
+                        {errors.photo && <p className="text-red-500 text-sm mt-2">{errors.photo}</p>}
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Deskripsi *</label>
-                        <textarea value={data.description} onChange={e => setData('description', e.target.value)} className="w-full border rounded-lg px-4 py-2" rows={3} />
-                        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
-                    </div>
+                    {/* Info Produk */}
+                    <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
+                        <p className="text-sm font-medium text-gray-900">Informasi produk</p>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Ganti Foto (opsional)</label>
-                        <input type="file" accept="image/*" onChange={e => setData('photo', e.target.files[0])} className="w-full border rounded-lg px-4 py-2" />
-                        <p className="text-xs text-gray-400 mt-1">Kosongkan jika tidak ingin mengganti foto</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1">Kategori *</label>
-                            <select value={data.category} onChange={e => setData('category', e.target.value)} className="w-full border rounded-lg px-4 py-2">
+                            <label className="block text-xs font-medium text-gray-500 mb-1.5">Judul produk *</label>
+                            <input
+                                type="text"
+                                value={data.title}
+                                onChange={e => setData('title', e.target.value)}
+                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                            />
+                            {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1.5">Deskripsi *</label>
+                            <textarea
+                                value={data.description}
+                                onChange={e => setData('description', e.target.value)}
+                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                                rows={3}
+                            />
+                            {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1.5">Kategori *</label>
+                            <select
+                                value={data.category}
+                                onChange={e => setData('category', e.target.value)}
+                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                            >
                                 <option value="mentah">Mentah</option>
                                 <option value="olahan">Olahan</option>
-                                <option value="hasil_bumi">Hasil Bumi</option>
+                                <option value="hasil_bumi">Hasil bumi</option>
                             </select>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Kondisi *</label>
-                            <select value={data.condition} onChange={e => setData('condition', e.target.value)} className="w-full border rounded-lg px-4 py-2">
-                                <option value="layak_konsumsi">Layak Konsumsi</option>
-                                <option value="layak_olah">Layak Olah Ulang</option>
-                                <option value="layak_pakan_kompos">Layak Pakan/Kompos</option>
-                            </select>
+
+                        <div className="grid grid-cols-3 gap-3">
+                            <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1.5">Jumlah *</label>
+                                <input
+                                    type="number"
+                                    value={data.quantity}
+                                    onChange={e => setData('quantity', e.target.value)}
+                                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                                    min="1"
+                                />
+                                {errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1.5">Satuan *</label>
+                                <select
+                                    value={data.unit}
+                                    onChange={e => setData('unit', e.target.value)}
+                                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                                >
+                                    <option value="gram">Gram</option>
+                                    <option value="kg">Kilogram</option>
+                                    <option value="pcs">Pcs</option>
+                                    <option value="porsi">Porsi</option>
+                                    <option value="kotak">Kotak</option>
+                                    <option value="bungkus">Bungkus</option>
+                                    <option value="liter">Liter</option>
+                                    <option value="ikat">Ikat</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1.5">Berat (gram)</label>
+                                <input
+                                    type="number"
+                                    value={data.weight_grams}
+                                    onChange={e => setData('weight_grams', e.target.value)}
+                                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                                    min="0"
+                                    placeholder="Opsional"
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Berat (gram) *</label>
-                        <input type="number" value={data.weight_grams} onChange={e => setData('weight_grams', e.target.value)} className="w-full border rounded-lg px-4 py-2" min="500" />
-                        {errors.weight_grams && <p className="text-red-500 text-sm mt-1">{errors.weight_grams}</p>}
+                    {/* Kondisi */}
+                    <div className="bg-white rounded-xl border border-gray-100 p-5">
+                        <p className="text-sm font-medium text-gray-900 mb-3">Kondisi produk *</p>
+                        <div className="space-y-2">
+                            {conditionOptions.map((opt) => (
+                                <label
+                                    key={opt.value}
+                                    className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition
+                                        ${data.condition === opt.value ? opt.color + ' border-opacity-100' : 'border-gray-100 hover:border-gray-200'}`}
+                                >
+                                    <input type="radio" name="condition" value={opt.value} checked={data.condition === opt.value} onChange={e => setData('condition', e.target.value)} className="hidden" />
+                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${data.condition === opt.value ? 'border-green-500' : 'border-gray-300'}`}>
+                                        {data.condition === opt.value && <div className="w-2 h-2 rounded-full bg-green-500" />}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-900">{opt.label}</p>
+                                        <p className="text-xs text-gray-500">{opt.desc}</p>
+                                    </div>
+                                </label>
+                            ))}
+                        </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Mode Transaksi *</label>
-                        <select value={data.transaction_mode} onChange={e => setData('transaction_mode', e.target.value)} className="w-full border rounded-lg px-4 py-2">
-                            <option value="sell">Jual</option>
-                            <option value="barter">Barter</option>
-                            <option value="sell_and_barter">Jual & Barter</option>
-                            <option value="donate">Donasi</option>
-                        </select>
+                    {/* Mode Transaksi */}
+                    <div className="bg-white rounded-xl border border-gray-100 p-5">
+                        <p className="text-sm font-medium text-gray-900 mb-3">Mode transaksi *</p>
+                        <div className="grid grid-cols-2 gap-2">
+                            {modeOptions.map((opt) => {
+                                const Icon = opt.icon;
+                                const isSelected = data.transaction_mode === opt.value;
+                                return (
+                                    <label
+                                        key={opt.value}
+                                        className={`flex flex-col items-center gap-1.5 p-4 rounded-xl border-2 cursor-pointer transition text-center
+                                            ${isSelected ? opt.color + ' border-opacity-100' : 'border-gray-100 hover:border-gray-200'}`}
+                                    >
+                                        <input type="radio" name="transaction_mode" value={opt.value} checked={isSelected} onChange={e => setData('transaction_mode', e.target.value)} className="hidden" />
+                                        <Icon size={22} className={isSelected ? '' : 'text-gray-400'} />
+                                        <p className="text-sm font-medium">{opt.label}</p>
+                                    </label>
+                                );
+                            })}
+                        </div>
                     </div>
 
+                    {/* Harga */}
                     {(data.transaction_mode === 'sell' || data.transaction_mode === 'sell_and_barter') && (
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Harga (Rp) *</label>
-                            <input type="number" value={data.price} onChange={e => setData('price', e.target.value)} className="w-full border rounded-lg px-4 py-2" min="0" />
-                            {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
+                        <div className="bg-white rounded-xl border border-gray-100 p-5">
+                            <label className="block text-sm font-medium text-gray-900 mb-3">Harga *</label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">Rp</span>
+                                <input type="number" value={data.price} onChange={e => setData('price', e.target.value)} className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400" min="0" />
+                            </div>
+                            {errors.price && <p className="text-red-500 text-xs mt-2">{errors.price}</p>}
                         </div>
                     )}
 
+                    {/* Barter */}
                     {(data.transaction_mode === 'barter' || data.transaction_mode === 'sell_and_barter') && (
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Menerima Barter Dalam Bentuk *</label>
-                            <textarea value={data.barter_description} onChange={e => setData('barter_description', e.target.value)} className="w-full border rounded-lg px-4 py-2" rows={2} />
-                            {errors.barter_description && <p className="text-red-500 text-sm mt-1">{errors.barter_description}</p>}
+                        <div className="bg-white rounded-xl border border-purple-100 p-5">
+                            <label className="flex items-center gap-2 text-sm font-medium text-purple-700 mb-3">
+                                <ArrowLeftRight size={16} /> Menerima barter dalam bentuk *
+                            </label>
+                            <textarea value={data.barter_description} onChange={e => setData('barter_description', e.target.value)} className="w-full border border-purple-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400 bg-purple-50/30" rows={2} />
+                            {errors.barter_description && <p className="text-red-500 text-xs mt-2">{errors.barter_description}</p>}
                         </div>
                     )}
 
-                    <button type="submit" disabled={processing} className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
-                        {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                    {/* Lokasi Pengambilan */}
+                    <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-3">
+                        <p className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                            <MapPin size={16} className="text-gray-400" /> Lokasi pengambilan
+                        </p>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1.5">Tipe pengambilan *</label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <label className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ${data.pickup_type === 'rumah' ? 'border-green-400 bg-green-50' : 'border-gray-100 hover:border-gray-200'}`}>
+                                    <input type="radio" name="pickup_type" value="rumah" checked={data.pickup_type === 'rumah'} onChange={e => setData('pickup_type', e.target.value)} className="hidden" />
+                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${data.pickup_type === 'rumah' ? 'border-green-500' : 'border-gray-300'}`}>
+                                        {data.pickup_type === 'rumah' && <div className="w-2 h-2 rounded-full bg-green-500" />}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-900">Ambil di rumah</p>
+                                        <p className="text-[10px] text-gray-500">Pembeli datang ke alamat Anda</p>
+                                    </div>
+                                </label>
+                                <label className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ${data.pickup_type === 'drop_point' ? 'border-green-400 bg-green-50' : 'border-gray-100 hover:border-gray-200'}`}>
+                                    <input type="radio" name="pickup_type" value="drop_point" checked={data.pickup_type === 'drop_point'} onChange={e => setData('pickup_type', e.target.value)} className="hidden" />
+                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${data.pickup_type === 'drop_point' ? 'border-green-500' : 'border-gray-300'}`}>
+                                        {data.pickup_type === 'drop_point' && <div className="w-2 h-2 rounded-full bg-green-500" />}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-900">Drop Point BUMDes</p>
+                                        <p className="text-[10px] text-gray-500">Titipkan di pos desa</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1.5">Alamat lengkap</label>
+                            <textarea value={data.pickup_address} onChange={e => setData('pickup_address', e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400" rows={2} />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1.5">Catatan pengambilan</label>
+                            <input type="text" value={data.pickup_notes} onChange={e => setData('pickup_notes', e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400" />
+                        </div>
+                    </div>
+
+                    {/* Submit */}
+                    <button
+                        type="submit"
+                        disabled={processing}
+                        className="w-full py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        {processing ? 'Menyimpan...' : 'Simpan perubahan'}
                     </button>
                 </form>
             </div>

@@ -35,9 +35,13 @@ export default function Create() {
         category: 'mentah',
         condition: 'layak_konsumsi',
         weight_grams: '',
+        quantity: 1,           // BARU
+        unit: 'gram',          // BARU
         transaction_mode: 'sell',
         price: '',
         barter_description: '',
+        pickup_address: '',    // BARU
+        pickup_notes: '',      // BARU
     });
 
     const [preview, setPreview] = useState(null);
@@ -132,7 +136,7 @@ export default function Create() {
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div>
+                           <div>
                                 <label className="block text-xs font-medium text-gray-500 mb-1.5">Kategori *</label>
                                 <select
                                     value={data.category}
@@ -143,6 +147,49 @@ export default function Create() {
                                     <option value="olahan">Olahan</option>
                                     <option value="hasil_bumi">Hasil bumi</option>
                                 </select>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1.5">Jumlah *</label>
+                                    <input
+                                        type="number"
+                                        value={data.quantity}
+                                        onChange={e => setData('quantity', e.target.value)}
+                                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                                        min="1"
+                                        placeholder="25"
+                                    />
+                                    {errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1.5">Satuan *</label>
+                                    <select
+                                        value={data.unit}
+                                        onChange={e => setData('unit', e.target.value)}
+                                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                                    >
+                                        <option value="gram">Gram</option>
+                                        <option value="kg">Kilogram</option>
+                                        <option value="pcs">Pcs</option>
+                                        <option value="porsi">Porsi</option>
+                                        <option value="kotak">Kotak</option>
+                                        <option value="bungkus">Bungkus</option>
+                                        <option value="liter">Liter</option>
+                                        <option value="ikat">Ikat</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1.5">Berat (gram)</label>
+                                    <input
+                                        type="number"
+                                        value={data.weight_grams}
+                                        onChange={e => setData('weight_grams', e.target.value)}
+                                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                                        min="0"
+                                        placeholder="Opsional"
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
@@ -258,6 +305,31 @@ export default function Create() {
                             {errors.barter_description && <p className="text-red-500 text-xs mt-2">{errors.barter_description}</p>}
                         </div>
                     )}
+
+                    {/* Lokasi Pengambilan */}
+                    <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-3">
+                        <p className="text-sm font-medium text-gray-900">Lokasi pengambilan</p>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1.5">Alamat lengkap</label>
+                            <textarea
+                                value={data.pickup_address}
+                                onChange={e => setData('pickup_address', e.target.value)}
+                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                                rows={2}
+                                placeholder="Contoh: Jl. Raya Desa No. 5, RT 03/RW 01, depan balai desa"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1.5">Catatan pengambilan</label>
+                            <input
+                                type="text"
+                                value={data.pickup_notes}
+                                onChange={e => setData('pickup_notes', e.target.value)}
+                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                                placeholder="Contoh: Ambil sebelum jam 5 sore, hubungi WA dulu"
+                            />
+                        </div>
+                    </div>
 
                     {/* Disclaimer */}
                     <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">

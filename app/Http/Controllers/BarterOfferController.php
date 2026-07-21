@@ -70,6 +70,14 @@ class BarterOfferController extends Controller
             'related_type' => BarterOffer::class,
         ]);
 
+        // Pause timer produk selama negosiasi (max 12 jam)
+    if (!$product->timer_paused) {
+        $product->update([
+            'timer_paused' => true,
+            'timer_paused_at' => now(),
+        ]);
+    }
+
         return redirect("/products/{$product->id}")
             ->with('success', 'Tawaran barter terkirim! Menunggu respon penjual.');
     }

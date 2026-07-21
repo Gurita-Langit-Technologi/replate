@@ -6,15 +6,18 @@ use App\Models\Product;
 use App\Models\Notification;
 use App\Models\PartnerProfile;
 use App\Models\Transaction;
+use App\Models\BarterOffer;
 use Illuminate\Console\Command;
 
 class ProcessProductTimeout extends Command
 {
     protected $signature = 'products:process-timeout';
-    protected $description = 'Proses timeout otomatis: diskon → donasi → partner';
+    protected $description = 'Proses timeout otomatis: diskon → donasi → partner + auto-cancel transaksi gantung';
 
     public function handle()
     {
+        $this->processExpiredPauses();
+        $this->processStaleTransactions();
         $this->processStage1();
         $this->processStage2();
         $this->processStage3();
@@ -23,17 +26,114 @@ class ProcessProductTimeout extends Command
     }
 
     /**
+     * Unpause timer yang sudah lebih dari 12 jam
+     */
+    private function processExpiredPauses()
+    {
+        $expired = Product::where('timer_paused', true)
+            ->where('timer_paused_at', '<=', now()->subHours(12))
+            ->get();
+
+        foreach ($expired as $product) {
+            $product->update([
+                'timer_paused' => false,
+                'timer_paused_at' => null,
+            ]);
+
+            // Auto-reject semua barter offers yang masih pending
+            BarterOffer::where('product_id', $product->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'rejected']);
+
+            Notification::create([
+                'user_id' => $product->user_id,
+                'title' => 'Negosiasi barter expired',
+                'message' => "Waktu negosiasi untuk \"{$product->title}\" telah habis. Timer kembali berjalan.",
+                'type' => 'timeout',
+                'related_id' => $product->id,
+                'related_type' => Product::class,
+            ]);
+        }
+
+        $this->info("Expired pauses: {$expired->count()} di-unpause.");
+    }
+
+    /**
+     * Auto-cancel transaksi yang menggantung
+     */
+    private function processStaleTransactions()
+    {
+        // Pending lebih dari 24 jam → cancel
+        $stalePending = Transaction::where('status', 'pending')
+            ->where('type', '!=', 'partner_transfer')
+            ->where('created_at', '<=', now()->subHours(24))
+            ->get();
+
+        foreach ($stalePending as $transaction) {
+            $transaction->update(['status' => 'cancelled']);
+
+            Notification::create([
+                'user_id' => $transaction->buyer_id,
+                'title' => 'Transaksi otomatis dibatalkan',
+                'message' => "Transaksi \"{$transaction->product->title}\" dibatalkan karena tidak dikonfirmasi dalam 24 jam.",
+                'type' => 'transaction',
+                'related_id' => $transaction->id,
+                'related_type' => Transaction::class,
+            ]);
+
+            Notification::create([
+                'user_id' => $transaction->seller_id,
+                'title' => 'Transaksi otomatis dibatalkan',
+                'message' => "Transaksi \"{$transaction->product->title}\" dibatalkan karena tidak dikonfirmasi dalam 24 jam.",
+                'type' => 'transaction',
+                'related_id' => $transaction->id,
+                'related_type' => Transaction::class,
+            ]);
+        }
+
+        // Confirmed lebih dari 48 jam (belum complete) → cancel
+        $staleConfirmed = Transaction::where('status', 'confirmed')
+            ->where('updated_at', '<=', now()->subHours(48))
+            ->get();
+
+        foreach ($staleConfirmed as $transaction) {
+            $transaction->update(['status' => 'cancelled']);
+
+            Notification::create([
+                'user_id' => $transaction->buyer_id,
+                'title' => 'Transaksi expired',
+                'message' => "Transaksi \"{$transaction->product->title}\" dibatalkan karena tidak diselesaikan dalam 48 jam.",
+                'type' => 'transaction',
+                'related_id' => $transaction->id,
+                'related_type' => Transaction::class,
+            ]);
+
+            Notification::create([
+                'user_id' => $transaction->seller_id,
+                'title' => 'Transaksi expired',
+                'message' => "Transaksi \"{$transaction->product->title}\" dibatalkan karena tidak diselesaikan dalam 48 jam.",
+                'type' => 'transaction',
+                'related_id' => $transaction->id,
+                'related_type' => Transaction::class,
+            ]);
+        }
+
+        $total = $stalePending->count() + $staleConfirmed->count();
+        $this->info("Stale transactions: {$total} dibatalkan.");
+    }
+
+    /**
      * TAHAP 1: Produk mendekati timeout → harga turun 25%
      */
     private function processStage1()
     {
         $products = Product::where('status', 'active')
+            ->where('timer_paused', false)
             ->whereNotNull('timeout_stage1_at')
             ->where('timeout_stage1_at', '<=', now())
             ->get();
 
         foreach ($products as $product) {
-            // Diskon 25% kalau ada harga
             if ($product->price) {
                 $product->discounted_price = (int) ($product->price * 0.75);
             }
@@ -41,7 +141,6 @@ class ProcessProductTimeout extends Command
             $product->status = 'timeout_stage_1';
             $product->save();
 
-            // Notifikasi ke penjual
             Notification::create([
                 'user_id' => $product->user_id,
                 'title' => 'Produk mendekati batas waktu',
@@ -61,6 +160,7 @@ class ProcessProductTimeout extends Command
     private function processStage2()
     {
         $products = Product::whereIn('status', ['active', 'timeout_stage_1'])
+            ->where('timer_paused', false)
             ->where('timeout_at', '<=', now())
             ->get();
 
@@ -68,11 +168,11 @@ class ProcessProductTimeout extends Command
             $product->status = 'timeout_stage_2';
             $product->save();
 
-            \App\Models\BarterOffer::where('product_id', $product->id)
+            // Auto-reject semua barter offers yang pending
+            BarterOffer::where('product_id', $product->id)
                 ->where('status', 'pending')
                 ->update(['status' => 'rejected']);
 
-            // Notifikasi ke penjual
             Notification::create([
                 'user_id' => $product->user_id,
                 'title' => 'Produk masuk jalur donasi',
@@ -87,16 +187,16 @@ class ProcessProductTimeout extends Command
     }
 
     /**
-     * TAHAP 3: 24 jam setelah masuk donasi, tidak diklaim → alihkan ke partner
+     * TAHAP 3: 24 jam setelah masuk donasi, tidak diklaim → alihkan ke partner (cek kuota)
      */
     private function processStage3()
     {
         $products = Product::where('status', 'timeout_stage_2')
+            ->where('timer_paused', false)
             ->where('timeout_at', '<=', now()->subHours(24))
             ->get();
 
         foreach ($products as $product) {
-            // Cari partner yang cocok berdasarkan kondisi produk
             $partnerType = match ($product->condition) {
                 'layak_konsumsi' => ['umkm', 'kompos'],
                 'layak_olah' => ['umkm', 'kompos'],
@@ -104,12 +204,24 @@ class ProcessProductTimeout extends Command
                 default => ['kompos'],
             };
 
+            $weightKg = ($product->weight_grams > 0) ? round($product->weight_grams / 1000) : $product->quantity;
+
+            // Cari partner yang aktif DAN masih punya kuota
             $partner = PartnerProfile::where('is_active', true)
                 ->whereIn('partner_type', $partnerType)
+                ->whereRaw('today_received_kg + ? <= daily_capacity_kg', [$weightKg])
                 ->first();
 
+            // Fallback: cari partner tanpa cek kuota kalau semua penuh
+            if (!$partner) {
+                $partner = PartnerProfile::where('is_active', true)
+                    ->whereIn('partner_type', $partnerType)
+                    ->first();
+            }
+
             if ($partner) {
-                // Buat transaksi transfer ke partner
+                $partner->increment('today_received_kg', $weightKg);
+
                 Transaction::create([
                     'product_id' => $product->id,
                     'buyer_id' => $partner->user_id,
@@ -122,31 +234,25 @@ class ProcessProductTimeout extends Command
                 $product->status = 'timeout_stage_3';
                 $product->save();
 
-                \App\Models\BarterOffer::where('product_id', $product->id)
-                ->where('status', 'pending')
-                ->update(['status' => 'rejected']);
-
-                // Notifikasi ke partner
+                $sisaKuota = $partner->daily_capacity_kg - $partner->today_received_kg;
                 Notification::create([
                     'user_id' => $partner->user_id,
                     'title' => 'Produk dialihkan kepada Anda',
-                    'message' => "Produk \"{$product->title}\" ({$product->weight_grams}g) telah dialihkan kepada Anda untuk diambil.",
+                    'message' => "\"{$product->title}\" ({$weightKg}kg) dialihkan. Sisa kuota hari ini: {$sisaKuota}kg.",
                     'type' => 'partner_transfer',
                     'related_id' => $product->id,
                     'related_type' => Product::class,
                 ]);
 
-                // Notifikasi ke penjual
                 Notification::create([
                     'user_id' => $product->user_id,
                     'title' => 'Produk dialihkan ke mitra',
-                    'message' => "Produk \"{$product->title}\" telah dialihkan ke mitra pengolah.",
+                    'message' => "\"{$product->title}\" dialihkan ke {$partner->user->name}.",
                     'type' => 'partner_transfer',
                     'related_id' => $product->id,
                     'related_type' => Product::class,
                 ]);
             } else {
-                // Tidak ada partner → tetap tandai sebagai transferred
                 $product->status = 'transferred';
                 $product->save();
             }

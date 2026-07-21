@@ -184,7 +184,7 @@ export default function Show({ product }) {
 
                         {/* Info items */}
                         <div className="divide-y divide-gray-50">
-                            <InfoItem icon={Scale} label="Berat" value={`${(product.weight_grams / 1000).toFixed(1)} kg (${product.weight_grams}g)`} />
+                            <InfoItem icon={Scale} label="Jumlah" value={`${product.quantity} ${product.unit}${product.weight_grams ? ` (${(product.weight_grams / 1000).toFixed(1)}kg)` : ''}`} />
                             <InfoItem icon={MapPin} label="Lokasi" value={`${product.desa}, ${product.kecamatan}`} />
                             <InfoItem icon={Clock} label="Sisa waktu" value={hoursLeft > 0 ? `${hoursLeft} jam ${minutesLeft} menit lagi` : `${minutesLeft} menit lagi`} />
                             <InfoItem icon={Tag} label="Kategori" value={`${categoryLabels[product.category]} · ${conditionLabels[product.condition]}`} />
@@ -211,6 +211,22 @@ export default function Show({ product }) {
                                     <p className="text-xs text-gray-400">Penjual</p>
                                     <p className="text-sm font-medium text-gray-900">{product.user.name}</p>
                                 </div>
+                            </div>
+                        )}
+
+                        {/* Lokasi Pengambilan */}
+                        {(product.pickup_address || product.pickup_notes) && (
+                            <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <MapPin size={14} className="text-gray-500" />
+                                    <p className="text-xs text-gray-400">Lokasi pengambilan</p>
+                                </div>
+                                {product.pickup_address && (
+                                    <p className="text-sm text-gray-700">{product.pickup_address}</p>
+                                )}
+                                {product.pickup_notes && (
+                                    <p className="text-xs text-gray-500 mt-1">📝 {product.pickup_notes}</p>
+                                )}
                             </div>
                         )}
 

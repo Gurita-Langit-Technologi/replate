@@ -83,7 +83,7 @@ class ProductController extends Controller
      * Simpan produk baru
      */
     public function store(Request $request)
-    {   
+    {
         $user = $request->user();
 
         // Cek lokasi
@@ -102,18 +102,23 @@ class ProductController extends Controller
             'photo' => 'required|image|max:2048',
             'category' => 'required|in:mentah,olahan,hasil_bumi',
             'condition' => 'required|in:layak_konsumsi,layak_olah,layak_pakan_kompos',
-            'weight_grams' => 'required|integer|min:500',
+            'weight_grams' => 'nullable|integer|min:0',
+            'quantity' => 'required|integer|min:1',
+            'unit' => 'required|string|in:gram,kg,pcs,porsi,kotak,bungkus,liter,ikat',
             'transaction_mode' => 'required|in:sell,barter,sell_and_barter,donate',
             'price' => 'nullable|integer|min:0',
             'barter_description' => 'nullable|string',
+            'pickup_address' => 'nullable|string|max:500',
+            'pickup_notes' => 'nullable|string|max:255',
+            'pickup_type' => 'required|in:rumah,drop_point',
         ]);
 
-        // Validasi tambahan: jual harus ada harga
+        // Validasi: jual harus ada harga
         if (in_array($validated['transaction_mode'], ['sell', 'sell_and_barter']) && empty($validated['price'])) {
             return back()->withErrors(['price' => 'Harga wajib diisi untuk mode jual.']);
         }
 
-        // Validasi tambahan: barter harus ada deskripsi
+        // Validasi: barter harus ada deskripsi
         if (in_array($validated['transaction_mode'], ['barter', 'sell_and_barter']) && empty($validated['barter_description'])) {
             return back()->withErrors(['barter_description' => 'Deskripsi barter wajib diisi.']);
         }
@@ -121,24 +126,29 @@ class ProductController extends Controller
         // Upload foto
         $photoPath = $request->file('photo')->store('products', 'public');
 
-        // Hitung timeout berdasarkan kondisi
+        // Hitung timeout
         $timeoutAt = Product::calculateTimeout($validated['condition']);
         $timeoutStage1At = Product::calculateTimeoutStage1($validated['condition']);
 
         // Simpan produk
         $product = Product::create([
-            'user_id' => $request->user()->id,
+            'user_id' => $user->id,
             'title' => $validated['title'],
             'description' => $validated['description'],
             'photo' => $photoPath,
             'category' => $validated['category'],
             'condition' => $validated['condition'],
-            'weight_grams' => $validated['weight_grams'],
+            'weight_grams' => $validated['weight_grams'] ?? 0,
+            'quantity' => $validated['quantity'],
+            'unit' => $validated['unit'],
             'transaction_mode' => $validated['transaction_mode'],
             'price' => $validated['price'] ?? null,
             'barter_description' => $validated['barter_description'] ?? null,
-            'desa' => $request->user()->desa ?? '',
-            'kecamatan' => $request->user()->kecamatan ?? '',
+            'desa' => $user->desa ?? '',
+            'kecamatan' => $user->kecamatan ?? '',
+            'pickup_type' => $validated['pickup_type'],
+            'pickup_address' => $validated['pickup_address'] ?? $user->address,
+            'pickup_notes' => $validated['pickup_notes'] ?? null,
             'timeout_at' => $timeoutAt,
             'timeout_stage1_at' => $timeoutStage1At,
             'status' => 'active',
@@ -146,7 +156,6 @@ class ProductController extends Controller
 
         return redirect()->route('marketplace')->with('success', 'Produk berhasil diunggah!');
     }
-
     /**
      * Produk saya
      */
