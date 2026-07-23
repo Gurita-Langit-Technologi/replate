@@ -22,6 +22,7 @@ use Illuminate\Notifications\Notifiable;
     'report_count',
     'is_blacklisted',
     'address',
+    'points',
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
@@ -106,5 +107,10 @@ class User extends Authenticatable
     public function isBlacklisted(): bool
     {
         return $this->is_blacklisted;
+    }
+
+    public function pointHistories()
+    {
+        return $this->hasMany(PointHistory::class);
     }
 }

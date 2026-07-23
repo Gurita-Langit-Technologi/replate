@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\User;
+use App\Models\Transaction;
 use Inertia\Inertia;
 
 class ProductController extends Controller
@@ -241,5 +243,35 @@ class ProductController extends Controller
         $product->delete();
 
         return redirect()->route('products.mine')->with('success', 'Produk berhasil dihapus.');
+    }
+
+    /**
+     * Profil penjual — lihat semua produk aktif miliknya
+     */
+    public function sellerProfile(User $user)
+    {
+        $products = Product::where('user_id', $user->id)
+            ->whereIn('status', ['active', 'timeout_stage_1'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $totalSold = Transaction::where('seller_id', $user->id)
+            ->where('status', 'completed')
+            ->count();
+
+        $totalWeight = Transaction::where('seller_id', $user->id)
+            ->where('status', 'completed')
+            ->join('products', 'transactions.product_id', '=', 'products.id')
+            ->sum('products.weight_grams');
+
+        return Inertia::render('Seller/Profile', [
+            'seller' => $user,
+            'products' => $products,
+            'stats' => [
+                'totalProducts' => $products->count(),
+                'totalSold' => $totalSold,
+                'totalWeight' => $totalWeight,
+            ],
+        ]);
     }
 }

@@ -13,7 +13,7 @@ import {
     Menu,
     X,
     LogOut,
-    Leaf,
+    Coins,
     Users,
     MessageCircle,
 } from 'lucide-react';
@@ -27,6 +27,7 @@ const NAV_ITEMS = {
         { label: 'Transaksi', href: '/transactions', icon: Receipt },
         { label: 'Barter', href: '/barter', icon: ArrowLeftRight },
         { label: 'Chat', href: '/chat', icon: MessageCircle },
+        { label: 'RePoin', href: '/points', icon: Coins },
     ],
     admin: [
         { label: 'Admin Panel', href: '/admin/dashboard', icon: Shield },
@@ -111,6 +112,11 @@ export default function AppLayout({ children }) {
                             <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded font-medium mt-0.5 ${roleColors[role]}`}>
                                 {roleLabels[role]}
                             </span>
+                            {user.points > 0 && (
+                                <span className="inline-block text-[10px] px-1.5 py-0.5 rounded font-medium mt-0.5 bg-amber-100 text-amber-700 ml-1">
+                                    {user.points} RePoin
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>

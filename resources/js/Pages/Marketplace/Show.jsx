@@ -203,15 +203,16 @@ export default function Show({ product }) {
 
                         {/* Seller info */}
                         {product.user && (
-                            <div className="mt-4 p-4 bg-gray-50 rounded-xl flex items-center gap-3">
+                            <Link href={`/seller/${product.user.id}`} className="mt-4 p-4 bg-gray-50 rounded-xl flex items-center gap-3 hover:bg-gray-100 transition">
                                 <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
                                     <User size={18} className="text-gray-500" />
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                     <p className="text-xs text-gray-400">Penjual</p>
                                     <p className="text-sm font-medium text-gray-900">{product.user.name}</p>
                                 </div>
-                            </div>
+                                <span className="text-xs text-green-600">Lihat semua produk →</span>
+                            </Link>
                         )}
 
                         {/* Lokasi Pengambilan */}

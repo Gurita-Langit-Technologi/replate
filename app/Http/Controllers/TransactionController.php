@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -116,6 +117,34 @@ class TransactionController extends Controller
         // Update status produk
         $transaction->product->update(['status' => 'sold']);
 
+        // === REPOIN SYSTEM ===
+        $product = $transaction->product;
+        $points = \App\Models\PointHistory::calculatePoints($product);
+
+        // Penjual/pendonor dapat poin
+        \App\Models\PointHistory::awardPoints(
+            $transaction->seller,
+            $points,
+            "Produk \"{$product->title}\" tersalurkan ({$product->weight_grams}g, {$product->condition})",
+            match ($transaction->type) {
+                'sale' => 'earned_sell',
+                'barter' => 'earned_barter',
+                'donation' => 'earned_donate',
+                default => 'earned_sell',
+            },
+            $transaction
+        );
+
+        // Notifikasi poin
+        \App\Models\Notification::create([
+            'user_id' => $transaction->seller_id,
+            'title' => "Dapat {$points} RePoin!",
+            'message' => "Anda mendapat {$points} RePoin dari \"{$product->title}\". Saldo: {$transaction->seller->fresh()->points} poin.",
+            'type' => 'transaction',
+            'related_id' => $transaction->id,
+            'related_type' => Transaction::class,
+        ]);
+
         // Notifikasi ke penjual
         Notification::create([
             'user_id' => $transaction->seller_id,
@@ -179,6 +208,18 @@ class TransactionController extends Controller
 
         $transaction->update(['status' => 'completed']);
         $transaction->product->update(['status' => 'transferred']);
+
+        // === REPOIN untuk penjual asli ===
+        $product = $transaction->product;
+        $points = \App\Models\PointHistory::calculatePoints($product);
+
+        \App\Models\PointHistory::awardPoints(
+            User::find($transaction->seller_id),
+            $points,
+            "Produk \"{$product->title}\" diterima oleh mitra pengolah",
+            'earned_partner',
+            $transaction
+        );
 
         Notification::create([
             'user_id' => $transaction->seller_id,

@@ -9,6 +9,7 @@ import {
     ShoppingBasket,
     ArrowRight,
     Receipt,
+    Coins,
 } from 'lucide-react';
 
 function StatCard({ icon: Icon, label, value, unit, color }) {
@@ -126,11 +127,12 @@ export default function Dashboard({ stats, recentProducts, recentTransactions, i
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                     <StatCard icon={Package} label="Produk Aktif" value={stats.myProducts} color="green" />
                     <StatCard icon={TrendingUp} label="Total Transaksi" value={stats.totalTransactions} color="blue" />
                     <StatCard icon={Leaf} label="Waste Terselamatkan" value={(stats.totalWeightSaved / 1000).toFixed(1)} unit="kg" color="purple" />
                     <StatCard icon={ArrowLeftRight} label="Tawaran Barter" value={stats.incomingBarterCount || 0} color="amber" />
+                    <StatCard icon={Coins} label="RePoin" value={stats.userPoints || 0} unit="poin" color="amber" />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

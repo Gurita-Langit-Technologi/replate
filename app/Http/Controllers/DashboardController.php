@@ -13,6 +13,16 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
+            // Redirect admin ke admin dashboard
+            if ($user->isAdmin()) {
+                return redirect()->route('admin.dashboard');
+            }
+
+            // Redirect partner ke partner dashboard
+            if ($user->isPartner()) {
+                return redirect()->route('partner.dashboard');
+            }
+
         $myProducts = Product::where('user_id', $user->id)
             ->where('status', 'active')
             ->count();
@@ -60,12 +70,18 @@ class DashboardController extends Controller
             ->limit(4)
             ->get();
 
+        $pointHistory = \App\Models\PointHistory::where('user_id', $user->id)
+        ->orderBy('created_at', 'desc')
+        ->limit(5)
+        ->get();
+
         return Inertia::render('Dashboard', [
             'stats' => [
                 'myProducts' => $myProducts,
                 'totalTransactions' => $totalTransactions,
                 'totalWeightSaved' => $totalWeightSaved,
                 'incomingBarterCount' => $incomingBarterCount,
+                'userPoints' => $user->points,
             ],
             'recentProducts' => $recentProducts,
             'recentTransactions' => $recentTransactions,
@@ -114,6 +130,7 @@ class DashboardController extends Controller
             'pending' => $pending,
             'completed' => $completed,
             'totalWeight' => $totalWeight,
+            'pointHistory' => $pointHistory,
         ]);
     }
 }

@@ -30,6 +30,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // Profil penjual
+    Route::get('/seller/{user}', [ProductController::class, 'sellerProfile'])->name('seller.profile');
 
     // Marketplace
     Route::get('/marketplace', [ProductController::class, 'index'])->name('marketplace');
@@ -68,6 +71,8 @@ Route::middleware('auth')->group(function () {
     
     // Notifikasi
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+
+    Route::get('/points', [App\Http\Controllers\PointController::class, 'index'])->name('points.index');
 });
 
 // ============ ADMIN ONLY ============
