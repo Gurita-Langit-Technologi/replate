@@ -13,7 +13,7 @@ export default function GuestLayout({ children }) {
                 <div className="relative flex flex-col justify-between py-12 px-12 w-full">
                     {/* Top — Logo */}
                     <Link href="/" className="flex items-center gap-2.5">
-                        <img src="/image/logo(1).png" alt="Replate" className="h-12 rounded-s object-cover" />
+                        <img src="/image/logo(2).png" alt="Replate" className="h-12 rounded-s object-cover" />
                     </Link>
 
                     {/* Middle — Message */}

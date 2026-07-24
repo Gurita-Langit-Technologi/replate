@@ -89,6 +89,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::patch('/partners/{profile}/toggle', [AdminController::class, 'togglePartner'])->name('partners.toggle');
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::patch('/users/{user}/toggle-blacklist', [AdminController::class, 'toggleBlacklist'])->name('users.toggleBlacklist');
+    Route::get('/redeem', [AdminController::class, 'redeemPage'])->name('redeem');
+    Route::post('/redeem/search', [AdminController::class, 'redeemSearch'])->name('redeem.search');
+    Route::post('/redeem/process', [AdminController::class, 'redeemProcess'])->name('redeem.process');
 });
 
 // ============ PARTNER ONLY ============
@@ -102,5 +105,14 @@ Route::middleware(['auth', 'role:partner'])->prefix('partner')->name('partner.')
     Route::get('/chat/{partner}/{product?}', [MessageController::class, 'show'])->name('chat.show');
     Route::post('/chat/{partner}', [MessageController::class, 'store'])->name('chat.store');
     Route::get('/products/{product}/chat', [MessageController::class, 'startFromProduct'])->name('chat.start');
+
+    // Halaman publik
+    Route::get('/faq', function () {
+        return Inertia::render('FAQ');
+    })->name('faq');
+
+    Route::get('/terms', function () {
+        return Inertia::render('Terms');
+    })->name('terms');
 
 require __DIR__.'/auth.php';

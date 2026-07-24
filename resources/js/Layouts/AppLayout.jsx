@@ -35,6 +35,7 @@ const NAV_ITEMS = {
         { label: 'Laporan', href: '/admin/reports', icon: Shield },
         { label: 'Partner', href: '/admin/partners', icon: Handshake },
         { label: 'Pengguna', href: '/admin/users', icon: Users },
+        { label: 'Tukar RePoin', href: '/admin/redeem', icon: Coins },
     ],
     partner: [
         { label: 'Partner Panel', href: '/partner/dashboard', icon: Handshake },
@@ -87,10 +88,9 @@ export default function AppLayout({ children }) {
             {/* Sidebar */}
             <aside
                 className={`
-                    fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-gray-200
-                    transform transition-transform duration-200 ease-in-out
-                    ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-                    lg:translate-x-0
+                fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-gray-200
+                flex flex-col
+                transform transition-transform duration-200 ease-in-out
                 `}
             >
                 {/* Logo */}

@@ -266,4 +266,75 @@ class AdminController extends Controller
         $status = $user->is_blacklisted ? 'ditangguhkan' : 'diaktifkan kembali';
         return back()->with('success', "Akun {$user->name} {$status}.");
     }
+
+    /**
+ * Halaman tukar poin
+ */
+public function redeemPage()
+{
+    return Inertia::render('Admin/Redeem');
+}
+
+/**
+ * Cari user berdasarkan kode
+ */
+public function redeemSearch(Request $request)
+{
+    $request->validate(['code' => 'required|string']);
+
+    $user = User::where('redeem_code', strtoupper($request->code))->first();
+
+    if (!$user) {
+        return back()->with('error', 'Kode tidak ditemukan.');
+    }
+
+    return Inertia::render('Admin/Redeem', [
+        'foundUser' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'desa' => $user->desa,
+            'points' => $user->points,
+            'redeem_code' => $user->redeem_code,
+        ],
+        'searchedCode' => $request->code,
+    ]);
+}
+
+/**
+ * Proses penukaran poin
+ */
+    public function redeemProcess(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'amount' => 'required|integer|min:1',
+            'description' => 'required|string|max:255',
+        ]);
+
+        $user = User::find($validated['user_id']);
+
+        if ($user->points < $validated['amount']) {
+            return back()->with('error', "Saldo poin tidak cukup. Saldo: {$user->points} poin.");
+        }
+
+        $result = \App\Models\PointHistory::redeemPoints(
+            $user,
+            $validated['amount'],
+            $validated['description']
+        );
+
+        if (!$result) {
+            return back()->with('error', 'Gagal menukar poin. Saldo tidak cukup.');
+        }
+
+        Notification::create([
+            'user_id' => $user->id,
+            'title' => "RePoin ditukar: -{$validated['amount']} poin",
+            'message' => "Penukaran: {$validated['description']}. Sisa saldo: {$user->fresh()->points} poin.",
+            'type' => 'transaction',
+        ]);
+
+        return redirect()->route('admin.redeem')->with('success', "Berhasil menukar {$validated['amount']} poin milik {$user->name}.");
+    }
 }

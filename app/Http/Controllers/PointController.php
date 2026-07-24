@@ -18,6 +18,7 @@ class PointController extends Controller
         return Inertia::render('Points/Index', [
             'points' => $user->points,
             'history' => $history,
+            'redeemCode' => $user->redeem_code,
         ]);
     }
 }

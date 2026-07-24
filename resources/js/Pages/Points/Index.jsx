@@ -19,7 +19,7 @@ function timeAgo(dateString) {
     return `${Math.floor(seconds / 86400)}h lalu`;
 }
 
-export default function Index({ points, history }) {
+export default function Index({ points, history, redeemCode }) {
     return (
         <AppLayout>
             <Head title="RePoin Saya" />
@@ -34,6 +34,11 @@ export default function Index({ points, history }) {
                     <p className="text-xs text-amber-200 mt-2">
                         1 RePoin = 1 kg food waste tersalurkan. Tukarkan di unit BUMDes.
                     </p>
+                    <div className="mt-4 pt-4 border-t border-amber-400/30">
+                        <p className="text-xs text-amber-200">Kode penukaran Anda</p>
+                        <p className="text-2xl font-mono font-bold text-white tracking-wider mt-1">{redeemCode}</p>
+                        <p className="text-xs text-amber-200 mt-1">Sebutkan kode ini ke petugas BUMDes saat menukar poin</p>
+                    </div>
                 </div>
 
                 {/* Formula */}

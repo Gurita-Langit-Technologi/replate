@@ -35,6 +35,12 @@ class ProfileController extends Controller
             $request->user()->email_verified_at = null;
         }
 
+        // Update field tambahan
+        $request->user()->whatsapp_number = $request->input('whatsapp_number');
+        $request->user()->desa = $request->input('desa');
+        $request->user()->kecamatan = $request->input('kecamatan');
+        $request->user()->address = $request->input('address');
+
         $request->user()->save();
 
         return Redirect::route('profile.edit');

@@ -83,6 +83,8 @@ export default function Welcome({ auth }) {
                         <div className="hidden md:flex items-center gap-6">
                             <a href="#cara-kerja" className="text-sm text-gray-500 hover:text-gray-900 transition">Cara kerja</a>
                             <Link href="/marketplace" className="text-sm text-gray-500 hover:text-gray-900 transition">Marketplace</Link>
+                            <Link href="/faq" className="text-sm text-gray-500 hover:text-gray-900 transition">FAQ</Link>
+                            <Link href="/terms" className="text-sm text-gray-500 hover:text-gray-900 transition">Syarat dan Ketentuan</Link>
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -366,14 +368,14 @@ export default function Welcome({ auth }) {
                 </section>
 
                 {/* Footer */}
-                <footer className="bg-gray-900">
+                <footer className="bg-gray-700">
                     <div className="max-w-6xl mx-auto px-4 py-12">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
                             {/* Brand */}
                             <div className="md:col-span-2">
                                 <div className="flex items-center gap-2 mb-3">
-                                    <img src="/image/logo.png" alt="Replate" className="w-8 h-8 rounded-lg object-cover" />
-                                    <span className="font-bold text-white text-lg">Replate</span>
+                                    <img src="/image/logo(2).png" alt="Replate" className=" h-8 rounded-lg object-cover" />
+                                    
                                 </div>
                                 <p className="text-sm text-gray-400 leading-relaxed max-w-sm">
                                     Platform digital berbasis circular economy untuk mengoptimalkan pemanfaatan food waste dalam mendukung kemandirian desa berkelanjutan.
@@ -388,6 +390,8 @@ export default function Welcome({ auth }) {
                                     <Link href="/register" className="block text-sm text-gray-400 hover:text-green-400 transition">Daftar akun</Link>
                                     <Link href="/login" className="block text-sm text-gray-400 hover:text-green-400 transition">Masuk</Link>
                                     <a href="#cara-kerja" className="block text-sm text-gray-400 hover:text-green-400 transition">Cara kerja</a>
+                                    <Link href="/faq" className="block text-sm text-gray-400 hover:text-green-400 transition">FAQ</Link>
+                                    <Link href="/terms" className="block text-sm text-gray-400 hover:text-green-400 transition">Syarat & Ketentuan</Link>
                                 </div>
                             </div>
 
