@@ -13,17 +13,10 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->foreignId('reporter_id')->constrained('users')->onDelete('cascade');
 
-            // Alasan laporan
-            $table->enum('reason', [
-                'tidak_sesuai_foto',
-                'kondisi_buruk',
-                'produk_tidak_layak',
-                'penipuan',
-            ]);
-            $table->text('description')->nullable(); // detail tambahan
+            $table->string('reason');
+            $table->text('description')->nullable();
 
-            // Status review admin
-            $table->enum('status', ['pending', 'reviewed', 'dismissed'])->default('pending');
+            $table->string('status')->default('pending');
 
             $table->timestamps();
         });

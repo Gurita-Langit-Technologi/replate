@@ -12,14 +12,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
-            // Dokumen
-            $table->enum('document_type', ['pirt', 'surat_desa']);
-            $table->string('document_photo'); // path file dokumen
-            $table->string('production_photo'); // foto tempat produksi
+            $table->string('document_type');
+            $table->string('document_photo');
+            $table->string('production_photo');
 
-            // Status verifikasi
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->text('admin_notes')->nullable(); // catatan admin jika ditolak
+            $table->string('status')->default('pending');
+            $table->text('admin_notes')->nullable();
 
             $table->timestamps();
         });

@@ -11,29 +11,19 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->foreignId('buyer_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('buyer_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->foreignId('seller_id')->constrained('users')->onDelete('cascade');
 
-            // Jenis transaksi
-            $table->enum('type', ['sale', 'barter', 'donation', 'partner_transfer']);
+            $table->string('type');
+            $table->string('status')->default('pending');
 
-            // Status flow
-            $table->enum('status', [
-                'pending',      // menunggu konfirmasi penjual
-                'confirmed',    // penjual sudah konfirmasi
-                'completed',    // pembeli konfirmasi terima
-                'cancelled',    // dibatalkan
-            ])->default('pending');
-
-            // Detail pembayaran (nullable untuk barter/donasi)
             $table->integer('price')->nullable();
-
-            // Catatan barter (apa yang ditukar)
             $table->text('barter_notes')->nullable();
+            $table->text('cancellation_reason')->nullable();
 
-            // Untuk partner transfer
             $table->foreignId('partner_id')->nullable()->constrained('users')->onDelete('set null');
 
+            $table->timestamp('completed_at')->nullable();
             $table->timestamps();
         });
     }

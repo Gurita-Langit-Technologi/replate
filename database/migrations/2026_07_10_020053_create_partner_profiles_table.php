@@ -12,11 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
-            // Jenis partner
-            $table->enum('partner_type', ['peternak', 'kompos', 'maggot', 'umkm']);
-
-            // Info tambahan
-            $table->text('capacity_description')->nullable(); // "Bisa terima max 50kg/minggu"
+            $table->string('partner_type');
+            $table->text('capacity_description')->nullable();
             $table->boolean('is_active')->default(true);
 
             $table->timestamps();

@@ -13,17 +13,10 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->foreignId('offerer_id')->constrained('users')->onDelete('cascade');
 
-            // Apa yang ditawarkan
-            $table->text('offer_description'); // "Saya tawarkan 2kg singkong"
-            $table->string('offer_photo')->nullable(); // foto barang yang ditawarkan
+            $table->text('offer_description');
+            $table->string('offer_photo')->nullable();
 
-            // Status
-            $table->enum('status', [
-                'pending',   // menunggu response penjual
-                'accepted',  // penjual setuju
-                'rejected',  // penjual tolak
-                'cancelled', // pembeli batalkan
-            ])->default('pending');
+            $table->string('status')->default('pending');
 
             $table->timestamps();
         });
