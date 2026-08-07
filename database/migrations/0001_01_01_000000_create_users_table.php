@@ -15,18 +15,14 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
 
-            // Role: user (default), verified_seller, partner, admin
-            $table->enum('role', ['user', 'verified_seller', 'partner', 'admin'])->default('user');
+            $table->string('role')->default('user');
 
-            // Kontak
             $table->string('whatsapp_number')->nullable();
             $table->string('profile_photo')->nullable();
 
-            // Lokasi (untuk filter marketplace)
             $table->string('desa')->nullable();
             $table->string('kecamatan')->nullable();
 
-            // Sistem report / blacklist
             $table->integer('report_count')->default(0);
             $table->boolean('is_blacklisted')->default(false);
 
