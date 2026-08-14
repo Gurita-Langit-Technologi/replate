@@ -8,6 +8,9 @@ use Inertia\Inertia;
 
 class NotificationController extends Controller
 {
+    /**
+     * Daftar notifikasi pengguna
+     */
     public function index(Request $request)
     {
         $notifications = Notification::where('user_id', $request->user()->id)
@@ -15,7 +18,7 @@ class NotificationController extends Controller
             ->limit(50)
             ->get();
 
-        // Tandai semua sebagai dibaca
+        // Tandai semua notifikasi belum dibaca milik user sebagai dibaca
         Notification::where('user_id', $request->user()->id)
             ->where('is_read', false)
             ->update(['is_read' => true]);

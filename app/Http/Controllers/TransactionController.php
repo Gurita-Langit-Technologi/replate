@@ -2,9 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Models\Transaction;
+use App\Enums\BarterOfferStatus;
+use App\Enums\NotificationType;
+use App\Enums\ProductStatus;
+use App\Enums\ReportStatus;
+use App\Enums\TransactionMode;
+use App\Enums\TransactionStatus;
+use App\Enums\TransactionType;
+use App\Models\BarterOffer;
 use App\Models\Notification;
+use App\Models\PointHistory;
+use App\Models\Product;
+use App\Models\Report;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -24,18 +34,18 @@ class TransactionController extends Controller
         }
 
         // Produk harus masih aktif / timeout stage 1
-        if (!in_array($product->status, ['active', 'timeout_stage_1'])) {
+        if (!in_array($product->status, [ProductStatus::ACTIVE, ProductStatus::TIMEOUT_STAGE_1])) {
             return back()->with('error', 'Produk sudah tidak tersedia.');
         }
 
         // Produk harus mode jual
-        if (!in_array($product->transaction_mode, ['sell', 'sell_and_barter'])) {
+        if (!in_array($product->transaction_mode, [TransactionMode::SELL, TransactionMode::SELL_AND_BARTER])) {
             return back()->with('error', 'Produk ini tidak dijual.');
         }
 
         // Cek apakah sudah ada transaksi pending untuk produk ini
         $existing = Transaction::where('product_id', $product->id)
-            ->where('status', 'pending')
+            ->where('status', TransactionStatus::PENDING)
             ->first();
 
         if ($existing) {
@@ -47,8 +57,8 @@ class TransactionController extends Controller
             'product_id' => $product->id,
             'buyer_id' => $user->id,
             'seller_id' => $product->user_id,
-            'type' => 'sale',
-            'status' => 'pending',
+            'type' => TransactionType::SALE,
+            'status' => TransactionStatus::PENDING,
             'price' => $product->discounted_price ?? $product->price,
         ]);
 
@@ -57,7 +67,7 @@ class TransactionController extends Controller
             'user_id' => $product->user_id,
             'title' => 'Ada pesanan masuk!',
             'message' => "{$user->name} ingin membeli \"{$product->title}\".",
-            'type' => 'transaction',
+            'type' => NotificationType::TRANSACTION,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
         ]);
@@ -75,18 +85,18 @@ class TransactionController extends Controller
             return back()->with('error', 'Anda tidak memiliki akses.');
         }
 
-        if ($transaction->status !== 'pending') {
+        if ($transaction->status !== TransactionStatus::PENDING) {
             return back()->with('error', 'Transaksi tidak dalam status menunggu.');
         }
 
-        $transaction->update(['status' => 'confirmed']);
+        $transaction->update(['status' => TransactionStatus::CONFIRMED]);
 
         // Notifikasi ke pembeli
         Notification::create([
             'user_id' => $transaction->buyer_id,
             'title' => 'Pesanan dikonfirmasi!',
             'message' => "Penjual telah mengkonfirmasi pesanan \"{$transaction->product->title}\". Silakan ambil produk.",
-            'type' => 'transaction',
+            'type' => NotificationType::TRANSACTION,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
         ]);
@@ -104,43 +114,43 @@ class TransactionController extends Controller
             return back()->with('error', 'Anda tidak memiliki akses.');
         }
 
-        if ($transaction->status !== 'confirmed') {
+        if ($transaction->status !== TransactionStatus::CONFIRMED) {
             return back()->with('error', 'Transaksi belum dikonfirmasi penjual.');
         }
 
-        $transaction->update(['status' => 'completed']);
+        $transaction->update(['status' => TransactionStatus::COMPLETED]);
 
-        \App\Models\BarterOffer::where('product_id', $transaction->product_id)
-            ->where('status', 'pending')
-            ->update(['status' => 'rejected']);
+        BarterOffer::where('product_id', $transaction->product_id)
+            ->where('status', BarterOfferStatus::PENDING)
+            ->update(['status' => BarterOfferStatus::REJECTED]);
 
         // Update status produk
-        $transaction->product->update(['status' => 'sold']);
+        $transaction->product->update(['status' => ProductStatus::SOLD]);
 
         // === REPOIN SYSTEM ===
         $product = $transaction->product;
-        $points = \App\Models\PointHistory::calculatePoints($product);
+        $points = PointHistory::calculatePoints($product);
 
         // Penjual/pendonor dapat poin
-        \App\Models\PointHistory::awardPoints(
+        PointHistory::awardPoints(
             $transaction->seller,
             $points,
             "Produk \"{$product->title}\" tersalurkan ({$product->weight_grams}g, {$product->condition})",
             match ($transaction->type) {
-                'sale' => 'earned_sell',
-                'barter' => 'earned_barter',
-                'donation' => 'earned_donate',
+                TransactionType::SALE, TransactionType::SALE->value => 'earned_sell',
+                TransactionType::BARTER, TransactionType::BARTER->value => 'earned_barter',
+                TransactionType::DONATION, TransactionType::DONATION->value => 'earned_donate',
                 default => 'earned_sell',
             },
             $transaction
         );
 
         // Notifikasi poin
-        \App\Models\Notification::create([
+        Notification::create([
             'user_id' => $transaction->seller_id,
             'title' => "Dapat {$points} RePoin!",
             'message' => "Anda mendapat {$points} RePoin dari \"{$product->title}\". Saldo: {$transaction->seller->fresh()->points} poin.",
-            'type' => 'transaction',
+            'type' => NotificationType::TRANSACTION,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
         ]);
@@ -150,12 +160,50 @@ class TransactionController extends Controller
             'user_id' => $transaction->seller_id,
             'title' => 'Transaksi selesai!',
             'message' => "Pembeli telah menerima \"{$transaction->product->title}\". Transaksi selesai.",
-            'type' => 'transaction',
+            'type' => NotificationType::TRANSACTION,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
         ]);
 
         return back()->with('success', 'Transaksi selesai!');
+    }
+
+    /**
+     * Pembeli melaporkan produk basi/rusak (Dispute)
+     */
+    public function dispute(Request $request, Transaction $transaction)
+    {
+        // Hanya pembeli yang bisa dispute
+        if ($transaction->buyer_id !== $request->user()->id) {
+            return back()->with('error', 'Anda tidak memiliki akses.');
+        }
+
+        if ($transaction->status !== TransactionStatus::CONFIRMED) {
+            return back()->with('error', 'Transaksi belum dikonfirmasi penjual atau sudah selesai.');
+        }
+
+        $transaction->update(['status' => TransactionStatus::DISPUTE_SPOILED]);
+        $transaction->product->update(['status' => ProductStatus::CANCELLED]);
+
+        // Buat Report otomatis
+        Report::create([
+            'reporter_id' => $request->user()->id,
+            'product_id' => $transaction->product_id,
+            'reason' => 'Makanan basi/rusak (dilaporkan via dispute transaksi)',
+            'status' => ReportStatus::PENDING,
+        ]);
+
+        // Notifikasi ke penjual
+        Notification::create([
+            'user_id' => $transaction->seller_id,
+            'title' => 'Transaksi Di-Dispute',
+            'message' => "Pembeli melaporkan bahwa \"{$transaction->product->title}\" basi/rusak. Admin akan meninjau laporan ini.",
+            'type' => NotificationType::TRANSACTION,
+            'related_id' => $transaction->id,
+            'related_type' => Transaction::class,
+        ]);
+
+        return back()->with('success', 'Keluhan berhasil dilaporkan. Admin akan segera meninjau.');
     }
 
     /**
@@ -168,11 +216,11 @@ class TransactionController extends Controller
             return back()->with('error', 'Anda tidak memiliki akses.');
         }
 
-        if (in_array($transaction->status, ['completed', 'cancelled'])) {
+        if (in_array($transaction->status, [TransactionStatus::COMPLETED, TransactionStatus::CANCELLED])) {
             return back()->with('error', 'Transaksi tidak bisa dibatalkan.');
         }
 
-        $transaction->update(['status' => 'cancelled']);
+        $transaction->update(['status' => TransactionStatus::CANCELLED]);
 
         // Notifikasi ke pihak lain
         $notifyUserId = $request->user()->id === $transaction->buyer_id
@@ -183,7 +231,7 @@ class TransactionController extends Controller
             'user_id' => $notifyUserId,
             'title' => 'Transaksi dibatalkan',
             'message' => "Transaksi untuk \"{$transaction->product->title}\" telah dibatalkan.",
-            'type' => 'transaction',
+            'type' => NotificationType::TRANSACTION,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
         ]);
@@ -202,18 +250,18 @@ class TransactionController extends Controller
             return back()->with('error', 'Anda tidak memiliki akses.');
         }
 
-        if ($transaction->status !== 'pending') {
+        if ($transaction->status !== TransactionStatus::PENDING) {
             return back()->with('error', 'Transaksi sudah diproses.');
         }
 
-        $transaction->update(['status' => 'completed']);
-        $transaction->product->update(['status' => 'transferred']);
+        $transaction->update(['status' => TransactionStatus::COMPLETED]);
+        $transaction->product->update(['status' => ProductStatus::TRANSFERRED]);
 
         // === REPOIN untuk penjual asli ===
         $product = $transaction->product;
-        $points = \App\Models\PointHistory::calculatePoints($product);
+        $points = PointHistory::calculatePoints($product);
 
-        \App\Models\PointHistory::awardPoints(
+        PointHistory::awardPoints(
             User::find($transaction->seller_id),
             $points,
             "Produk \"{$product->title}\" diterima oleh mitra pengolah",
@@ -225,7 +273,7 @@ class TransactionController extends Controller
             'user_id' => $transaction->seller_id,
             'title' => 'Produk diambil oleh partner',
             'message' => "Partner telah mengambil \"{$transaction->product->title}\".",
-            'type' => 'partner_transfer',
+            'type' => NotificationType::PARTNER_TRANSFER,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
         ]);
@@ -285,8 +333,8 @@ class TransactionController extends Controller
         }
 
         // Produk harus mode donasi atau sudah masuk jalur donasi (timeout stage 2)
-        $isDonation = $product->transaction_mode === 'donate' && in_array($product->status, ['active', 'timeout_stage_1']);
-        $isTimeoutDonation = $product->status === 'timeout_stage_2';
+        $isDonation = $product->transaction_mode === TransactionMode::DONATE && in_array($product->status, [ProductStatus::ACTIVE, ProductStatus::TIMEOUT_STAGE_1]);
+        $isTimeoutDonation = $product->status === ProductStatus::TIMEOUT_STAGE_2;
 
         if (!$isDonation && !$isTimeoutDonation) {
             return back()->with('error', 'Produk ini tidak tersedia untuk donasi.');
@@ -294,7 +342,7 @@ class TransactionController extends Controller
 
         // Cek apakah sudah ada klaim pending
         $existing = Transaction::where('product_id', $product->id)
-            ->where('status', 'pending')
+            ->where('status', TransactionStatus::PENDING)
             ->first();
 
         if ($existing) {
@@ -306,8 +354,8 @@ class TransactionController extends Controller
             'product_id' => $product->id,
             'buyer_id' => $user->id,
             'seller_id' => $product->user_id,
-            'type' => 'donation',
-            'status' => 'pending',
+            'type' => TransactionType::DONATION,
+            'status' => TransactionStatus::PENDING,
         ]);
 
         // Notifikasi ke pendonor
@@ -315,12 +363,11 @@ class TransactionController extends Controller
             'user_id' => $product->user_id,
             'title' => 'Donasi Anda diklaim!',
             'message' => "{$user->name} ingin mengambil donasi \"{$product->title}\".",
-            'type' => 'transaction',
+            'type' => NotificationType::TRANSACTION,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
         ]);
 
         return redirect("/transactions/{$transaction->id}");
     }
-
 }

@@ -8,9 +8,13 @@ use Inertia\Inertia;
 
 class PointController extends Controller
 {
+    /**
+     * Halaman riwayat dan saldo RePoin pengguna
+     */
     public function index(Request $request)
     {
         $user = $request->user();
+
         $history = PointHistory::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();

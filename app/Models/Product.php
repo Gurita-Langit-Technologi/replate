@@ -2,55 +2,78 @@
 
 namespace App\Models;
 
+use App\Enums\PickupType;
+use App\Enums\ProductStatus;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'title', 'description', 'photo',
-        'category', 'condition',
-        'weight_grams', 'quantity', 'unit',
+        'user_id',
+        'title',
+        'description',
+        'photo',
+        'category',
+        'condition',
+        'weight_grams',
+        'quantity',
+        'unit',
         'transaction_mode',
-        'price', 'discounted_price', 'barter_description',
-        'desa', 'kecamatan',
-        'pickup_address', 'pickup_notes', 'pickup_type',
-        'timeout_at', 'timeout_stage1_at', 'status',
-        'timer_paused', 'timer_paused_at',
+        'price',
+        'discounted_price',
+        'barter_description',
+        'desa',
+        'kecamatan',
+        'pickup_address',
+        'pickup_notes',
+        'pickup_type',
+        'timeout_at',
+        'timeout_stage1_at',
+        'status',
+        'timer_paused',
+        'timer_paused_at',
     ];
 
-    protected $casts = [
-        'timeout_at' => 'datetime',
-        'timeout_stage1_at' => 'datetime',
-        'timer_paused_at' => 'datetime',
-        'timer_paused' => 'boolean',
-        'price' => 'integer',
-        'discounted_price' => 'integer',
-        'weight_grams' => 'integer',
-        'quantity' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'status' => ProductStatus::class,
+            'pickup_type' => PickupType::class,
+            'timeout_at' => 'datetime',
+            'timeout_stage1_at' => 'datetime',
+            'timer_paused_at' => 'datetime',
+            'timer_paused' => 'boolean',
+            'price' => 'integer',
+            'discounted_price' => 'integer',
+            'weight_grams' => 'integer',
+            'quantity' => 'integer',
+        ];
+    }
 
     // ==================== RELASI ====================
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function transactions()
+    public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
     }
 
-    public function barterOffers()
+    public function barterOffers(): HasMany
     {
         return $this->hasMany(BarterOffer::class);
     }
 
-    public function reports()
+    public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
     }
@@ -66,7 +89,7 @@ class Product extends Model
             'layak_konsumsi' => now()->addHours(48),
             'layak_olah' => now()->addDays(5),
             'layak_pakan_kompos' => now()->addDays(7),
-            default => now()->addDays(30), // produk olahan
+            default => now()->addDays(30),
         };
     }
 
@@ -76,10 +99,10 @@ class Product extends Model
     public static function calculateTimeoutStage1(string $condition): Carbon
     {
         return match ($condition) {
-            'layak_konsumsi' => now()->addHours(36),    // 75% dari 48 jam
-            'layak_olah' => now()->addDays(3)->addHours(18), // 75% dari 5 hari
-            'layak_pakan_kompos' => now()->addDays(5)->addHours(6), // 75% dari 7 hari
-            default => now()->addDays(22)->addHours(12), // 75% dari 30 hari
+            'layak_konsumsi' => now()->addHours(36),
+            'layak_olah' => now()->addDays(3)->addHours(18),
+            'layak_pakan_kompos' => now()->addDays(5)->addHours(6),
+            default => now()->addDays(22)->addHours(12),
         };
     }
 }

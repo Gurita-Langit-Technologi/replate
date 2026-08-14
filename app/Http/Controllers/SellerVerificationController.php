@@ -2,14 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SellerVerification;
+use App\Enums\NotificationType;
+use App\Enums\SellerVerificationDocumentType;
+use App\Enums\UserRole;
+use App\Enums\VerificationStatus;
 use App\Models\Notification;
+use App\Models\SellerVerification;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class SellerVerificationController extends Controller
 {
+    /**
+     * Halaman pengajuan verifikasi penjual olahan
+     */
     public function create(Request $request)
     {
         $existing = SellerVerification::where('user_id', $request->user()->id)
@@ -21,16 +29,19 @@ class SellerVerificationController extends Controller
         ]);
     }
 
+    /**
+     * Kirim formulir pengajuan verifikasi penjual
+     */
     public function store(Request $request)
     {
         $user = $request->user();
 
-        if ($user->role === 'verified_seller') {
+        if ($user->role === UserRole::VERIFIED_SELLER->value) {
             return back()->with('error', 'Anda sudah menjadi penjual olahan terverifikasi.');
         }
 
         $pending = SellerVerification::where('user_id', $user->id)
-            ->where('status', 'pending')
+            ->where('status', VerificationStatus::PENDING)
             ->first();
 
         if ($pending) {
@@ -38,7 +49,7 @@ class SellerVerificationController extends Controller
         }
 
         $validated = $request->validate([
-            'document_type' => 'required|in:pirt,surat_desa',
+            'document_type' => ['required', Rule::enum(SellerVerificationDocumentType::class)],
             'document_photo' => 'required|image|max:2048',
             'production_photo' => 'required|image|max:2048',
         ]);
@@ -54,13 +65,13 @@ class SellerVerificationController extends Controller
         ]);
 
         // Notifikasi ke admin
-        $admins = User::where('role', 'admin')->get();
+        $admins = User::where('role', UserRole::ADMIN)->get();
         foreach ($admins as $admin) {
             Notification::create([
                 'user_id' => $admin->id,
                 'title' => 'Pengajuan penjual olahan baru',
                 'message' => "{$user->name} mengajukan verifikasi penjual olahan.",
-                'type' => 'verification',
+                'type' => NotificationType::VERIFICATION,
             ]);
         }
 

@@ -2,31 +2,49 @@
 
 namespace App\Models;
 
+use App\Enums\PointType;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\DB;
 
 class PointHistory extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'user_id', 'amount', 'balance_after',
-        'description', 'type',
-        'related_id', 'related_type',
+        'user_id',
+        'amount',
+        'balance_after',
+        'description',
+        'type',
+        'related_id',
+        'related_type',
     ];
 
-    protected $casts = [
-        'amount' => 'integer',
-        'balance_after' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'type' => PointType::class,
+            'amount' => 'integer',
+            'balance_after' => 'integer',
+        ];
+    }
 
-    public function user()
+    // ==================== RELASI ====================
+
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function related()
+    public function related(): MorphTo
     {
         return $this->morphTo();
     }
+
+    // ==================== HELPER ====================
 
     /**
      * Hitung poin berdasarkan berat dan kondisi produk
@@ -53,10 +71,10 @@ class PointHistory extends Model
     /**
      * Berikan poin ke user (dengan database locking)
      */
-    public static function awardPoints(User $user, int $amount, string $description, string $type, $related = null): self
+    public static function awardPoints(User $user, int $amount, string $description, PointType|string $type, mixed $related = null): self
     {
         return DB::transaction(function () use ($user, $amount, $description, $type, $related) {
-            // Lock user row untuk prevent double spending
+            // Lock user row untuk mencegah race condition
             $user = User::lockForUpdate()->find($user->id);
 
             $user->increment('points', $amount);
@@ -76,7 +94,7 @@ class PointHistory extends Model
     /**
      * Pakai/tukar poin (dengan locking)
      */
-    public static function redeemPoints(User $user, int $amount, string $description, $related = null): self|false
+    public static function redeemPoints(User $user, int $amount, string $description, mixed $related = null): self|false
     {
         return DB::transaction(function () use ($user, $amount, $description, $related) {
             $user = User::lockForUpdate()->find($user->id);
@@ -92,7 +110,7 @@ class PointHistory extends Model
                 'amount' => -$amount,
                 'balance_after' => $user->points,
                 'description' => $description,
-                'type' => 'redeemed',
+                'type' => PointType::REDEEMED,
                 'related_id' => $related?->id,
                 'related_type' => $related ? get_class($related) : null,
             ]);

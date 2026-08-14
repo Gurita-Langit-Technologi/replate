@@ -6,7 +6,7 @@
 - [-] Logout
 - [-] Admin auto-redirect ke /admin/dashboard
 - [-] Partner auto-redirect ke /partner/dashboard
-- [masih bisa login] User blacklisted tidak bisa login
+- [x] User blacklisted tidak bisa login
 
 ## Upload Produk
 - [ -] Upload dengan semua field terisi → berhasil
@@ -29,6 +29,7 @@
 - [-] Tidak bisa beli produk sendiri
 - [-] Penjual konfirmasi → status confirmed
 - [-] Pembeli konfirmasi terima → status completed + produk sold
+- [-] Pembeli lapor basi (dispute) → status dispute_spoiled + produk dibatalkan + report dibuat
 - [-] Penjual dapat RePoin setelah complete
 - [-] Cancel transaksi berfungsi
 

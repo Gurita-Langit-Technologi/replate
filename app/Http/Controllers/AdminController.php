@@ -2,14 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Product;
-use App\Models\Transaction;
-use App\Models\PartnerProfile;
-use App\Models\SellerVerification;
-use App\Models\Report;
+use App\Enums\NotificationType;
+use App\Enums\PartnerType;
+use App\Enums\ProductStatus;
+use App\Enums\ReportStatus;
+use App\Enums\TransactionStatus;
+use App\Enums\TransactionType;
+use App\Enums\UserRole;
+use App\Enums\VerificationStatus;
 use App\Models\Notification;
+use App\Models\PartnerProfile;
+use App\Models\PointHistory;
+use App\Models\Product;
+use App\Models\Report;
+use App\Models\SellerVerification;
+use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class AdminController extends Controller
@@ -20,35 +30,35 @@ class AdminController extends Controller
     public function dashboard()
     {
         $stats = [
-            'totalUsers' => User::where('role', '!=', 'admin')->count(),
+            'totalUsers' => User::where('role', '!=', UserRole::ADMIN)->count(),
             'totalProducts' => Product::count(),
-            'activeProducts' => Product::where('status', 'active')->count(),
+            'activeProducts' => Product::where('status', ProductStatus::ACTIVE)->count(),
             'totalTransactions' => Transaction::count(),
-            'completedTransactions' => Transaction::where('status', 'completed')->count(),
-            'totalWeightSaved' => Transaction::where('transactions.status', 'completed')
+            'completedTransactions' => Transaction::where('status', TransactionStatus::COMPLETED)->count(),
+            'totalWeightSaved' => Transaction::where('transactions.status', TransactionStatus::COMPLETED)
                 ->join('products', 'transactions.product_id', '=', 'products.id')
                 ->sum('products.weight_grams'),
-            'pendingVerifications' => SellerVerification::where('status', 'pending')->count(),
-            'pendingReports' => Report::where('status', 'pending')->count(),
+            'pendingVerifications' => SellerVerification::where('status', VerificationStatus::PENDING)->count(),
+            'pendingReports' => Report::where('status', ReportStatus::PENDING)->count(),
         ];
 
         // Data untuk chart: transaksi per jenis
         $transactionsByType = [
-            ['name' => 'Jual', 'value' => Transaction::where('type', 'sale')->count()],
-            ['name' => 'Barter', 'value' => Transaction::where('type', 'barter')->count()],
-            ['name' => 'Donasi', 'value' => Transaction::where('type', 'donation')->count()],
-            ['name' => 'Partner', 'value' => Transaction::where('type', 'partner_transfer')->count()],
+            ['name' => 'Jual', 'value' => Transaction::where('type', TransactionType::SALE)->count()],
+            ['name' => 'Barter', 'value' => Transaction::where('type', TransactionType::BARTER)->count()],
+            ['name' => 'Donasi', 'value' => Transaction::where('type', TransactionType::DONATION)->count()],
+            ['name' => 'Partner', 'value' => Transaction::where('type', TransactionType::PARTNER_TRANSFER)->count()],
         ];
 
         // Data untuk chart: produk per status
         $productsByStatus = [
-            ['name' => 'Aktif', 'value' => Product::where('status', 'active')->count()],
-            ['name' => 'Diskon', 'value' => Product::where('status', 'timeout_stage_1')->count()],
-            ['name' => 'Donasi', 'value' => Product::where('status', 'timeout_stage_2')->count()],
-            ['name' => 'Terjual', 'value' => Product::where('status', 'sold')->count()],
-            ['name' => 'Terbarter', 'value' => Product::where('status', 'bartered')->count()],
-            ['name' => 'Terdonasi', 'value' => Product::where('status', 'donated')->count()],
-            ['name' => 'Dialihkan', 'value' => Product::whereIn('status', ['timeout_stage_3', 'transferred'])->count()],
+            ['name' => 'Aktif', 'value' => Product::where('status', ProductStatus::ACTIVE)->count()],
+            ['name' => 'Diskon', 'value' => Product::where('status', ProductStatus::TIMEOUT_STAGE_1)->count()],
+            ['name' => 'Donasi', 'value' => Product::where('status', ProductStatus::TIMEOUT_STAGE_2)->count()],
+            ['name' => 'Terjual', 'value' => Product::where('status', ProductStatus::SOLD)->count()],
+            ['name' => 'Terbarter', 'value' => Product::where('status', ProductStatus::BARTERED)->count()],
+            ['name' => 'Terdonasi', 'value' => Product::where('status', ProductStatus::DONATED)->count()],
+            ['name' => 'Dialihkan', 'value' => Product::whereIn('status', [ProductStatus::TIMEOUT_STAGE_3, ProductStatus::TRANSFERRED])->count()],
         ];
 
         return Inertia::render('Admin/Dashboard', [
@@ -64,7 +74,11 @@ class AdminController extends Controller
     public function verifications()
     {
         $verifications = SellerVerification::with('user')
-            ->orderByRaw("FIELD(status, 'pending', 'approved', 'rejected')")
+            ->orderByRaw("FIELD(status, ?, ?, ?)", [
+                VerificationStatus::PENDING->value,
+                VerificationStatus::APPROVED->value,
+                VerificationStatus::REJECTED->value,
+            ])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -78,14 +92,14 @@ class AdminController extends Controller
      */
     public function approveVerification(SellerVerification $verification)
     {
-        $verification->update(['status' => 'approved']);
-        $verification->user->update(['role' => 'verified_seller']);
+        $verification->update(['status' => VerificationStatus::APPROVED]);
+        $verification->user->update(['role' => UserRole::VERIFIED_SELLER]);
 
         Notification::create([
             'user_id' => $verification->user_id,
             'title' => 'Verifikasi disetujui!',
             'message' => 'Pengajuan penjual olahan Anda telah disetujui. Anda sekarang bisa menjual produk olahan.',
-            'type' => 'verification',
+            'type' => NotificationType::VERIFICATION,
             'related_id' => $verification->id,
             'related_type' => SellerVerification::class,
         ]);
@@ -103,7 +117,7 @@ class AdminController extends Controller
         ]);
 
         $verification->update([
-            'status' => 'rejected',
+            'status' => VerificationStatus::REJECTED,
             'admin_notes' => $validated['admin_notes'],
         ]);
 
@@ -111,7 +125,7 @@ class AdminController extends Controller
             'user_id' => $verification->user_id,
             'title' => 'Verifikasi ditolak',
             'message' => "Pengajuan ditolak: {$validated['admin_notes']}",
-            'type' => 'verification',
+            'type' => NotificationType::VERIFICATION,
             'related_id' => $verification->id,
             'related_type' => SellerVerification::class,
         ]);
@@ -125,7 +139,11 @@ class AdminController extends Controller
     public function reports()
     {
         $reports = Report::with(['product', 'reporter'])
-            ->orderByRaw("FIELD(status, 'pending', 'reviewed', 'dismissed')")
+            ->orderByRaw("FIELD(status, ?, ?, ?)", [
+                ReportStatus::PENDING->value,
+                ReportStatus::REVIEWED->value,
+                ReportStatus::DISMISSED->value,
+            ])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -139,7 +157,7 @@ class AdminController extends Controller
      */
     public function reviewReport(Report $report)
     {
-        $report->update(['status' => 'reviewed']);
+        $report->update(['status' => ReportStatus::REVIEWED]);
         $product = $report->product;
         $owner = User::find($product->user_id);
 
@@ -153,20 +171,20 @@ class AdminController extends Controller
                 'user_id' => $owner->id,
                 'title' => 'Akun ditangguhkan',
                 'message' => 'Akun Anda ditangguhkan karena 3x laporan dikonfirmasi. Hubungi admin untuk banding.',
-                'type' => 'report',
+                'type' => NotificationType::REPORT,
                 'related_id' => $report->id,
                 'related_type' => Report::class,
             ]);
         }
 
         // Hapus produk
-        $product->update(['status' => 'sold']); // soft remove dari marketplace
+        $product->update(['status' => ProductStatus::SOLD]); // soft remove dari marketplace
 
         Notification::create([
             'user_id' => $owner->id,
             'title' => 'Produk dihapus oleh admin',
             'message' => "Produk \"{$product->title}\" dihapus karena laporan dari pengguna lain.",
-            'type' => 'report',
+            'type' => NotificationType::REPORT,
             'related_id' => $report->id,
             'related_type' => Report::class,
         ]);
@@ -179,7 +197,7 @@ class AdminController extends Controller
      */
     public function dismissReport(Report $report)
     {
-        $report->update(['status' => 'dismissed']);
+        $report->update(['status' => ReportStatus::DISMISSED]);
         return back()->with('success', 'Laporan diabaikan.');
     }
 
@@ -188,7 +206,7 @@ class AdminController extends Controller
      */
     public function partners()
     {
-        $partners = User::where('role', 'partner')
+        $partners = User::where('role', UserRole::PARTNER)
             ->with('partnerProfile')
             ->get();
 
@@ -209,7 +227,7 @@ class AdminController extends Controller
             'whatsapp_number' => 'nullable|string',
             'desa' => 'nullable|string',
             'kecamatan' => 'nullable|string',
-            'partner_type' => 'required|in:peternak,kompos,maggot,umkm',
+            'partner_type' => ['required', Rule::enum(PartnerType::class)],
             'capacity_description' => 'nullable|string',
         ]);
 
@@ -217,7 +235,7 @@ class AdminController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
-            'role' => 'partner',
+            'role' => UserRole::PARTNER,
             'whatsapp_number' => $validated['whatsapp_number'] ?? null,
             'desa' => $validated['desa'] ?? null,
             'kecamatan' => $validated['kecamatan'] ?? null,
@@ -247,7 +265,7 @@ class AdminController extends Controller
      */
     public function users()
     {
-        $users = User::where('role', '!=', 'admin')
+        $users = User::where('role', '!=', UserRole::ADMIN)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -268,42 +286,42 @@ class AdminController extends Controller
     }
 
     /**
- * Halaman tukar poin
- */
-public function redeemPage()
-{
-    return Inertia::render('Admin/Redeem');
-}
-
-/**
- * Cari user berdasarkan kode
- */
-public function redeemSearch(Request $request)
-{
-    $request->validate(['code' => 'required|string']);
-
-    $user = User::where('redeem_code', strtoupper($request->code))->first();
-
-    if (!$user) {
-        return back()->with('error', 'Kode tidak ditemukan.');
+     * Halaman tukar poin
+     */
+    public function redeemPage()
+    {
+        return Inertia::render('Admin/Redeem');
     }
 
-    return Inertia::render('Admin/Redeem', [
-        'foundUser' => [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'desa' => $user->desa,
-            'points' => $user->points,
-            'redeem_code' => $user->redeem_code,
-        ],
-        'searchedCode' => $request->code,
-    ]);
-}
+    /**
+     * Cari user berdasarkan kode
+     */
+    public function redeemSearch(Request $request)
+    {
+        $request->validate(['code' => 'required|string']);
 
-/**
- * Proses penukaran poin
- */
+        $user = User::where('redeem_code', strtoupper($request->code))->first();
+
+        if (!$user) {
+            return back()->with('error', 'Kode tidak ditemukan.');
+        }
+
+        return Inertia::render('Admin/Redeem', [
+            'foundUser' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'desa' => $user->desa,
+                'points' => $user->points,
+                'redeem_code' => $user->redeem_code,
+            ],
+            'searchedCode' => $request->code,
+        ]);
+    }
+
+    /**
+     * Proses penukaran poin
+     */
     public function redeemProcess(Request $request)
     {
         $validated = $request->validate([
@@ -318,7 +336,7 @@ public function redeemSearch(Request $request)
             return back()->with('error', "Saldo poin tidak cukup. Saldo: {$user->points} poin.");
         }
 
-        $result = \App\Models\PointHistory::redeemPoints(
+        $result = PointHistory::redeemPoints(
             $user,
             $validated['amount'],
             $validated['description']
@@ -332,7 +350,7 @@ public function redeemSearch(Request $request)
             'user_id' => $user->id,
             'title' => "RePoin ditukar: -{$validated['amount']} poin",
             'message' => "Penukaran: {$validated['description']}. Sisa saldo: {$user->fresh()->points} poin.",
-            'type' => 'transaction',
+            'type' => NotificationType::TRANSACTION,
         ]);
 
         return redirect()->route('admin.redeem')->with('success', "Berhasil menukar {$validated['amount']} poin milik {$user->name}.");

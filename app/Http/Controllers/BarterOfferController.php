@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BarterOfferStatus;
+use App\Enums\NotificationType;
+use App\Enums\ProductStatus;
+use App\Enums\TransactionStatus;
+use App\Enums\TransactionType;
 use App\Models\BarterOffer;
+use App\Models\Notification;
 use App\Models\Product;
 use App\Models\Transaction;
-use App\Models\Notification;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -34,7 +39,7 @@ class BarterOfferController extends Controller
         }
 
         // Produk harus aktif dan mode barter
-        if (!in_array($product->status, ['active', 'timeout_stage_1'])) {
+        if (!in_array($product->status, [ProductStatus::ACTIVE, ProductStatus::TIMEOUT_STAGE_1])) {
             return back()->with('error', 'Produk sudah tidak tersedia.');
         }
 
@@ -57,7 +62,7 @@ class BarterOfferController extends Controller
             'offerer_id' => $user->id,
             'offer_description' => $validated['offer_description'],
             'offer_photo' => $photoPath,
-            'status' => 'pending',
+            'status' => BarterOfferStatus::PENDING,
         ]);
 
         // Notifikasi ke penjual
@@ -65,18 +70,18 @@ class BarterOfferController extends Controller
             'user_id' => $product->user_id,
             'title' => 'Tawaran barter masuk!',
             'message' => "{$user->name} menawarkan \"{$validated['offer_description']}\" untuk \"{$product->title}\".",
-            'type' => 'barter_offer',
+            'type' => NotificationType::BARTER_OFFER,
             'related_id' => $offer->id,
             'related_type' => BarterOffer::class,
         ]);
 
         // Pause timer produk selama negosiasi (max 12 jam)
-    if (!$product->timer_paused) {
-        $product->update([
-            'timer_paused' => true,
-            'timer_paused_at' => now(),
-        ]);
-    }
+        if (!$product->timer_paused) {
+            $product->update([
+                'timer_paused' => true,
+                'timer_paused_at' => now(),
+            ]);
+        }
 
         return redirect("/products/{$product->id}")
             ->with('success', 'Tawaran barter terkirim! Menunggu respon penjual.');
@@ -121,26 +126,26 @@ class BarterOfferController extends Controller
             return back()->with('error', 'Anda tidak memiliki akses.');
         }
 
-        if ($offer->status !== 'pending') {
+        if ($offer->status !== BarterOfferStatus::PENDING) {
             return back()->with('error', 'Tawaran sudah diproses.');
         }
 
         // Setujui tawaran ini
-        $offer->update(['status' => 'accepted']);
+        $offer->update(['status' => BarterOfferStatus::ACCEPTED]);
 
         // Tolak tawaran lain untuk produk yang sama
         BarterOffer::where('product_id', $offer->product_id)
             ->where('id', '!=', $offer->id)
-            ->where('status', 'pending')
-            ->update(['status' => 'rejected']);
+            ->where('status', BarterOfferStatus::PENDING)
+            ->update(['status' => BarterOfferStatus::REJECTED]);
 
         // Buat transaksi barter
         $transaction = Transaction::create([
             'product_id' => $offer->product_id,
             'buyer_id' => $offer->offerer_id,
             'seller_id' => $user->id,
-            'type' => 'barter',
-            'status' => 'confirmed',
+            'type' => TransactionType::BARTER,
+            'status' => TransactionStatus::CONFIRMED,
             'barter_notes' => $offer->offer_description,
         ]);
 
@@ -149,7 +154,7 @@ class BarterOfferController extends Controller
             'user_id' => $offer->offerer_id,
             'title' => 'Barter disetujui!',
             'message' => "Tawaran barter Anda untuk \"{$offer->product->title}\" telah disetujui. Silakan tukar produk.",
-            'type' => 'barter_offer',
+            'type' => NotificationType::BARTER_OFFER,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
         ]);
@@ -166,18 +171,18 @@ class BarterOfferController extends Controller
             return back()->with('error', 'Anda tidak memiliki akses.');
         }
 
-        if ($offer->status !== 'pending') {
+        if ($offer->status !== BarterOfferStatus::PENDING) {
             return back()->with('error', 'Tawaran sudah diproses.');
         }
 
-        $offer->update(['status' => 'rejected']);
+        $offer->update(['status' => BarterOfferStatus::REJECTED]);
 
         // Notifikasi ke pembarter
         Notification::create([
             'user_id' => $offer->offerer_id,
             'title' => 'Barter ditolak',
             'message' => "Tawaran barter Anda untuk \"{$offer->product->title}\" ditolak oleh penjual.",
-            'type' => 'barter_offer',
+            'type' => NotificationType::BARTER_OFFER,
             'related_id' => $offer->id,
             'related_type' => BarterOffer::class,
         ]);

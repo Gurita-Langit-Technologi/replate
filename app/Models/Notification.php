@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\NotificationType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Notification extends Model
 {
@@ -19,16 +22,22 @@ class Notification extends Model
         'related_type',
     ];
 
-    protected $casts = [
-        'is_read' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'type' => NotificationType::class,
+            'is_read' => 'boolean',
+        ];
+    }
 
-    public function user()
+    // ==================== RELASI ====================
+
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function related()
+    public function related(): MorphTo
     {
         return $this->morphTo();
     }

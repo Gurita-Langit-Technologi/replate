@@ -2,11 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PickupType;
+use App\Enums\ProductCategory;
+use App\Enums\ProductCondition;
+use App\Enums\ProductStatus;
+use App\Enums\TransactionMode;
+use App\Enums\TransactionStatus;
+use App\Enums\UserRole;
 use App\Models\Product;
+use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use App\Models\User;
-use App\Models\Transaction;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class ProductController extends Controller
@@ -17,7 +25,11 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $query = Product::with('user')
-            ->whereIn('status', ['active', 'timeout_stage_1', 'timeout_stage_2']);
+            ->whereIn('status', [
+                ProductStatus::ACTIVE,
+                ProductStatus::TIMEOUT_STAGE_1,
+                ProductStatus::TIMEOUT_STAGE_2,
+            ]);
 
         // Filter berdasarkan kategori
         if ($request->filled('category')) {
@@ -94,7 +106,7 @@ class ProductController extends Controller
         }
 
         // Cek olahan hanya untuk verified seller
-        if ($request->category === 'olahan' && $user->role !== 'verified_seller') {
+        if ($request->category === ProductCategory::OLAHAN->value && $user->role !== UserRole::VERIFIED_SELLER) {
             return back()->withErrors(['category' => 'Hanya penjual olahan terverifikasi yang bisa upload produk olahan.']);
         }
 
@@ -102,26 +114,26 @@ class ProductController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'photo' => 'required|image|max:2048',
-            'category' => 'required|in:mentah,olahan,hasil_bumi',
-            'condition' => 'required|in:layak_konsumsi,layak_olah,layak_pakan_kompos',
+            'category' => ['required', Rule::enum(ProductCategory::class)],
+            'condition' => ['required', Rule::enum(ProductCondition::class)],
             'weight_grams' => 'nullable|integer|min:0',
             'quantity' => 'required|integer|min:1',
             'unit' => 'required|string|in:gram,kg,pcs,porsi,kotak,bungkus,liter,ikat',
-            'transaction_mode' => 'required|in:sell,barter,sell_and_barter,donate',
+            'transaction_mode' => ['required', Rule::enum(TransactionMode::class)],
             'price' => 'nullable|integer|min:0',
             'barter_description' => 'nullable|string',
             'pickup_address' => 'nullable|string|max:500',
             'pickup_notes' => 'nullable|string|max:255',
-            'pickup_type' => 'required|in:rumah,drop_point',
+            'pickup_type' => ['required', Rule::enum(PickupType::class)],
         ]);
 
         // Validasi: jual harus ada harga
-        if (in_array($validated['transaction_mode'], ['sell', 'sell_and_barter']) && empty($validated['price'])) {
+        if (in_array($validated['transaction_mode'], [TransactionMode::SELL->value, TransactionMode::SELL_AND_BARTER->value]) && empty($validated['price'])) {
             return back()->withErrors(['price' => 'Harga wajib diisi untuk mode jual.']);
         }
 
         // Validasi: barter harus ada deskripsi
-        if (in_array($validated['transaction_mode'], ['barter', 'sell_and_barter']) && empty($validated['barter_description'])) {
+        if (in_array($validated['transaction_mode'], [TransactionMode::BARTER->value, TransactionMode::SELL_AND_BARTER->value]) && empty($validated['barter_description'])) {
             return back()->withErrors(['barter_description' => 'Deskripsi barter wajib diisi.']);
         }
 
@@ -153,11 +165,12 @@ class ProductController extends Controller
             'pickup_notes' => $validated['pickup_notes'] ?? null,
             'timeout_at' => $timeoutAt,
             'timeout_stage1_at' => $timeoutStage1At,
-            'status' => 'active',
+            'status' => ProductStatus::ACTIVE,
         ]);
 
         return redirect()->route('marketplace')->with('success', 'Produk berhasil diunggah!');
     }
+
     /**
      * Produk saya
      */
@@ -196,7 +209,7 @@ class ProductController extends Controller
             return redirect()->route('products.mine')->with('error', 'Anda tidak memiliki akses.');
         }
 
-        if ($request->category === 'olahan' && $request->user()->role !== 'verified_seller') {
+        if ($request->category === ProductCategory::OLAHAN->value && $request->user()->role !== UserRole::VERIFIED_SELLER) {
             return back()->withErrors(['category' => 'Hanya penjual olahan terverifikasi yang bisa upload produk olahan.']);
         }
 
@@ -204,10 +217,10 @@ class ProductController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'photo' => 'nullable|image|max:2048',
-            'category' => 'required|in:mentah,olahan,hasil_bumi',
-            'condition' => 'required|in:layak_konsumsi,layak_olah,layak_pakan_kompos',
+            'category' => ['required', Rule::enum(ProductCategory::class)],
+            'condition' => ['required', Rule::enum(ProductCondition::class)],
             'weight_grams' => 'required|integer|min:500',
-            'transaction_mode' => 'required|in:sell,barter,sell_and_barter,donate',
+            'transaction_mode' => ['required', Rule::enum(TransactionMode::class)],
             'price' => 'nullable|integer|min:0',
             'barter_description' => 'nullable|string',
         ]);
@@ -251,16 +264,16 @@ class ProductController extends Controller
     public function sellerProfile(User $user)
     {
         $products = Product::where('user_id', $user->id)
-            ->whereIn('status', ['active', 'timeout_stage_1'])
+            ->whereIn('status', [ProductStatus::ACTIVE, ProductStatus::TIMEOUT_STAGE_1])
             ->orderBy('created_at', 'desc')
             ->get();
 
         $totalSold = Transaction::where('seller_id', $user->id)
-            ->where('status', 'completed')
+            ->where('status', TransactionStatus::COMPLETED)
             ->count();
 
         $totalWeight = Transaction::where('seller_id', $user->id)
-            ->where('status', 'completed')
+            ->where('status', TransactionStatus::COMPLETED)
             ->join('products', 'transactions.product_id', '=', 'products.id')
             ->sum('products.weight_grams');
 

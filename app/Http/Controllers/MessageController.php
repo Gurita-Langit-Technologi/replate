@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\NotificationType;
 use App\Models\Message;
-use App\Models\User;
-use App\Models\Product;
 use App\Models\Notification;
+use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class MessageController extends Controller
@@ -110,7 +110,7 @@ class MessageController extends Controller
             'user_id' => $partner->id,
             'title' => 'Pesan baru',
             'message' => "{$request->user()->name}: " . substr($validated['body'], 0, 50) . (strlen($validated['body']) > 50 ? '...' : ''),
-            'type' => 'transaction',
+            'type' => NotificationType::TRANSACTION,
             'related_id' => $message->id,
             'related_type' => Message::class,
         ]);

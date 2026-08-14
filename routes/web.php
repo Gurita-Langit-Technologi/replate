@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/transactions/{transaction}/confirm', [TransactionController::class, 'confirm'])->name('transactions.confirm');
     Route::patch('/transactions/{transaction}/complete', [TransactionController::class, 'complete'])->name('transactions.complete');
     Route::patch('/transactions/{transaction}/cancel', [TransactionController::class, 'cancel'])->name('transactions.cancel');
+    Route::patch('/transactions/{transaction}/dispute', [TransactionController::class, 'dispute'])->name('transactions.dispute');
 
     // Barter
     Route::get('/barter', [BarterOfferController::class, 'index'])->name('barter.index');

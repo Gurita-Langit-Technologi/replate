@@ -1,5 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import React, { useState } from 'react';
 import {
     ArrowLeft,
     Package,
@@ -20,6 +21,7 @@ const statusConfig = {
     confirmed: { label: 'Dikonfirmasi', color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200', dot: 'bg-blue-400' },
     completed: { label: 'Selesai', color: 'text-green-600', bg: 'bg-green-50 border-green-200', dot: 'bg-green-400' },
     cancelled: { label: 'Dibatalkan', color: 'text-red-600', bg: 'bg-red-50 border-red-200', dot: 'bg-red-400' },
+    dispute_spoiled: { label: 'Dispute — Makanan Basi/Rusak', color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200', dot: 'bg-orange-400' },
 };
 
 const typeConfig = {
@@ -33,6 +35,7 @@ const steps = ['pending', 'confirmed', 'completed'];
 
 function StatusTracker({ currentStatus }) {
     const isCancelled = currentStatus === 'cancelled';
+    const isDispute = currentStatus === 'dispute_spoiled';
     const currentIdx = steps.indexOf(currentStatus);
 
     const stepLabels = {
@@ -52,6 +55,20 @@ function StatusTracker({ currentStatus }) {
         );
     }
 
+    if (isDispute) {
+        return (
+            <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-xl">
+                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-lg">
+                    ⚠️
+                </div>
+                <div>
+                    <p className="text-sm font-semibold text-orange-700">Sedang dalam dispute</p>
+                    <p className="text-xs text-orange-500 mt-0.5">Laporan basi/rusak telah dikirimkan. Admin sedang meninjau.</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="flex items-center justify-between">
             {steps.map((step, idx) => {
@@ -60,9 +77,10 @@ function StatusTracker({ currentStatus }) {
                 return (
                     <div key={step} className="flex items-center flex-1">
                         <div className="flex flex-col items-center">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition
-                                ${isDone ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-400'}
-                                ${isActive ? 'ring-4 ring-green-100' : ''}`}
+                            <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition
+                                    ${isDone ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-400'}
+                                    ${isActive ? 'ring-4 ring-green-100' : ''}`}
                             >
                                 {isDone && idx < currentIdx ? <Check size={16} /> : <span className="text-xs font-bold">{idx + 1}</span>}
                             </div>
@@ -80,6 +98,71 @@ function StatusTracker({ currentStatus }) {
     );
 }
 
+function DisputeModal({ transactionId, onClose }) {
+    const [loading, setLoading] = useState(false);
+
+    const handleDispute = () => {
+        setLoading(true);
+        router.patch(`/transactions/${transactionId}/dispute`, {}, {
+            onFinish: () => {
+                setLoading(false);
+                onClose();
+            },
+        });
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                onClick={onClose}
+            />
+
+            {/* Modal Card */}
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center mx-auto mb-4 text-3xl">
+                    ⚠️
+                </div>
+
+                <h2 className="text-lg font-bold text-gray-900 text-center mb-1">
+                    Lapor Makanan Basi/Rusak?
+                </h2>
+                <p className="text-sm text-gray-500 text-center mb-5">
+                    Tindakan ini akan melaporkan produk sebagai basi/rusak. Admin akan meninjau laporan ini dan menghubungi penjual.
+                </p>
+
+                <div className="p-3 bg-orange-50 border border-orange-100 rounded-xl mb-5">
+                    <p className="text-xs text-orange-700 text-center font-medium">
+                        ⚠️ Tindakan ini tidak dapat dibatalkan
+                    </p>
+                </div>
+
+                <div className="flex gap-3">
+                    <button
+                        onClick={onClose}
+                        disabled={loading}
+                        className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition disabled:opacity-50"
+                    >
+                        Kembali
+                    </button>
+                    <button
+                        onClick={handleDispute}
+                        disabled={loading}
+                        className="flex-1 py-3 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition disabled:opacity-70 flex items-center justify-center gap-2"
+                    >
+                        {loading && (
+                            <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                        )}
+                        {loading ? 'Mengirim...' : 'Ya, Lapor Sekarang'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function timeAgo(dateString) {
     const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
     if (seconds < 60) return 'Baru saja';
@@ -89,14 +172,25 @@ function timeAgo(dateString) {
 }
 
 export default function Show({ transaction, isBuyer, isSeller }) {
-    const status = statusConfig[transaction.status];
+    const [showDisputeModal, setShowDisputeModal] = useState(false);
+
+    const status = statusConfig[transaction.status] ?? statusConfig.pending;
     const type = typeConfig[transaction.type] || typeConfig.sale;
     const TypeIcon = type.icon;
     const product = transaction.product;
 
+    const isTerminalStatus = ['completed', 'cancelled', 'dispute_spoiled'].includes(transaction.status);
+
     return (
         <AppLayout>
             <Head title={`Transaksi #${transaction.id}`} />
+
+            {showDisputeModal && (
+                <DisputeModal
+                    transactionId={transaction.id}
+                    onClose={() => setShowDisputeModal(false)}
+                />
+            )}
 
             <div className="max-w-2xl mx-auto">
                 <Link href="/transactions" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-4">
@@ -116,7 +210,7 @@ export default function Show({ transaction, isBuyer, isSeller }) {
                                 <p className="text-sm font-medium text-gray-900 capitalize">{type.label}</p>
                             </div>
                         </div>
-                        <span className={`text-[11px] font-medium px-3 py-1 rounded-full border ${status.bg}`}>
+                        <span className={`text-[11px] font-medium px-3 py-1 rounded-full border ${status.bg} ${status.color}`}>
                             {status.label}
                         </span>
                     </div>
@@ -191,7 +285,7 @@ export default function Show({ transaction, isBuyer, isSeller }) {
                 </div>
 
                 {/* Actions */}
-                {transaction.status !== 'completed' && transaction.status !== 'cancelled' && (
+                {!isTerminalStatus && (
                     <div className="space-y-3">
                         {isSeller && transaction.status === 'pending' && (
                             <button
@@ -204,13 +298,23 @@ export default function Show({ transaction, isBuyer, isSeller }) {
                         )}
 
                         {isBuyer && transaction.status === 'confirmed' && (
-                            <button
-                                onClick={() => router.patch(`/transactions/${transaction.id}/complete`)}
-                                className="w-full flex items-center justify-center gap-2 py-3.5 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition"
-                            >
-                                <Check size={18} />
-                                Konfirmasi barang diterima
-                            </button>
+                            <>
+                                <button
+                                    onClick={() => router.patch(`/transactions/${transaction.id}/complete`)}
+                                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition"
+                                >
+                                    <Check size={18} />
+                                    Konfirmasi barang diterima
+                                </button>
+
+                                <button
+                                    onClick={() => setShowDisputeModal(true)}
+                                    className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-orange-500 border border-orange-200 hover:bg-orange-50 rounded-xl transition"
+                                >
+                                    <span>⚠️</span>
+                                    Lapor makanan basi / rusak
+                                </button>
+                            </>
                         )}
 
                         <button

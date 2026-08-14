@@ -2,8 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BarterOfferStatus;
+use App\Enums\ProductStatus;
+use App\Enums\TransactionStatus;
+use App\Enums\TransactionType;
+use App\Enums\UserRole;
+use App\Models\BarterOffer;
+use App\Models\PointHistory;
 use App\Models\Product;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -13,25 +21,25 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-            // Redirect admin ke admin dashboard
-            if ($user->isAdmin()) {
-                return redirect()->route('admin.dashboard');
-            }
+        // Redirect admin ke admin dashboard
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
 
-            // Redirect partner ke partner dashboard
-            if ($user->isPartner()) {
-                return redirect()->route('partner.dashboard');
-            }
+        // Redirect partner ke partner dashboard
+        if ($user->isPartner()) {
+            return redirect()->route('partner.dashboard');
+        }
 
         $myProducts = Product::where('user_id', $user->id)
-            ->where('status', 'active')
+            ->where('status', ProductStatus::ACTIVE)
             ->count();
 
         $totalTransactions = Transaction::where('buyer_id', $user->id)
             ->orWhere('seller_id', $user->id)
             ->count();
 
-        $totalWeightSaved = Transaction::where('transactions.status', 'completed')
+        $totalWeightSaved = Transaction::where('transactions.status', TransactionStatus::COMPLETED)
             ->where(function ($query) use ($user) {
                 $query->where('buyer_id', $user->id)
                     ->orWhere('seller_id', $user->id);
@@ -39,13 +47,19 @@ class DashboardController extends Controller
             ->join('products', 'transactions.product_id', '=', 'products.id')
             ->sum('products.weight_grams');
 
-        $incomingBarterCount = \App\Models\BarterOffer::whereHas('product', function ($q) use ($user) {
+        $incomingBarterCount = BarterOffer::whereHas('product', function ($q) use ($user) {
             $q->where('user_id', $user->id);
-        })->where('status', 'pending')->count();
+        })->where('status', BarterOfferStatus::PENDING)->count();
 
         // Recent products
         $recentProducts = Product::where('user_id', $user->id)
-            ->whereIn('status', ['active', 'timeout_stage_1', 'sold', 'bartered', 'donated'])
+            ->whereIn('status', [
+                ProductStatus::ACTIVE,
+                ProductStatus::TIMEOUT_STAGE_1,
+                ProductStatus::SOLD,
+                ProductStatus::BARTERED,
+                ProductStatus::DONATED,
+            ])
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
@@ -54,26 +68,26 @@ class DashboardController extends Controller
         $recentTransactions = Transaction::with('product')
             ->where(function ($q) use ($user) {
                 $q->where('buyer_id', $user->id)
-                ->orWhere('seller_id', $user->id);
+                    ->orWhere('seller_id', $user->id);
             })
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
         // Incoming barter offers
-        $incomingBarters = \App\Models\BarterOffer::with(['product', 'offerer'])
+        $incomingBarters = BarterOffer::with(['product', 'offerer'])
             ->whereHas('product', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
-            ->where('status', 'pending')
+            ->where('status', BarterOfferStatus::PENDING)
             ->orderBy('created_at', 'desc')
             ->limit(4)
             ->get();
 
-        $pointHistory = \App\Models\PointHistory::where('user_id', $user->id)
-        ->orderBy('created_at', 'desc')
-        ->limit(5)
-        ->get();
+        $pointHistory = PointHistory::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
 
         return Inertia::render('Dashboard', [
             'stats' => [
@@ -86,6 +100,7 @@ class DashboardController extends Controller
             'recentProducts' => $recentProducts,
             'recentTransactions' => $recentTransactions,
             'incomingBarters' => $incomingBarters,
+            'pointHistory' => $pointHistory,
         ]);
     }
 
@@ -93,38 +108,44 @@ class DashboardController extends Controller
     {
         $stats = [
             'totalProducts' => Product::count(),
-            'activeProducts' => Product::where('status', 'active')->count(),
+            'activeProducts' => Product::where('status', ProductStatus::ACTIVE)->count(),
             'totalTransactions' => Transaction::count(),
-            'totalUsers' => \App\Models\User::where('role', '!=', 'admin')->count(),
+            'totalUsers' => User::where('role', '!=', UserRole::ADMIN)->count(),
         ];
 
         return Inertia::render('Admin/Dashboard', [
             'stats' => $stats,
         ]);
     }
+
     public function partner(Request $request)
     {
         $user = $request->user();
 
         $pending = Transaction::with('product')
-            ->where('type', 'partner_transfer')
+            ->where('type', TransactionType::PARTNER_TRANSFER)
             ->where('partner_id', $user->id)
-            ->where('status', 'pending')
+            ->where('status', TransactionStatus::PENDING)
             ->get();
 
         $completed = Transaction::with('product')
-            ->where('type', 'partner_transfer')
+            ->where('type', TransactionType::PARTNER_TRANSFER)
             ->where('partner_id', $user->id)
-            ->where('status', 'completed')
+            ->where('status', TransactionStatus::COMPLETED)
             ->orderBy('updated_at', 'desc')
             ->limit(10)
             ->get();
 
-        $totalWeight = Transaction::where('type', 'partner_transfer')
+        $totalWeight = Transaction::where('type', TransactionType::PARTNER_TRANSFER)
             ->where('partner_id', $user->id)
-            ->where('status', 'completed')
+            ->where('status', TransactionStatus::COMPLETED)
             ->join('products', 'transactions.product_id', '=', 'products.id')
             ->sum('products.weight_grams');
+
+        $pointHistory = PointHistory::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
 
         return Inertia::render('Partner/Dashboard', [
             'pending' => $pending,

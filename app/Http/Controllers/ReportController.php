@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Report;
-use App\Models\Product;
+use App\Enums\NotificationType;
+use App\Enums\ReportReason;
 use App\Models\Notification;
+use App\Models\Product;
+use App\Models\Report;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ReportController extends Controller
 {
+    /**
+     * Laporkan produk yang melanggar ketentuan
+     */
     public function store(Request $request, Product $product)
     {
         $user = $request->user();
@@ -26,7 +32,7 @@ class ReportController extends Controller
         }
 
         $validated = $request->validate([
-            'reason' => 'required|in:tidak_sesuai_foto,kondisi_buruk,produk_tidak_layak,penipuan',
+            'reason' => ['required', Rule::enum(ReportReason::class)],
             'description' => 'nullable|string|max:500',
         ]);
 
@@ -41,7 +47,7 @@ class ReportController extends Controller
             'user_id' => $product->user_id,
             'title' => 'Produk Anda dilaporkan',
             'message' => "Produk \"{$product->title}\" dilaporkan oleh pengguna lain.",
-            'type' => 'report',
+            'type' => NotificationType::REPORT,
             'related_id' => $product->id,
             'related_type' => Product::class,
         ]);

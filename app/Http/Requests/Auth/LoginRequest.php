@@ -50,6 +50,14 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (Auth::user()->isBlacklisted()) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda telah di-blacklist karena melanggar ketentuan.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
