@@ -15,10 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+            \App\Http\Middleware\CheckBlacklist::class,
         ]);
 
         $middleware->alias([
-        'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'blacklist' => \App\Http\Middleware\CheckBlacklist::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

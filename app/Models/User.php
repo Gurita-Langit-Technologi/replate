@@ -136,7 +136,7 @@ class User extends Authenticatable
 
     public function isBlacklisted(): bool
     {
-        return $this->is_blacklisted;
+        return (bool) ($this->is_blacklisted ?? false);
     }
 
     protected static function booted()
