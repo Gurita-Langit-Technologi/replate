@@ -20,7 +20,11 @@ class RoleMiddleware
             return redirect()->route('login')->with('error', 'Akun Anda ditangguhkan. Hubungi admin untuk banding.');
         }
 
-        if (!in_array($request->user()->role, $roles)) {
+        $userRole = $request->user()->role instanceof \App\Enums\UserRole
+            ? $request->user()->role->value
+            : $request->user()->role;
+
+        if (!in_array($userRole, $roles)) {
             return redirect()->route('dashboard');
         }
 

@@ -74,6 +74,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
 
     Route::get('/points', [App\Http\Controllers\PointController::class, 'index'])->name('points.index');
+
+    // Chat
+    Route::get('/chat', [MessageController::class, 'index'])->name('chat.index');
+    Route::get('/chat/{partner}/{product?}', [MessageController::class, 'show'])->name('chat.show');
+    Route::post('/chat/{partner}', [MessageController::class, 'store'])->name('chat.store');
+    Route::get('/products/{product}/chat', [MessageController::class, 'startFromProduct'])->name('chat.start');
 });
 
 // ============ ADMIN ONLY ============
@@ -101,11 +107,6 @@ Route::middleware(['auth', 'role:partner'])->prefix('partner')->name('partner.')
     Route::patch('/transactions/{transaction}/confirm', [TransactionController::class, 'partnerConfirm'])->name('confirm');
 });
 
-// Chat
-    Route::get('/chat', [MessageController::class, 'index'])->name('chat.index');
-    Route::get('/chat/{partner}/{product?}', [MessageController::class, 'show'])->name('chat.show');
-    Route::post('/chat/{partner}', [MessageController::class, 'store'])->name('chat.store');
-    Route::get('/products/{product}/chat', [MessageController::class, 'startFromProduct'])->name('chat.start');
 
     // Halaman publik
     Route::get('/faq', function () {

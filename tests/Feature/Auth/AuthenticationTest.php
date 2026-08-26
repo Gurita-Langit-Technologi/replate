@@ -51,4 +51,33 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
         $response->assertRedirect('/');
     }
+
+    public function test_blacklisted_user_cannot_login(): void
+    {
+        $user = User::factory()->create([
+            'is_blacklisted' => true,
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertGuest();
+        $response->assertRedirect('/login');
+        $response->assertSessionHasErrors('email');
+    }
+
+    public function test_authenticated_blacklisted_user_is_logged_out_on_subsequent_request(): void
+    {
+        $user = User::factory()->create([
+            'is_blacklisted' => true,
+        ]);
+
+        $response = $this->actingAs($user)->get('/dashboard');
+
+        $this->assertGuest();
+        $response->assertRedirect('/login');
+        $response->assertSessionHasErrors('email');
+    }
 }
