@@ -1,9 +1,10 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link } from '@inertiajs/react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { AlertTriangle, Shield, Users, Package, TrendingUp, Leaf } from 'lucide-react';
+import { AlertTriangle, Shield, Users, Package, TrendingUp, Leaf, Recycle, HeartHandshake } from 'lucide-react';
 
 const COLORS = ['#16a34a', '#9333ea', '#2563eb', '#f59e0b', '#ec4899', '#06b6d4', '#ef4444'];
+const IMPACT_COLORS = ['#16a34a', '#f59e0b'];
 
 function StatCard({ icon: Icon, label, value, unit, color, href }) {
     const Wrapper = href ? Link : 'div';
@@ -30,12 +31,24 @@ function StatCard({ icon: Icon, label, value, unit, color, href }) {
     );
 }
 
-export default function Dashboard({ stats, transactionsByType, productsByStatus }) {
+export default function Dashboard({ stats, villageImpactMetrics, transactionsByType, productsByStatus }) {
+    const impact = villageImpactMetrics || {
+        totalVillageImpactKg: (stats.totalWeightSaved / 1000).toFixed(1),
+        directSavedKg: (stats.totalWeightSaved / 1000).toFixed(1),
+        partnerSavedKg: 0,
+        directRatio: 100,
+        partnerRatio: 0,
+        chartData: [
+            { name: 'Penyelamatan Langsung', weightKg: (stats.totalWeightSaved / 1000).toFixed(1), percentage: 100 },
+            { name: 'Alih Fungsi Mitra', weightKg: 0, percentage: 0 },
+        ],
+    };
+
     return (
         <AppLayout>
-            <Head title="Admin Dashboard" />
+            <Head title="Admin BUMDes Dashboard" />
             <div className="max-w-6xl mx-auto">
-                <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard Admin</h1>
+                <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard Admin BUMDes</h1>
 
                 {/* Alert cards */}
                 {(stats.pendingVerifications > 0 || stats.pendingReports > 0) && (
@@ -55,12 +68,51 @@ export default function Dashboard({ stats, transactionsByType, productsByStatus 
                     </div>
                 )}
 
-                {/* Stats */}
+                {/* Stats Summary */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                     <StatCard icon={Users} label="Total pengguna" value={stats.totalUsers} color="blue" />
                     <StatCard icon={Package} label="Produk aktif" value={stats.activeProducts} color="green" />
                     <StatCard icon={TrendingUp} label="Transaksi selesai" value={stats.completedTransactions} color="purple" />
-                    <StatCard icon={Leaf} label="Waste terselamatkan" value={(stats.totalWeightSaved / 1000).toFixed(1)} unit="kg" color="amber" />
+                    <StatCard icon={Leaf} label="Total dampak desa" value={impact.totalVillageImpactKg} unit="kg" color="amber" />
+                </div>
+
+                {/* BUMDes Village Impact Section */}
+                <div className="bg-gradient-to-r from-emerald-900 to-teal-800 text-white rounded-2xl p-6 mb-8 shadow-lg">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-3 bg-emerald-700/50 rounded-xl">
+                            <Recycle size={28} className="text-emerald-300" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold">Metrik Dampak Desa Replate (BUMDes)</h2>
+                            <p className="text-xs text-emerald-200">Analisis rasio sampah makanan yang terselamatkan secara langsung vs dialihkan ke mitra pengolah</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/10">
+                            <p className="text-xs text-emerald-200 mb-1">Penyelamatan Langsung (Jual/Barter/Donasi)</p>
+                            <p className="text-2xl font-extrabold text-white">{impact.directSavedKg} <span className="text-sm font-normal text-emerald-300">kg</span></p>
+                            <span className="inline-block mt-2 px-2.5 py-0.5 bg-emerald-500/30 text-emerald-300 text-xs font-semibold rounded-full">
+                                {impact.directRatio}% dari total
+                            </span>
+                        </div>
+
+                        <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/10">
+                            <p className="text-xs text-emerald-200 mb-1">Alih Fungsi Mitra (UMKM/Pakan/Kompos)</p>
+                            <p className="text-2xl font-extrabold text-white">{impact.partnerSavedKg} <span className="text-sm font-normal text-amber-300">kg</span></p>
+                            <span className="inline-block mt-2 px-2.5 py-0.5 bg-amber-500/30 text-amber-300 text-xs font-semibold rounded-full">
+                                {impact.partnerRatio}% dari total
+                            </span>
+                        </div>
+
+                        <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/10">
+                            <p className="text-xs text-emerald-200 mb-1">Total Sampah Makanan Terselamatkan</p>
+                            <p className="text-2xl font-extrabold text-white">{impact.totalVillageImpactKg} <span className="text-sm font-normal text-emerald-300">kg</span></p>
+                            <span className="inline-block mt-2 px-2.5 py-0.5 bg-blue-500/30 text-blue-200 text-xs font-semibold rounded-full">
+                                100% Dampak Bersih
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Charts */}

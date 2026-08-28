@@ -58,4 +58,9 @@ class Transaction extends Model
     {
         return $this->belongsTo(User::class, 'partner_id');
     }
+
+    public function reviews(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
 }

@@ -117,6 +117,16 @@ class User extends Authenticatable
         return $this->hasMany(Message::class, 'receiver_id');
     }
 
+    public function reviewsReceived(): HasMany
+    {
+        return $this->hasMany(Review::class, 'reviewee_id');
+    }
+
+    public function averageRating(): float
+    {
+        return round((float) $this->reviewsReceived()->avg('rating'), 1);
+    }
+
     // ==================== HELPER ====================
 
     public function isAdmin(): bool

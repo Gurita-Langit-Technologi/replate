@@ -29,6 +29,36 @@ class AdminController extends Controller
      */
     public function dashboard()
     {
+        $directSavedGrams = Transaction::where('transactions.status', TransactionStatus::COMPLETED)
+            ->whereIn('type', [TransactionType::SALE, TransactionType::BARTER, TransactionType::DONATION])
+            ->join('products', 'transactions.product_id', '=', 'products.id')
+            ->sum('products.weight_grams');
+
+        $partnerSavedGrams = Transaction::where('transactions.status', TransactionStatus::COMPLETED)
+            ->where('type', TransactionType::PARTNER_TRANSFER)
+            ->join('products', 'transactions.product_id', '=', 'products.id')
+            ->sum('products.weight_grams');
+
+        $directSavedKg = round($directSavedGrams / 1000, 1);
+        $partnerSavedKg = round($partnerSavedGrams / 1000, 1);
+        $totalVillageImpactKg = round(($directSavedGrams + $partnerSavedGrams) / 1000, 1);
+
+        $totalImpactGrams = $directSavedGrams + $partnerSavedGrams;
+        $directRatio = $totalImpactGrams > 0 ? round(($directSavedGrams / $totalImpactGrams) * 100, 1) : 0;
+        $partnerRatio = $totalImpactGrams > 0 ? round(($partnerSavedGrams / $totalImpactGrams) * 100, 1) : 0;
+
+        $villageImpactMetrics = [
+            'totalVillageImpactKg' => $totalVillageImpactKg,
+            'directSavedKg' => $directSavedKg,
+            'partnerSavedKg' => $partnerSavedKg,
+            'directRatio' => $directRatio,
+            'partnerRatio' => $partnerRatio,
+            'chartData' => [
+                ['name' => 'Penyelamatan Langsung', 'weightKg' => $directSavedKg, 'percentage' => $directRatio],
+                ['name' => 'Alih Fungsi Mitra', 'weightKg' => $partnerSavedKg, 'percentage' => $partnerRatio],
+            ],
+        ];
+
         $stats = [
             'totalUsers' => User::where('role', '!=', UserRole::ADMIN)->count(),
             'totalProducts' => Product::count(),
@@ -58,11 +88,12 @@ class AdminController extends Controller
             ['name' => 'Terjual', 'value' => Product::where('status', ProductStatus::SOLD)->count()],
             ['name' => 'Terbarter', 'value' => Product::where('status', ProductStatus::BARTERED)->count()],
             ['name' => 'Terdonasi', 'value' => Product::where('status', ProductStatus::DONATED)->count()],
-            ['name' => 'Dialihkan', 'value' => Product::whereIn('status', [ProductStatus::TIMEOUT_STAGE_3, ProductStatus::TRANSFERRED])->count()],
+            ['name' => 'Dialihkan', 'value' => Product::whereIn('status', [ProductStatus::TIMEOUT_STAGE_3, ProductStatus::TRANSFERRED, ProductStatus::DIALIHKAN_KE_MITRA])->count()],
         ];
 
         return Inertia::render('Admin/Dashboard', [
             'stats' => $stats,
+            'villageImpactMetrics' => $villageImpactMetrics,
             'transactionsByType' => $transactionsByType,
             'productsByStatus' => $productsByStatus,
         ]);

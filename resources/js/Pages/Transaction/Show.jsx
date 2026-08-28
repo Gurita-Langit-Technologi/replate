@@ -14,6 +14,8 @@ import {
     Handshake,
     Scale,
     MapPin,
+    Star,
+    Camera,
 } from 'lucide-react';
 
 const statusConfig = {
@@ -63,7 +65,7 @@ function StatusTracker({ currentStatus }) {
                 </div>
                 <div>
                     <p className="text-sm font-semibold text-orange-700">Sedang dalam dispute</p>
-                    <p className="text-xs text-orange-500 mt-0.5">Laporan basi/rusak telah dikirimkan. Admin sedang meninjau.</p>
+                    <p className="text-xs text-orange-500 mt-0.5">Produk dialihkan ke mitra pengolah dan admin sedang meninjau laporan.</p>
                 </div>
             </div>
         );
@@ -113,32 +115,22 @@ function DisputeModal({ transactionId, onClose }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-                onClick={onClose}
-            />
-
-            {/* Modal Card */}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-                {/* Icon */}
                 <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center mx-auto mb-4 text-3xl">
                     ⚠️
                 </div>
-
                 <h2 className="text-lg font-bold text-gray-900 text-center mb-1">
                     Lapor Makanan Basi/Rusak?
                 </h2>
                 <p className="text-sm text-gray-500 text-center mb-5">
-                    Tindakan ini akan melaporkan produk sebagai basi/rusak. Admin akan meninjau laporan ini dan menghubungi penjual.
+                    Tindakan ini akan mengalihkan produk ke mitra pengolah dan membuat laporan dispute untuk ditinjau admin.
                 </p>
-
                 <div className="p-3 bg-orange-50 border border-orange-100 rounded-xl mb-5">
                     <p className="text-xs text-orange-700 text-center font-medium">
-                        ⚠️ Tindakan ini tidak dapat dibatalkan
+                        ⚠️ Produk akan otomatis dialihkan ke Mitra Alih Fungsi
                     </p>
                 </div>
-
                 <div className="flex gap-3">
                     <button
                         onClick={onClose}
@@ -163,6 +155,126 @@ function DisputeModal({ transactionId, onClose }) {
     );
 }
 
+function ReviewModal({ transactionId, onClose }) {
+    const [rating, setRating] = useState(5);
+    const [comment, setComment] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setLoading(true);
+        router.post(`/transactions/${transactionId}/review`, { rating, comment }, {
+            onFinish: () => {
+                setLoading(false);
+                onClose();
+            },
+        });
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+                <h2 className="text-lg font-bold text-gray-900 text-center mb-1">Beri Ulasan</h2>
+                <p className="text-sm text-gray-500 text-center mb-4">Bagaimana pengalaman transaksi Anda?</p>
+                <form onSubmit={handleSubmit}>
+                    <div className="flex justify-center gap-2 mb-4">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                                key={star}
+                                type="button"
+                                onClick={() => setRating(star)}
+                                className={`text-2xl transition ${star <= rating ? 'text-amber-400 scale-110' : 'text-gray-300'}`}
+                            >
+                                ★
+                            </button>
+                        ))}
+                    </div>
+                    <textarea
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        placeholder="Tulis ulasan Anda (opsional)..."
+                        className="w-full p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
+                        rows={3}
+                    />
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={loading}
+                            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex-1 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-50"
+                        >
+                            {loading ? 'Mengirim...' : 'Kirim Ulasan'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+function ProofUploadModal({ transactionId, onClose }) {
+    const [file, setFile] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!file) return;
+        setLoading(true);
+        const formData = new FormData();
+        formData.append('proof_photo', file);
+        router.post(`/transactions/${transactionId}/proof-photo`, formData, {
+            onFinish: () => {
+                setLoading(false);
+                onClose();
+            },
+        });
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+                <h2 className="text-lg font-bold text-gray-900 text-center mb-1">Unggah Bukti Transaksi</h2>
+                <p className="text-sm text-gray-500 text-center mb-4">Unggah foto penyerahan barang / bukti penerimaan.</p>
+                <form onSubmit={handleSubmit}>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setFile(e.target.files[0])}
+                        className="w-full p-2 border border-gray-200 rounded-xl text-xs mb-4"
+                        required
+                    />
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={loading}
+                            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading || !file}
+                            className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-50"
+                        >
+                            {loading ? 'Mengunggah...' : 'Unggah Foto'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 function timeAgo(dateString) {
     const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
     if (seconds < 60) return 'Baru saja';
@@ -171,8 +283,10 @@ function timeAgo(dateString) {
     return `${Math.floor(seconds / 86400)} hari lalu`;
 }
 
-export default function Show({ transaction, isBuyer, isSeller }) {
+export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
     const [showDisputeModal, setShowDisputeModal] = useState(false);
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [showProofModal, setShowProofModal] = useState(false);
 
     const status = statusConfig[transaction.status] ?? statusConfig.pending;
     const type = typeConfig[transaction.type] || typeConfig.sale;
@@ -189,6 +303,20 @@ export default function Show({ transaction, isBuyer, isSeller }) {
                 <DisputeModal
                     transactionId={transaction.id}
                     onClose={() => setShowDisputeModal(false)}
+                />
+            )}
+
+            {showReviewModal && (
+                <ReviewModal
+                    transactionId={transaction.id}
+                    onClose={() => setShowReviewModal(false)}
+                />
+            )}
+
+            {showProofModal && (
+                <ProofUploadModal
+                    transactionId={transaction.id}
+                    onClose={() => setShowProofModal(false)}
                 />
             )}
 
@@ -253,6 +381,63 @@ export default function Show({ transaction, isBuyer, isSeller }) {
                     )}
                 </div>
 
+                {/* Foto Bukti Transaksi */}
+                <div className="bg-white rounded-xl border border-gray-100 p-5 mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Foto Bukti Transaksi</p>
+                        {!transaction.proof_photo && ['confirmed', 'completed'].includes(transaction.status) && (
+                            <button
+                                onClick={() => setShowProofModal(true)}
+                                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                            >
+                                <Camera size={14} /> Unggah Foto
+                            </button>
+                        )}
+                    </div>
+                    {transaction.proof_photo ? (
+                        <div className="rounded-xl overflow-hidden max-h-48 border border-gray-100">
+                            <img src={`/storage/${transaction.proof_photo}`} alt="Foto Bukti Transaksi" className="w-full h-full object-cover" />
+                        </div>
+                    ) : (
+                        <p className="text-xs text-gray-400 italic">Belum ada foto bukti transaksi.</p>
+                    )}
+                </div>
+
+                {/* Reviews Section */}
+                {transaction.status === 'completed' && (
+                    <div className="bg-white rounded-xl border border-gray-100 p-5 mb-4">
+                        <div className="flex items-center justify-between mb-3">
+                            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Ulasan & Rating</p>
+                            {!hasReviewed && (
+                                <button
+                                    onClick={() => setShowReviewModal(true)}
+                                    className="text-xs font-semibold text-green-600 hover:text-green-700 flex items-center gap-1"
+                                >
+                                    <Star size={14} /> Beri Ulasan
+                                </button>
+                            )}
+                        </div>
+
+                        {transaction.reviews && transaction.reviews.length > 0 ? (
+                            <div className="space-y-3">
+                                {transaction.reviews.map((rev) => (
+                                    <div key={rev.id} className="p-3 bg-gray-50 rounded-xl text-xs">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="font-semibold text-gray-800">{rev.reviewer?.name}</span>
+                                            <span className="flex text-amber-400">
+                                                {'★'.repeat(rev.rating)}
+                                            </span>
+                                        </div>
+                                        {rev.comment && <p className="text-gray-600 mt-1">{rev.comment}</p>}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-xs text-gray-400 italic">Belum ada ulasan untuk transaksi ini.</p>
+                        )}
+                    </div>
+                )}
+
                 {/* Pihak */}
                 <div className="bg-white rounded-xl border border-gray-100 p-5 mb-4">
                     <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">Pihak terlibat</p>
@@ -260,7 +445,7 @@ export default function Show({ transaction, isBuyer, isSeller }) {
                         <div className={`p-4 rounded-xl ${isSeller ? 'bg-green-50 border border-green-100' : 'bg-gray-50'}`}>
                             <div className="flex items-center gap-2 mb-1">
                                 <User size={14} className="text-gray-400" />
-                                <p className="text-xs text-gray-400">Penjual</p>
+                                <p className="text-xs text-gray-400">Penjual / Pendonor</p>
                                 {isSeller && <span className="text-[10px] px-1.5 py-0.5 bg-green-200 text-green-700 rounded font-medium">Anda</span>}
                             </div>
                             <p className="text-sm font-medium text-gray-900">{transaction.seller?.name}</p>
@@ -268,7 +453,7 @@ export default function Show({ transaction, isBuyer, isSeller }) {
                         <div className={`p-4 rounded-xl ${isBuyer ? 'bg-green-50 border border-green-100' : 'bg-gray-50'}`}>
                             <div className="flex items-center gap-2 mb-1">
                                 <User size={14} className="text-gray-400" />
-                                <p className="text-xs text-gray-400">Pembeli</p>
+                                <p className="text-xs text-gray-400">Pembeli / Penerima</p>
                                 {isBuyer && <span className="text-[10px] px-1.5 py-0.5 bg-green-200 text-green-700 rounded font-medium">Anda</span>}
                             </div>
                             <p className="text-sm font-medium text-gray-900">{transaction.buyer?.name}</p>
@@ -287,7 +472,32 @@ export default function Show({ transaction, isBuyer, isSeller }) {
                 {/* Actions */}
                 {!isTerminalStatus && (
                     <div className="space-y-3">
-                        {isSeller && transaction.status === 'pending' && (
+                        {/* Donasi Pending -> Donor bisa Setuju / Tolak */}
+                        {isSeller && (transaction.type === 'donation' || transaction.type?.value === 'donation') && transaction.status === 'pending' && (
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => router.patch(`/transactions/${transaction.id}/accept-donation`)}
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition"
+                                >
+                                    <Check size={18} />
+                                    Setujui Klaim Donasi
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (confirm('Yakin ingin menolak klaim donasi ini?')) {
+                                            router.patch(`/transactions/${transaction.id}/reject-donation`);
+                                        }
+                                    }}
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition"
+                                >
+                                    <X size={18} />
+                                    Tolak Klaim
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Standard Confirm (Sale/Barter Pending) */}
+                        {isSeller && transaction.type !== 'donation' && transaction.type?.value !== 'donation' && transaction.status === 'pending' && (
                             <button
                                 onClick={() => router.patch(`/transactions/${transaction.id}/confirm`)}
                                 className="w-full flex items-center justify-center gap-2 py-3.5 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition"

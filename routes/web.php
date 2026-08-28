@@ -10,6 +10,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SellerVerificationController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -52,9 +53,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
     Route::patch('/transactions/{transaction}/confirm', [TransactionController::class, 'confirm'])->name('transactions.confirm');
+    Route::patch('/transactions/{transaction}/accept-donation', [TransactionController::class, 'acceptDonation'])->name('transactions.acceptDonation');
+    Route::patch('/transactions/{transaction}/reject-donation', [TransactionController::class, 'rejectDonation'])->name('transactions.rejectDonation');
     Route::patch('/transactions/{transaction}/complete', [TransactionController::class, 'complete'])->name('transactions.complete');
     Route::patch('/transactions/{transaction}/cancel', [TransactionController::class, 'cancel'])->name('transactions.cancel');
     Route::patch('/transactions/{transaction}/dispute', [TransactionController::class, 'dispute'])->name('transactions.dispute');
+    Route::post('/transactions/{transaction}/proof-photo', [TransactionController::class, 'uploadProofPhoto'])->name('transactions.uploadProof');
+    Route::post('/transactions/{transaction}/review', [ReviewController::class, 'store'])->name('transactions.review');
 
     // Barter
     Route::get('/barter', [BarterOfferController::class, 'index'])->name('barter.index');
