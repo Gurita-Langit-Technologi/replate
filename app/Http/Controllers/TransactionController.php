@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\BarterOfferStatus;
 use App\Enums\NotificationType;
 use App\Enums\ProductStatus;
+use App\Enums\ReportReason;
 use App\Enums\ReportStatus;
 use App\Enums\TransactionMode;
 use App\Enums\TransactionStatus;
@@ -241,7 +242,7 @@ class TransactionController extends Controller
         Report::create([
             'reporter_id' => $request->user()->id,
             'product_id' => $transaction->product_id,
-            'reason' => 'Makanan basi/rusak (dilaporkan via dispute transaksi)',
+            'reason' => ReportReason::DISPUTE_SPOILED,
             'status' => ReportStatus::PENDING,
         ]);
 
