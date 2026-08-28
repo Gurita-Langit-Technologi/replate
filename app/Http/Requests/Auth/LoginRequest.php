@@ -53,9 +53,9 @@ class LoginRequest extends FormRequest
         if (Auth::user()->isBlacklisted()) {
             Auth::logout();
 
-            throw ValidationException::withMessages([
-                'email' => 'Akun Anda telah di-blacklist karena melanggar ketentuan.',
-            ]);
+            $validator = \Illuminate\Support\Facades\Validator::make([], []);
+            $validator->errors()->add('email', 'Akun Anda telah di-blacklist karena melanggar ketentuan.');
+            throw new \Illuminate\Validation\ValidationException($validator);
         }
 
         RateLimiter::clear($this->throttleKey());

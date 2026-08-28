@@ -29,16 +29,6 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        // Cek blacklist setiap request
-        if ($request->user() && $request->user()->is_blacklisted) {
-            auth()->logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-            return [
-                ...parent::share($request),
-            ];
-        }
-
         return [
             ...parent::share($request),
             'auth' => [

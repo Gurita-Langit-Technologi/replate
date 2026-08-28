@@ -12,5 +12,6 @@ enum ProductStatus: string
     case BARTERED = 'bartered';
     case DONATED = 'donated';
     case TRANSFERRED = 'transferred';
+    case DIALIHKAN_KE_MITRA = 'dialihkan_ke_mitra';
     case CANCELLED = 'cancelled';
 }

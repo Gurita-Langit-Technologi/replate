@@ -98,10 +98,12 @@ class MessageController extends Controller
             'product_id' => 'nullable|exists:products,id',
         ]);
 
+        $productId = $request->input('product_id');
+
         $message = Message::create([
             'sender_id' => $request->user()->id,
             'receiver_id' => $partner->id,
-            'product_id' => $validated['product_id'] ?? null,
+            'product_id' => $productId,
             'body' => $validated['body'],
         ]);
 
@@ -115,7 +117,7 @@ class MessageController extends Controller
             'related_type' => Message::class,
         ]);
 
-        $productParam = $validated['product_id'] ? "/{$validated['product_id']}" : '';
+        $productParam = $productId ? "/{$productId}" : '';
         return redirect("/chat/{$partner->id}{$productParam}");
     }
 

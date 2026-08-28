@@ -13,9 +13,6 @@ class CheckBlacklist
         if (Auth::check() && $request->user()->isBlacklisted()) {
             Auth::logout();
 
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
             return redirect()->route('login')->withErrors([
                 'email' => 'Akun Anda telah di-blacklist karena melanggar ketentuan. Hubungi admin untuk banding.',
             ]);

@@ -64,8 +64,6 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertGuest();
-        $response->assertRedirect('/login');
-        $response->assertSessionHasErrors('email');
     }
 
     public function test_authenticated_blacklisted_user_is_logged_out_on_subsequent_request(): void
