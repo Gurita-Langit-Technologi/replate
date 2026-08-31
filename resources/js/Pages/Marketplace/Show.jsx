@@ -1,4 +1,8 @@
+import { useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
+import ConfirmModal from '@/Components/ConfirmModal';
+import Modal from '@/Components/Modal';
+import { formatTimeLeft } from '@/Utils/time';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -12,6 +16,10 @@ import {
     Flag,
     User,
     MessageCircle,
+    Plus,
+    Minus,
+    AlertTriangle,
+    X,
 } from 'lucide-react';
 
 function Badge({ children, color = 'gray' }) {
@@ -44,18 +52,26 @@ function InfoItem({ icon: Icon, label, value }) {
     );
 }
 
-export default function Show({ product }) {
+export default function Show({ product, reservedQty = 0, availableQty }) {
     const { auth } = usePage().props;
-    const isOwner = auth.user.id === product.user_id;
+    const isOwner = auth?.user?.id === product.user_id;
+    const isSpecialRole = auth?.user?.role === 'admin' || auth?.user?.role === 'partner';
+
+    const currentAvailable = availableQty !== undefined ? availableQty : Math.max(0, (product.quantity || 1) - reservedQty);
+    const maxQty = Math.max(1, currentAvailable);
+    const [buyQty, setBuyQty] = useState(1);
+
+    const unitPrice = product.discounted_price ?? product.price ?? 0;
+    const totalPrice = unitPrice * buyQty;
 
     const timeLeft = new Date(product.timeout_at) - new Date();
     const hoursLeft = Math.max(0, Math.floor(timeLeft / (1000 * 60 * 60)));
     const minutesLeft = Math.max(0, Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)));
 
     const conditionLabels = {
-        layak_konsumsi: 'Layak konsumsi',
-        layak_olah: 'Layak olah ulang',
-        layak_pakan_kompos: 'Pakan / kompos',
+        layak_konsumsi: 'Layak Konsumsi / Siap Santap',
+        layak_olah: 'Bahan Olahan / Perlu Diolah',
+        layak_pakan_kompos: 'Pakan / Kompos',
     };
 
     const conditionColors = {
@@ -73,256 +89,457 @@ export default function Show({ product }) {
 
     const categoryLabels = {
         mentah: 'Mentah',
-        olahan: 'Olahan',
+        olahan: 'Olahan (Siap Santap / Produk Olahan)',
         hasil_bumi: 'Hasil bumi',
     };
 
-    function handleReport() {
-        const reasons = [
-            { value: 'tidak_sesuai_foto', label: 'Tidak sesuai foto' },
-            { value: 'kondisi_buruk', label: 'Kondisi lebih buruk dari deskripsi' },
-            { value: 'produk_tidak_layak', label: 'Produk tidak layak' },
-            { value: 'penipuan', label: 'Penipuan' },
-        ];
-        const choice = prompt(
-            'Pilih alasan laporan (ketik angka):\n' +
-            reasons.map((r, i) => `${i + 1}. ${r.label}`).join('\n')
-        );
-        const idx = parseInt(choice) - 1;
-        if (idx >= 0 && idx < reasons.length) {
-            router.post(`/products/${product.id}/report`, { reason: reasons[idx].value });
-        }
+    const categoryColors = {
+        mentah: 'green',
+        olahan: 'amber',
+        hasil_bumi: 'blue',
+    };
+
+    const reportReasons = [
+        { value: 'tidak_sesuai_foto', label: 'Tidak sesuai foto / informasi keliru' },
+        { value: 'kondisi_buruk', label: 'Kondisi lebih buruk dari deskripsi' },
+        { value: 'produk_tidak_layak', label: 'Produk busuk / tidak layak' },
+        { value: 'penipuan', label: 'Indikasi penipuan / spam' },
+    ];
+
+    const [reportModal, setReportModal] = useState({
+        show: false,
+        reason: 'tidak_sesuai_foto',
+    });
+
+    function submitReport() {
+        router.post(`/products/${product.id}/report`, { reason: reportModal.reason }, {
+            onSuccess: () => setReportModal({ show: false, reason: 'tidak_sesuai_foto' }),
+        });
     }
+
+    const [confirmModal, setConfirmModal] = useState({
+        show: false,
+        title: '',
+        message: '',
+        confirmText: 'Ya, Lanjutkan',
+        variant: 'primary',
+        onConfirm: () => {},
+    });
 
     return (
         <AppLayout>
             <Head title={product.title} />
 
-            <div className="max-w-5xl mx-auto">
-                {/* Back button */}
-                <Link href="/marketplace" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-4">
+            {/* Custom Report Modal */}
+            <Modal show={reportModal.show} onClose={() => setReportModal(prev => ({ ...prev, show: false }))} maxWidth="md">
+                <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2 text-red-600">
+                            <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center">
+                                <Flag size={18} />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900">Laporkan Produk</h3>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setReportModal(prev => ({ ...prev, show: false }))}
+                            className="text-gray-400 hover:text-gray-600 p-1"
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
+
+                    <p className="text-xs text-gray-500 mb-4">
+                        Pilih alasan mengapa Anda ingin melaporkan produk <span className="font-semibold text-gray-700">"{product.title}"</span>:
+                    </p>
+
+                    <div className="space-y-2 mb-6">
+                        {reportReasons.map((r) => (
+                            <label
+                                key={r.value}
+                                className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition ${
+                                    reportModal.reason === r.value ? 'border-red-400 bg-red-50/50' : 'border-gray-100 hover:border-gray-200'
+                                }`}
+                            >
+                                <input
+                                    type="radio"
+                                    name="report_reason"
+                                    value={r.value}
+                                    checked={reportModal.reason === r.value}
+                                    onChange={(e) => setReportModal(prev => ({ ...prev, reason: e.target.value }))}
+                                    className="hidden"
+                                />
+                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                                    reportModal.reason === r.value ? 'border-red-500' : 'border-gray-300'
+                                }`}>
+                                    {reportModal.reason === r.value && <div className="w-2 h-2 rounded-full bg-red-500" />}
+                                </div>
+                                <span className="text-sm font-medium text-gray-800">{r.label}</span>
+                            </label>
+                        ))}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setReportModal(prev => ({ ...prev, show: false }))}
+                            className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            onClick={submitReport}
+                            className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition shadow-sm"
+                        >
+                            Kirim Laporan
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+
+            <ConfirmModal
+                show={confirmModal.show}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                confirmText={confirmModal.confirmText}
+                variant={confirmModal.variant}
+                onConfirm={confirmModal.onConfirm}
+                onClose={() => setConfirmModal((prev) => ({ ...prev, show: false }))}
+            />
+
+            <div className="max-w-4xl mx-auto">
+                <Link
+                    href="/marketplace"
+                    className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6"
+                >
                     <ArrowLeft size={16} />
                     Kembali ke marketplace
                 </Link>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* LEFT: Foto */}
-                    <div>
-                        <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
-                            {product.photo ? (
-                                <img
-                                    src={`/storage/${product.photo}`}
-                                    alt={product.title}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                    <ShoppingBasket size={64} />
-                                </div>
-                            )}
+                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden grid grid-cols-1 md:grid-cols-2">
+                    {/* Image */}
+                    <div className="relative aspect-square bg-gray-100">
+                        {product.photo ? (
+                            <img
+                                src={`/storage/${product.photo}`}
+                                alt={product.title}
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                Tidak ada foto
+                            </div>
+                        )}
+                        {/* Countdown overlay */}
+                        <div className="absolute top-4 left-4">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/60 backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                                <Clock size={12} />
+                                {formatTimeLeft(product.timeout_at)}
+                            </span>
                         </div>
-
-                        {/* Timeout warning (mobile visible, desktop below foto) */}
-                        {product.status === 'timeout_stage_1' && (
-                            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2">
-                                <Clock size={16} className="text-red-500" />
-                                <p className="text-sm text-red-700 font-medium">Segera habis masa tayang!</p>
-                            </div>
-                        )}
-
-                        {product.status === 'timeout_stage_2' && (
-                            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-2">
-                                <Heart size={16} className="text-blue-500" />
-                                <p className="text-sm text-blue-700 font-medium">Produk ini tersedia sebagai donasi</p>
-                            </div>
-                        )}
                     </div>
 
-                    {/* RIGHT: Info */}
-                    <div>
-                        {/* Badges */}
-                        <div className="flex flex-wrap gap-2 mb-3">
-                            <Badge color={conditionColors[product.condition]}>
-                                {conditionLabels[product.condition]}
-                            </Badge>
-                            <Badge>{categoryLabels[product.category]}</Badge>
-                            <Badge color="purple">{modeLabels[product.transaction_mode]}</Badge>
-                        </div>
+                    {/* Content */}
+                    <div className="p-6 flex flex-col justify-between">
+                        <div>
+                            {/* Badges */}
+                            <div className="flex flex-wrap gap-2 mb-3">
+                                <Badge color={categoryColors[product.category] || 'gray'}>
+                                    {categoryLabels[product.category]}
+                                </Badge>
+                                <Badge color={conditionColors[product.condition] || 'gray'}>
+                                    {conditionLabels[product.condition]}
+                                </Badge>
+                                <Badge color="purple">{modeLabels[product.transaction_mode]}</Badge>
+                            </div>
 
-                        {/* Title */}
-                        <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.title}</h1>
+                            {/* Title */}
+                            <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.title}</h1>
 
-                        {/* Price */}
-                        {product.price ? (
-                            <div className="mb-4">
-                                {product.discounted_price ? (
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-3xl font-bold text-red-500">
-                                            Rp {product.discounted_price.toLocaleString()}
-                                        </span>
-                                        <span className="text-lg text-gray-400 line-through">
-                                            Rp {product.price.toLocaleString()}
-                                        </span>
-                                        <Badge color="red">-25%</Badge>
-                                    </div>
-                                ) : (
-                                    <span className="text-3xl font-bold text-green-600">
-                                        Rp {product.price.toLocaleString()}
+                            {/* Price */}
+                            {product.price ? (
+                                <div className="mb-4">
+                                    {product.discounted_price ? (
+                                        <div className="space-y-1">
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-3xl font-bold text-red-500">
+                                                    Rp {product.discounted_price.toLocaleString()}
+                                                </span>
+                                                <span className="text-sm font-medium text-gray-500">
+                                                    / {product.unit || 'satuan'}
+                                                </span>
+                                                <span className="text-base text-gray-400 line-through ml-1">
+                                                    Rp {product.price.toLocaleString()}
+                                                </span>
+                                                <Badge color="red">-25%</Badge>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-1">
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-3xl font-bold text-green-600">
+                                                    Rp {product.price.toLocaleString()}
+                                                </span>
+                                                <span className="text-sm font-medium text-gray-500">
+                                                    / {product.unit || 'satuan'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="mb-4">
+                                    <span className="text-2xl font-bold text-blue-600">
+                                        {product.transaction_mode === 'donate' ? 'Donasi gratis' : 'Barter'}
                                     </span>
-                                )}
+                                </div>
+                            )}
+
+                            {/* Divider */}
+                            <div className="border-t border-gray-100 my-4" />
+
+                            {/* Info items */}
+                            <div className="divide-y divide-gray-50">
+                                <InfoItem
+                                    icon={Scale}
+                                    label="Stok Tersedia"
+                                    value={
+                                        reservedQty > 0
+                                            ? `${currentAvailable} ${product.unit} (dari total ${product.quantity} ${product.unit}, ${reservedQty} ${product.unit} sedang dipesan)`
+                                            : `${product.quantity} ${product.unit}${product.weight_grams ? ` (Estimasi total: ${(product.weight_grams / 1000).toFixed(1)}kg)` : ''}`
+                                    }
+                                />
+                                <InfoItem icon={MapPin} label="Lokasi" value={`${product.desa}, ${product.kecamatan}`} />
+                                <InfoItem icon={Clock} label="Sisa waktu" value={`${formatTimeLeft(product.timeout_at)} lagi`} />
+                                <InfoItem icon={Tag} label="Kategori" value={`${categoryLabels[product.category]} · ${conditionLabels[product.condition]}`} />
                             </div>
-                        ) : (
+
+                            {/* Barter description */}
+                            {product.barter_description && (
+                                <div className="mt-4 p-4 bg-purple-50 border border-purple-100 rounded-xl">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <ArrowLeftRight size={14} className="text-purple-600" />
+                                        <p className="text-sm font-medium text-purple-700">Menerima barter</p>
+                                    </div>
+                                    <p className="text-sm text-purple-600">{product.barter_description}</p>
+                                </div>
+                            )}
+
+                            {/* Seller info */}
+                            {product.user && (
+                                <Link href={`/seller/${product.user.id}`} className="mt-4 p-4 bg-gray-50 rounded-xl flex items-center gap-3 hover:bg-gray-100 transition">
+                                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold text-sm flex-shrink-0">
+                                        <User size={18} className="text-gray-500" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-xs text-gray-400">Penjual</p>
+                                        <p className="text-sm font-medium text-gray-900">{product.user.name}</p>
+                                    </div>
+                                    <span className="text-xs text-green-600">Lihat semua produk →</span>
+                                </Link>
+                            )}
+
+                            {/* Lokasi Pengambilan */}
+                            {(product.pickup_address || product.pickup_notes) && (
+                                <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <MapPin size={14} className="text-gray-500" />
+                                        <p className="text-xs text-gray-400">Lokasi pengambilan</p>
+                                    </div>
+                                    {product.pickup_address && (
+                                        <p className="text-sm text-gray-700">{product.pickup_address}</p>
+                                    )}
+                                    {product.pickup_notes && (
+                                        <p className="text-xs text-gray-500 mt-1">📝 {product.pickup_notes}</p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Divider */}
+                            <div className="border-t border-gray-100 my-4" />
+
+                            {/* Description */}
                             <div className="mb-4">
-                                <span className="text-2xl font-bold text-blue-600">
-                                    {product.transaction_mode === 'donate' ? 'Donasi gratis' : 'Barter'}
-                                </span>
+                                <p className="text-xs text-gray-400 mb-1">Deskripsi</p>
+                                <p className="text-sm text-gray-700 leading-relaxed">{product.description}</p>
                             </div>
-                        )}
 
-                        {/* Divider */}
-                        <div className="border-t border-gray-100 my-4" />
-
-                        {/* Info items */}
-                        <div className="divide-y divide-gray-50">
-                            <InfoItem icon={Scale} label="Jumlah" value={`${product.quantity} ${product.unit}${product.weight_grams ? ` (${(product.weight_grams / 1000).toFixed(1)}kg)` : ''}`} />
-                            <InfoItem icon={MapPin} label="Lokasi" value={`${product.desa}, ${product.kecamatan}`} />
-                            <InfoItem icon={Clock} label="Sisa waktu" value={hoursLeft > 0 ? `${hoursLeft} jam ${minutesLeft} menit lagi` : `${minutesLeft} menit lagi`} />
-                            <InfoItem icon={Tag} label="Kategori" value={`${categoryLabels[product.category]} · ${conditionLabels[product.condition]}`} />
-                        </div>
-
-                        {/* Barter description */}
-                        {product.barter_description && (
-                            <div className="mt-4 p-4 bg-purple-50 border border-purple-100 rounded-xl">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <ArrowLeftRight size={14} className="text-purple-600" />
-                                    <p className="text-sm font-medium text-purple-700">Menerima barter</p>
+                            {/* Alert when all stock is currently reserved in active transactions */}
+                            {!isOwner && !isSpecialRole && currentAvailable <= 0 && ['active', 'timeout_stage_1'].includes(product.status) && (
+                                <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-xs space-y-1">
+                                    <p className="font-semibold flex items-center gap-1.5 text-amber-900">
+                                        ⏳ Seluruh Stok Sedang Dalam Transaksi
+                                    </p>
+                                    <p className="text-amber-700 leading-relaxed">
+                                        Semua stok produk ini ({product.quantity} {product.unit}) saat ini sedang diproses dalam transaksi oleh pembeli lain. Jika ada transaksi yang dibatalkan, sisa stok akan kembali tersedia.
+                                    </p>
                                 </div>
-                                <p className="text-sm text-purple-600">{product.barter_description}</p>
-                            </div>
-                        )}
+                            )}
 
-                        {/* Seller info */}
-                        {product.user && (
-                            <Link href={`/seller/${product.user.id}`} className="mt-4 p-4 bg-gray-50 rounded-xl flex items-center gap-3 hover:bg-gray-100 transition">
-                                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                    <User size={18} className="text-gray-500" />
+                            {/* Quantity Selector for Buy Mode */}
+                            {!isOwner && !isSpecialRole && (product.transaction_mode === 'sell' || product.transaction_mode === 'sell_and_barter') && ['active', 'timeout_stage_1'].includes(product.status) && currentAvailable > 0 && (
+                                <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-2xl space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-semibold text-gray-700">Pilih Jumlah Pembelian:</span>
+                                        <span className="text-xs text-gray-500 font-medium">Sisa tersedia: {currentAvailable} {product.unit}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
+                                            <button
+                                                type="button"
+                                                onClick={() => setBuyQty(Math.max(1, buyQty - 1))}
+                                                disabled={buyQty <= 1}
+                                                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 disabled:opacity-30 transition"
+                                            >
+                                                <Minus size={16} />
+                                            </button>
+                                            <input
+                                                type="number"
+                                                value={buyQty}
+                                                onChange={(e) => {
+                                                    const val = parseInt(e.target.value) || 1;
+                                                    setBuyQty(Math.min(currentAvailable, Math.max(1, val)));
+                                                }}
+                                                min={1}
+                                                max={currentAvailable}
+                                                className="w-14 text-center font-bold text-sm border-none p-0 focus:ring-0"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setBuyQty(Math.min(currentAvailable, buyQty + 1))}
+                                                disabled={buyQty >= currentAvailable}
+                                                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 disabled:opacity-30 transition"
+                                            >
+                                                <Plus size={16} />
+                                            </button>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[11px] text-gray-400">Total Pembayaran ({buyQty} {product.unit}):</p>
+                                            <p className="text-lg font-bold text-green-600">Rp {totalPrice.toLocaleString()}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex-1">
-                                    <p className="text-xs text-gray-400">Penjual</p>
-                                    <p className="text-sm font-medium text-gray-900">{product.user.name}</p>
-                                </div>
-                                <span className="text-xs text-green-600">Lihat semua produk →</span>
-                            </Link>
-                        )}
+                            )}
 
-                        {/* Lokasi Pengambilan */}
-                        {(product.pickup_address || product.pickup_notes) && (
-                            <div className="mt-4 p-4 bg-gray-50 rounded-xl">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <MapPin size={14} className="text-gray-500" />
-                                    <p className="text-xs text-gray-400">Lokasi pengambilan</p>
-                                </div>
-                                {product.pickup_address && (
-                                    <p className="text-sm text-gray-700">{product.pickup_address}</p>
-                                )}
-                                {product.pickup_notes && (
-                                    <p className="text-xs text-gray-500 mt-1">📝 {product.pickup_notes}</p>
-                                )}
-                            </div>
-                        )}
+                            {/* Action Buttons */}
+                            {!isOwner && !isSpecialRole && (
+                                <div className="space-y-3">
+                                    <div className="flex gap-3">
+                                        {(product.transaction_mode === 'sell' || product.transaction_mode === 'sell_and_barter') &&
+                                         ['active', 'timeout_stage_1'].includes(product.status) && (
+                                            currentAvailable > 0 ? (
+                                                <button
+                                                    onClick={() => {
+                                                        setConfirmModal({
+                                                            show: true,
+                                                            title: 'Konfirmasi Pembelian',
+                                                            message: `Beli ${buyQty} ${product.unit} "${product.title}" seharga Rp ${totalPrice.toLocaleString()}?`,
+                                                            confirmText: 'Beli Sekarang',
+                                                            variant: 'success',
+                                                            onConfirm: () => router.post(`/products/${product.id}/buy`, { quantity: buyQty }),
+                                                        });
+                                                    }}
+                                                    className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition shadow-sm"
+                                                >
+                                                    <ShoppingBasket size={18} />
+                                                    Beli ({buyQty} {product.unit})
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    disabled
+                                                    className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gray-200 text-gray-400 font-semibold rounded-xl cursor-not-allowed"
+                                                >
+                                                    <Clock size={18} />
+                                                    Semua Stok Sedang Dipesan
+                                                </button>
+                                            )
+                                        )}
 
-                        {/* Divider */}
-                        <div className="border-t border-gray-100 my-4" />
+                                        {(product.transaction_mode === 'barter' || product.transaction_mode === 'sell_and_barter') &&
+                                         ['active', 'timeout_stage_1'].includes(product.status) && (
+                                            <Link
+                                                href={`/products/${product.id}/barter`}
+                                                className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 transition"
+                                            >
+                                                <ArrowLeftRight size={18} />
+                                                Ajukan barter
+                                            </Link>
+                                        )}
+                                    </div>
 
-                        {/* Description */}
-                        <div className="mb-4">
-                            <p className="text-xs text-gray-400 mb-1">Deskripsi</p>
-                            <p className="text-sm text-gray-700 leading-relaxed">{product.description}</p>
-                        </div>
-
-                        {/* Action Buttons */}
-                        {!isOwner && (
-                            <div className="space-y-3">
-                                <div className="flex gap-3">
-                                    {(product.transaction_mode === 'sell' || product.transaction_mode === 'sell_and_barter') &&
-                                     ['active', 'timeout_stage_1'].includes(product.status) && (
+                                    {(product.transaction_mode === 'donate' || product.status === 'timeout_stage_2') && (
                                         <button
                                             onClick={() => {
-                                                if (confirm('Yakin ingin membeli produk ini?')) {
-                                                    router.post(`/products/${product.id}/buy`);
-                                                }
+                                                setConfirmModal({
+                                                    show: true,
+                                                    title: 'Klaim Donasi Makanan',
+                                                    message: `Apakah Anda yakin ingin mengklaim donasi "${product.title}"?`,
+                                                    confirmText: 'Klaim Sekarang',
+                                                    variant: 'primary',
+                                                    onConfirm: () => router.post(`/products/${product.id}/claim-donation`),
+                                                });
                                             }}
-                                            className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition"
+                                            className="w-full flex items-center justify-center gap-2 py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition"
                                         >
-                                            <ShoppingBasket size={18} />
-                                            Beli produk
+                                            <Heart size={18} />
+                                            Klaim donasi
                                         </button>
                                     )}
 
-                                    {(product.transaction_mode === 'barter' || product.transaction_mode === 'sell_and_barter') &&
-                                     ['active', 'timeout_stage_1'].includes(product.status) && (
-                                        <Link
-                                            href={`/products/${product.id}/barter`}
-                                            className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 transition"
-                                        >
-                                            <ArrowLeftRight size={18} />
-                                            Ajukan barter
-                                        </Link>
-                                    )}
-                                </div>
+                                    <Link
+                                        href={`/products/${product.id}/chat`}
+                                        className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-xl transition"
+                                    >
+                                        <MessageCircle size={16} />
+                                        Chat dengan penjual
+                                    </Link>
 
-                                {(product.transaction_mode === 'donate' || product.status === 'timeout_stage_2') && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setReportModal(prev => ({ ...prev, show: true }))}
+                                        className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition"
+                                    >
+                                        <Flag size={14} />
+                                        Laporkan produk
+                                    </button>
+                                </div>
+                            )}
+
+                            {isSpecialRole && (
+                                <div className="p-3 bg-gray-100 border border-gray-200 rounded-xl text-center">
+                                    <p className="text-xs text-gray-500">
+                                        {auth.user.role === 'admin' ? '🛡️ Mode Admin — Hanya melihat rincian produk.' : '🤝 Mode Mitra — Produk ini dikelola oleh pengguna.'}
+                                    </p>
+                                </div>
+                            )}
+
+                            {isOwner && (
+                                <div className="flex gap-3">
+                                    <Link
+                                        href={`/products/${product.id}/edit`}
+                                        className="flex-1 py-3.5 text-center bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition"
+                                    >
+                                        Edit produk
+                                    </Link>
                                     <button
                                         onClick={() => {
-                                            if (confirm('Yakin ingin mengklaim donasi ini?')) {
-                                                router.post(`/products/${product.id}/claim-donation`);
-                                            }
+                                            setConfirmModal({
+                                                show: true,
+                                                title: 'Hapus Produk',
+                                                message: `Apakah Anda yakin ingin menghapus produk "${product.title}"? Tindakan ini tidak dapat dibatalkan.`,
+                                                confirmText: 'Hapus Produk',
+                                                variant: 'danger',
+                                                onConfirm: () => router.delete(`/products/${product.id}`),
+                                            });
                                         }}
-                                        className="w-full flex items-center justify-center gap-2 py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition"
+                                        className="flex-1 py-3.5 bg-red-50 text-red-600 font-semibold rounded-xl hover:bg-red-100 transition"
                                     >
-                                        <Heart size={18} />
-                                        Klaim donasi
+                                        Hapus produk
                                     </button>
-                                )}
-
-                                <Link
-                                    href={`/products/${product.id}/chat`}
-                                    className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-xl transition"
-                                >
-                                    <MessageCircle size={16} />
-                                    Chat dengan penjual
-                                </Link>
-
-                                <button
-                                    onClick={handleReport}
-                                    className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition"
-                                >
-                                    <Flag size={14} />
-                                    Laporkan produk
-                                </button>
-                            </div>
-                        )}
-
-                        {isOwner && (
-                            <div className="flex gap-3">
-                                <Link
-                                    href={`/products/${product.id}/edit`}
-                                    className="flex-1 py-3.5 text-center bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition"
-                                >
-                                    Edit produk
-                                </Link>
-                                <button
-                                    onClick={() => {
-                                        if (confirm('Yakin ingin menghapus produk ini?')) {
-                                            router.delete(`/products/${product.id}`);
-                                        }
-                                    }}
-                                    className="flex-1 py-3.5 bg-red-50 text-red-600 font-semibold rounded-xl hover:bg-red-100 transition"
-                                >
-                                    Hapus produk
-                                </button>
-                            </div>
-                        )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

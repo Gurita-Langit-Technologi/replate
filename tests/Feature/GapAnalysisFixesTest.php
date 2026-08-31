@@ -194,4 +194,84 @@ class GapAnalysisFixesTest extends TestCase
 
         $this->assertEquals(5.0, $seller->averageRating());
     }
+
+    public function test_partner_dashboard_loads_and_calculates_weight_correctly(): void
+    {
+        $partnerUser = User::factory()->create(['role' => UserRole::PARTNER]);
+        $seller = User::factory()->create();
+
+        $product = Product::factory()->create([
+            'user_id' => $seller->id,
+            'status' => ProductStatus::TRANSFERRED,
+            'weight_grams' => 2500,
+        ]);
+
+        Transaction::create([
+            'product_id' => $product->id,
+            'seller_id' => $seller->id,
+            'partner_id' => $partnerUser->id,
+            'type' => TransactionType::PARTNER_TRANSFER,
+            'status' => TransactionStatus::COMPLETED,
+        ]);
+
+        $response = $this->actingAs($partnerUser)
+            ->get('/partner/dashboard');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('Partner/Dashboard')
+            ->where('totalWeight', 2500)
+        );
+    }
+
+    public function test_admin_cannot_access_product_upload_or_buy(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        $seller = User::factory()->create();
+
+        $product = Product::factory()->create([
+            'user_id' => $seller->id,
+            'status' => ProductStatus::ACTIVE,
+            'transaction_mode' => 'sell',
+            'price' => 10000,
+        ]);
+
+        // Admin create product
+        $response = $this->actingAs($admin)->get('/products/create');
+        $response->assertRedirect('/admin/dashboard');
+
+        // Admin buy product
+        $buyResponse = $this->actingAs($admin)->post("/products/{$product->id}/buy");
+        $buyResponse->assertSessionHas('error');
+    }
+
+    public function test_seller_profile_loads_and_calculates_weight_correctly(): void
+    {
+        $seller = User::factory()->create();
+        $buyer = User::factory()->create();
+
+        $product = Product::factory()->create([
+            'user_id' => $seller->id,
+            'status' => ProductStatus::SOLD,
+            'weight_grams' => 1500,
+        ]);
+
+        Transaction::create([
+            'product_id' => $product->id,
+            'seller_id' => $seller->id,
+            'buyer_id' => $buyer->id,
+            'type' => TransactionType::SALE,
+            'status' => TransactionStatus::COMPLETED,
+            'price' => 10000,
+        ]);
+
+        $response = $this->actingAs($buyer)
+            ->get("/seller/{$seller->id}");
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('Seller/Profile')
+            ->where('stats.totalWeight', 1500)
+        );
+    }
 }

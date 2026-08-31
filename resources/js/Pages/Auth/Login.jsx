@@ -31,7 +31,7 @@ export default function Login({ status, canResetPassword }) {
                 </div>
             )}
 
-            <form onSubmit={submit} className="space-y-4">''
+            <form onSubmit={submit} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
                     <input

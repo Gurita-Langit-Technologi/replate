@@ -231,7 +231,8 @@ class ProcessProductTimeout extends Command
             ->get();
 
         foreach ($products as $product) {
-            $partnerType = match ($product->condition) {
+            $conditionVal = $product->condition instanceof \BackedEnum ? $product->condition->value : (string) $product->condition;
+            $partnerType = match ($conditionVal) {
                 'layak_konsumsi' => ['umkm', 'kompos'],
                 'layak_olah' => ['umkm', 'kompos'],
                 'layak_pakan_kompos' => ['peternak', 'kompos', 'maggot'],

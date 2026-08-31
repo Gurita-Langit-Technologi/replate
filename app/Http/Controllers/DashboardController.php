@@ -41,8 +41,8 @@ class DashboardController extends Controller
 
         $totalWeightSaved = Transaction::where('transactions.status', TransactionStatus::COMPLETED)
             ->where(function ($query) use ($user) {
-                $query->where('buyer_id', $user->id)
-                    ->orWhere('seller_id', $user->id);
+                $query->where('transactions.buyer_id', $user->id)
+                    ->orWhere('transactions.seller_id', $user->id);
             })
             ->join('products', 'transactions.product_id', '=', 'products.id')
             ->sum('products.weight_grams');
@@ -122,13 +122,13 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        $pending = Transaction::with('product')
+        $pending = Transaction::with(['product.user'])
             ->where('type', TransactionType::PARTNER_TRANSFER)
             ->where('partner_id', $user->id)
             ->where('status', TransactionStatus::PENDING)
             ->get();
 
-        $completed = Transaction::with('product')
+        $completed = Transaction::with(['product.user'])
             ->where('type', TransactionType::PARTNER_TRANSFER)
             ->where('partner_id', $user->id)
             ->where('status', TransactionStatus::COMPLETED)
@@ -136,9 +136,9 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        $totalWeight = Transaction::where('type', TransactionType::PARTNER_TRANSFER)
-            ->where('partner_id', $user->id)
-            ->where('status', TransactionStatus::COMPLETED)
+        $totalWeight = Transaction::where('transactions.type', TransactionType::PARTNER_TRANSFER)
+            ->where('transactions.partner_id', $user->id)
+            ->where('transactions.status', TransactionStatus::COMPLETED)
             ->join('products', 'transactions.product_id', '=', 'products.id')
             ->sum('products.weight_grams');
 
@@ -152,6 +152,29 @@ class DashboardController extends Controller
             'completed' => $completed,
             'totalWeight' => $totalWeight,
             'pointHistory' => $pointHistory,
+        ]);
+    }
+
+    public function partnerHistory(Request $request)
+    {
+        $user = $request->user();
+
+        $history = Transaction::with(['product.user'])
+            ->where('type', TransactionType::PARTNER_TRANSFER)
+            ->where('partner_id', $user->id)
+            ->where('status', TransactionStatus::COMPLETED)
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        $totalWeight = Transaction::where('transactions.type', TransactionType::PARTNER_TRANSFER)
+            ->where('transactions.partner_id', $user->id)
+            ->where('transactions.status', TransactionStatus::COMPLETED)
+            ->join('products', 'transactions.product_id', '=', 'products.id')
+            ->sum('products.weight_grams');
+
+        return Inertia::render('Partner/History', [
+            'history' => $history,
+            'totalWeight' => $totalWeight,
         ]);
     }
 }

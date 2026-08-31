@@ -31,29 +31,48 @@ class TransactionController extends Controller
     {
         $user = $request->user();
 
+        if ($user->isAdmin() || $user->isPartner()) {
+            return back()->with('error', 'Akun admin atau mitra tidak dapat melakukan pembelian.');
+        }
+
         // Tidak bisa beli produk sendiri
         if ($product->user_id === $user->id) {
             return back()->with('error', 'Tidak bisa membeli produk sendiri.');
         }
 
         // Produk harus masih aktif / timeout stage 1
-        if (!in_array($product->status, [ProductStatus::ACTIVE, ProductStatus::TIMEOUT_STAGE_1])) {
+        $statusValue = $product->status instanceof \BackedEnum ? $product->status->value : (string) $product->status;
+        if (!in_array($statusValue, [ProductStatus::ACTIVE->value, ProductStatus::TIMEOUT_STAGE_1->value, 'active', 'timeout_stage_1'])) {
             return back()->with('error', 'Produk sudah tidak tersedia.');
         }
 
         // Produk harus mode jual
-        if (!in_array($product->transaction_mode, [TransactionMode::SELL, TransactionMode::SELL_AND_BARTER])) {
+        $modeValue = $product->transaction_mode instanceof \BackedEnum ? $product->transaction_mode->value : (string) $product->transaction_mode;
+        if (!in_array($modeValue, [TransactionMode::SELL->value, TransactionMode::SELL_AND_BARTER->value, 'sell', 'sell_and_barter'])) {
             return back()->with('error', 'Produk ini tidak dijual.');
         }
 
-        // Cek apakah sudah ada transaksi pending untuk produk ini
-        $existing = Transaction::where('product_id', $product->id)
-            ->where('status', TransactionStatus::PENDING)
-            ->first();
+        // Hitung sisa stok yang tersedia (dikurangi transaksi pending/confirmed)
+        $reservedQty = (int) Transaction::where('product_id', $product->id)
+            ->whereIn('status', [TransactionStatus::PENDING, TransactionStatus::CONFIRMED])
+            ->sum('quantity');
 
-        if ($existing) {
-            return back()->with('error', 'Produk sedang dalam proses transaksi.');
+        $totalStock = (int) ($product->quantity ?? 1);
+        $availableQty = max(0, $totalStock - $reservedQty);
+
+        if ($availableQty <= 0) {
+            return back()->with('error', "Seluruh stok produk \"{$product->title}\" ({$totalStock} {$product->unit}) sedang dalam proses transaksi oleh pembeli lain.");
         }
+
+        $requestQty = (int) $request->input('quantity', 1);
+        if ($requestQty < 1) {
+            $requestQty = 1;
+        } elseif ($requestQty > $availableQty) {
+            return back()->with('error', "Jumlah yang diminta ({$requestQty} {$product->unit}) melebihi sisa stok yang tersedia ({$availableQty} {$product->unit}).");
+        }
+
+        $unitPrice = (int) ($product->discounted_price ?? $product->price ?? 0);
+        $totalPrice = (int) round($unitPrice * $requestQty);
 
         // Buat transaksi
         $transaction = Transaction::create([
@@ -62,14 +81,31 @@ class TransactionController extends Controller
             'seller_id' => $product->user_id,
             'type' => TransactionType::SALE,
             'status' => TransactionStatus::PENDING,
-            'price' => $product->discounted_price ?? $product->price,
+            'price' => $totalPrice,
+            'quantity' => $requestQty,
+            'notes' => "Jumlah: {$requestQty} {$product->unit}",
         ]);
 
-        // Notifikasi ke penjual
+        $remainingAfter = $availableQty - $requestQty;
+        $remainingInfo = $remainingAfter > 0
+            ? " Sisa stok tersedia untuk pembeli lain: {$remainingAfter} {$product->unit}."
+            : " Seluruh stok ({$totalStock} {$product->unit}) kini telah dipesan.";
+
+        // Notifikasi informatif ke penjual
         Notification::create([
             'user_id' => $product->user_id,
-            'title' => 'Ada pesanan masuk!',
-            'message' => "{$user->name} ingin membeli \"{$product->title}\".",
+            'title' => "Pesanan Masuk ({$requestQty} {$product->unit})",
+            'message' => "{$user->name} memesan {$requestQty} {$product->unit} \"{$product->title}\" seharga Rp " . number_format($totalPrice, 0, ',', '.') . ".{$remainingInfo}",
+            'type' => NotificationType::TRANSACTION,
+            'related_id' => $transaction->id,
+            'related_type' => Transaction::class,
+        ]);
+
+        // Notifikasi informatif ke pembeli
+        Notification::create([
+            'user_id' => $user->id,
+            'title' => 'Pesanan Berhasil Diajukan',
+            'message' => "Pesanan Anda untuk {$requestQty} {$product->unit} \"{$product->title}\" (Rp " . number_format($totalPrice, 0, ',', '.') . ") telah dikirim ke penjual. Menunggu konfirmasi penjual.",
             'type' => NotificationType::TRANSACTION,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
@@ -94,11 +130,13 @@ class TransactionController extends Controller
 
         $transaction->update(['status' => TransactionStatus::CONFIRMED]);
 
-        // Notifikasi ke pembeli
+        $qtyStr = $transaction->quantity ? "{$transaction->quantity} {$transaction->product->unit} " : "";
+
+        // Notifikasi informatif ke pembeli
         Notification::create([
             'user_id' => $transaction->buyer_id,
-            'title' => 'Pesanan dikonfirmasi!',
-            'message' => "Penjual telah mengkonfirmasi pesanan \"{$transaction->product->title}\". Silakan ambil produk.",
+            'title' => 'Pesanan Dikonfirmasi Penjual!',
+            'message' => "Penjual telah mengkonfirmasi pesanan {$qtyStr}\"{$transaction->product->title}\". Silakan hubungi penjual untuk pengambilan produk.",
             'type' => NotificationType::TRANSACTION,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
@@ -123,27 +161,55 @@ class TransactionController extends Controller
 
         $transaction->update(['status' => TransactionStatus::COMPLETED]);
 
-        BarterOffer::where('product_id', $transaction->product_id)
-            ->where('status', BarterOfferStatus::PENDING)
-            ->update(['status' => BarterOfferStatus::REJECTED]);
+        // Update stok produk
+        $product = $transaction->product;
+        $boughtQty = max(1, (int) ($transaction->quantity ?? 1));
+        if ($boughtQty <= 1 && preg_match('/Jumlah:\s*(\d+)/i', $transaction->notes ?? '', $matches)) {
+            $boughtQty = max(1, (int) $matches[1]);
+        }
 
-        // Update status produk sesuai tipe transaksi
-        $newProductStatus = match ($transaction->type) {
-            TransactionType::DONATION, TransactionType::DONATION->value => ProductStatus::DONATED,
-            TransactionType::BARTER, TransactionType::BARTER->value => ProductStatus::BARTERED,
-            default => ProductStatus::SOLD,
-        };
-        $transaction->product->update(['status' => $newProductStatus]);
+        $currentQty = max(0, (int) ($product->quantity ?? 1));
+        if ($boughtQty >= $currentQty) {
+            $newProductStatus = match ($transaction->type) {
+                TransactionType::DONATION, TransactionType::DONATION->value => ProductStatus::DONATED,
+                TransactionType::BARTER, TransactionType::BARTER->value => ProductStatus::BARTERED,
+                default => ProductStatus::SOLD,
+            };
+            $product->update([
+                'quantity' => 0,
+                'status' => $newProductStatus,
+            ]);
+
+            BarterOffer::where('product_id', $transaction->product_id)
+                ->where('status', BarterOfferStatus::PENDING)
+                ->update(['status' => BarterOfferStatus::REJECTED]);
+        } else {
+            $newQty = $currentQty - $boughtQty;
+            $newWeight = ($product->weight_grams > 0)
+                ? max(0, (int) round(($product->weight_grams / $currentQty) * $newQty))
+                : 0;
+            $product->update([
+                'quantity' => $newQty,
+                'weight_grams' => $newWeight,
+            ]);
+
+            // Tolak barter offer yang meminta melebihi stok yang tersisa
+            BarterOffer::where('product_id', $transaction->product_id)
+                ->where('status', BarterOfferStatus::PENDING)
+                ->where('quantity', '>', $newQty)
+                ->update(['status' => BarterOfferStatus::REJECTED]);
+        }
 
         // === REPOIN SYSTEM ===
         $product = $transaction->product;
         $points = PointHistory::calculatePoints($product);
 
         // Penjual/pendonor dapat poin
+        $condStr = $product->condition instanceof \BackedEnum ? $product->condition->value : (string) $product->condition;
         PointHistory::awardPoints(
             $transaction->seller,
             $points,
-            "Produk \"{$product->title}\" tersalurkan ({$product->weight_grams}g, {$product->condition})",
+            "Produk \"{$product->title}\" tersalurkan ({$product->weight_grams}g, {$condStr})",
             match ($transaction->type) {
                 TransactionType::SALE, TransactionType::SALE->value => 'earned_sell',
                 TransactionType::BARTER, TransactionType::BARTER->value => 'earned_barter',
@@ -152,6 +218,10 @@ class TransactionController extends Controller
             },
             $transaction
         );
+
+        $remainMsg = $currentQty > $boughtQty
+            ? " Sisa stok produk di marketplace: " . ($currentQty - $boughtQty) . " {$product->unit}."
+            : " Seluruh stok telah berhasil disalurkan.";
 
         // Notifikasi poin
         Notification::create([
@@ -166,8 +236,8 @@ class TransactionController extends Controller
         // Notifikasi ke penjual
         Notification::create([
             'user_id' => $transaction->seller_id,
-            'title' => 'Transaksi selesai!',
-            'message' => "Pembeli telah menerima \"{$transaction->product->title}\". Transaksi selesai.",
+            'title' => 'Transaksi Selesai!',
+            'message' => "Pembeli telah menerima {$boughtQty} {$product->unit} \"{$transaction->product->title}\".{$remainMsg}",
             'type' => NotificationType::TRANSACTION,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
@@ -195,7 +265,8 @@ class TransactionController extends Controller
         $product->update(['status' => ProductStatus::DIALIHKAN_KE_MITRA]);
 
         // Auto-route ke partner berdasarkan kondisi produk & sisa kuota harian
-        $partnerType = match ($product->condition) {
+        $conditionVal = $product->condition instanceof \BackedEnum ? $product->condition->value : (string) $product->condition;
+        $partnerType = match ($conditionVal) {
             'layak_konsumsi' => ['umkm', 'kompos'],
             'layak_olah' => ['umkm', 'kompos'],
             'layak_pakan_kompos' => ['peternak', 'kompos', 'maggot'],
@@ -366,6 +437,12 @@ class TransactionController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+        if ($user->isPartner()) {
+            return redirect()->route('partner.dashboard');
+        }
 
         $transactions = Transaction::with(['product', 'buyer', 'seller'])
             ->where('buyer_id', $user->id)
@@ -385,14 +462,21 @@ class TransactionController extends Controller
     {
         $user = $request->user();
 
+        if ($user->isAdmin() || $user->isPartner()) {
+            return back()->with('error', 'Akun admin atau mitra tidak dapat mengklaim donasi.');
+        }
+
         // Tidak bisa klaim donasi sendiri
         if ($product->user_id === $user->id) {
             return back()->with('error', 'Tidak bisa mengklaim donasi produk sendiri.');
         }
 
+        $modeValue = $product->transaction_mode instanceof \BackedEnum ? $product->transaction_mode->value : (string) $product->transaction_mode;
+        $statusValue = $product->status instanceof \BackedEnum ? $product->status->value : (string) $product->status;
+
         // Produk harus mode donasi atau sudah masuk jalur donasi (timeout stage 2)
-        $isDonation = $product->transaction_mode === TransactionMode::DONATE && in_array($product->status, [ProductStatus::ACTIVE, ProductStatus::TIMEOUT_STAGE_1]);
-        $isTimeoutDonation = $product->status === ProductStatus::TIMEOUT_STAGE_2;
+        $isDonation = in_array($modeValue, ['donate', TransactionMode::DONATE->value]) && in_array($statusValue, ['active', 'timeout_stage_1', ProductStatus::ACTIVE->value, ProductStatus::TIMEOUT_STAGE_1->value]);
+        $isTimeoutDonation = in_array($statusValue, ['timeout_stage_2', ProductStatus::TIMEOUT_STAGE_2->value]);
 
         if (!$isDonation && !$isTimeoutDonation) {
             return back()->with('error', 'Produk ini tidak tersedia untuk donasi.');

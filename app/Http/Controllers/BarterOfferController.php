@@ -19,8 +19,16 @@ class BarterOfferController extends Controller
     /**
      * Form ajukan barter
      */
-    public function create(Product $product)
+    public function create(Request $request, Product $product)
     {
+        $user = $request->user();
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+        if ($user->isPartner()) {
+            return redirect()->route('partner.dashboard');
+        }
+
         return Inertia::render('Barter/Create', [
             'product' => $product->load('user'),
         ]);
@@ -33,21 +41,28 @@ class BarterOfferController extends Controller
     {
         $user = $request->user();
 
+        if ($user->isAdmin() || $user->isPartner()) {
+            return back()->with('error', 'Akun admin atau mitra tidak dapat mengajukan barter.');
+        }
+
         // Tidak bisa barter produk sendiri
         if ($product->user_id === $user->id) {
             return back()->with('error', 'Tidak bisa membarter produk sendiri.');
         }
 
-        // Produk harus aktif dan mode barter
-        if (!in_array($product->status, [ProductStatus::ACTIVE, ProductStatus::TIMEOUT_STAGE_1])) {
+        $statusValue = $product->status instanceof \BackedEnum ? $product->status->value : (string) $product->status;
+        if (!in_array($statusValue, [ProductStatus::ACTIVE->value, ProductStatus::TIMEOUT_STAGE_1->value, 'active', 'timeout_stage_1'])) {
             return back()->with('error', 'Produk sudah tidak tersedia.');
         }
 
-        if (!in_array($product->transaction_mode, ['barter', 'sell_and_barter'])) {
+        $modeValue = $product->transaction_mode instanceof \BackedEnum ? $product->transaction_mode->value : (string) $product->transaction_mode;
+        if (!in_array($modeValue, ['barter', 'sell_and_barter', TransactionMode::BARTER->value, TransactionMode::SELL_AND_BARTER->value])) {
             return back()->with('error', 'Produk ini tidak menerima barter.');
         }
 
+        $availableQty = max(1, (int) ($product->quantity ?? 1));
         $validated = $request->validate([
+            'quantity' => 'nullable|integer|min:1|max:' . $availableQty,
             'offer_description' => 'required|string',
             'offer_photo' => 'nullable|image|max:2048',
         ]);
@@ -57,9 +72,12 @@ class BarterOfferController extends Controller
             $photoPath = $request->file('offer_photo')->store('barter-offers', 'public');
         }
 
+        $barterQty = (int) ($validated['quantity'] ?? 1);
+
         $offer = BarterOffer::create([
             'product_id' => $product->id,
             'offerer_id' => $user->id,
+            'quantity' => $barterQty,
             'offer_description' => $validated['offer_description'],
             'offer_photo' => $photoPath,
             'status' => BarterOfferStatus::PENDING,
@@ -69,7 +87,7 @@ class BarterOfferController extends Controller
         Notification::create([
             'user_id' => $product->user_id,
             'title' => 'Tawaran barter masuk!',
-            'message' => "{$user->name} menawarkan \"{$validated['offer_description']}\" untuk \"{$product->title}\".",
+            'message' => "{$user->name} menawarkan \"{$validated['offer_description']}\" untuk barter {$barterQty} {$product->unit} \"{$product->title}\".",
             'type' => NotificationType::BARTER_OFFER,
             'related_id' => $offer->id,
             'related_type' => BarterOffer::class,
@@ -93,6 +111,12 @@ class BarterOfferController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+        if ($user->isPartner()) {
+            return redirect()->route('partner.dashboard');
+        }
 
         // Tawaran yang masuk ke produk saya
         $incoming = BarterOffer::with(['product', 'offerer'])
@@ -130,14 +154,43 @@ class BarterOfferController extends Controller
             return back()->with('error', 'Tawaran sudah diproses.');
         }
 
+        $product = $offer->product;
+        $barterQty = max(1, (int) ($offer->quantity ?? 1));
+        $availableQty = max(1, (int) ($product->quantity ?? 1));
+
         // Setujui tawaran ini
         $offer->update(['status' => BarterOfferStatus::ACCEPTED]);
 
-        // Tolak tawaran lain untuk produk yang sama
-        BarterOffer::where('product_id', $offer->product_id)
-            ->where('id', '!=', $offer->id)
-            ->where('status', BarterOfferStatus::PENDING)
-            ->update(['status' => BarterOfferStatus::REJECTED]);
+        // Perbarui stok produk
+        if ($barterQty >= $availableQty) {
+            $product->update([
+                'quantity' => 0,
+                'status' => ProductStatus::BARTERED,
+            ]);
+
+            // Tolak semua tawaran pending lain untuk produk ini
+            BarterOffer::where('product_id', $offer->product_id)
+                ->where('id', '!=', $offer->id)
+                ->where('status', BarterOfferStatus::PENDING)
+                ->update(['status' => BarterOfferStatus::REJECTED]);
+        } else {
+            $newQty = $availableQty - $barterQty;
+            $newWeight = ($product->weight_grams > 0)
+                ? max(0, (int) round(($product->weight_grams / $availableQty) * $newQty))
+                : 0;
+
+            $product->update([
+                'quantity' => $newQty,
+                'weight_grams' => $newWeight,
+            ]);
+
+            // Tolak tawaran pending lain yang meminta jumlah melebihi sisa stok
+            BarterOffer::where('product_id', $offer->product_id)
+                ->where('id', '!=', $offer->id)
+                ->where('status', BarterOfferStatus::PENDING)
+                ->where('quantity', '>', $newQty)
+                ->update(['status' => BarterOfferStatus::REJECTED]);
+        }
 
         // Buat transaksi barter
         $transaction = Transaction::create([
@@ -146,6 +199,7 @@ class BarterOfferController extends Controller
             'seller_id' => $user->id,
             'type' => TransactionType::BARTER,
             'status' => TransactionStatus::CONFIRMED,
+            'notes' => "Jumlah barter: {$barterQty} {$product->unit}",
             'barter_notes' => $offer->offer_description,
         ]);
 
@@ -153,7 +207,7 @@ class BarterOfferController extends Controller
         Notification::create([
             'user_id' => $offer->offerer_id,
             'title' => 'Barter disetujui!',
-            'message' => "Tawaran barter Anda untuk \"{$offer->product->title}\" telah disetujui. Silakan tukar produk.",
+            'message' => "Tawaran barter Anda ({$barterQty} {$product->unit}) untuk \"{$product->title}\" telah disetujui. Silakan tukar produk.",
             'type' => NotificationType::BARTER_OFFER,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,

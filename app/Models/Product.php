@@ -3,7 +3,10 @@
 namespace App\Models;
 
 use App\Enums\PickupType;
+use App\Enums\ProductCategory;
+use App\Enums\ProductCondition;
 use App\Enums\ProductStatus;
+use App\Enums\TransactionMode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -44,6 +47,9 @@ class Product extends Model
     {
         return [
             'status' => ProductStatus::class,
+            'category' => ProductCategory::class,
+            'condition' => ProductCondition::class,
+            'transaction_mode' => TransactionMode::class,
             'pickup_type' => PickupType::class,
             'timeout_at' => 'datetime',
             'timeout_stage1_at' => 'datetime',

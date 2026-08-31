@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { formatTimeLeftShort } from '@/Utils/time';
 import {
     Search,
     SlidersHorizontal,
@@ -16,9 +17,9 @@ import {
 } from 'lucide-react';
 
 const conditionLabels = {
-    layak_konsumsi: 'Layak konsumsi',
-    layak_olah: 'Layak olah',
-    layak_pakan_kompos: 'Pakan / kompos',
+    layak_konsumsi: 'Siap Konsumsi',
+    layak_olah: 'Perlu Diolah',
+    layak_pakan_kompos: 'Pakan / Kompos',
 };
 
 const conditionColors = {
@@ -75,7 +76,7 @@ function ProductCard({ product }) {
                 <div className="absolute bottom-2 right-2">
                     <span className="text-[10px] font-medium px-2 py-0.5 bg-black/60 text-white rounded-full flex items-center gap-1">
                         <Clock size={10} />
-                        {hoursLeft}j lagi
+                        {formatTimeLeftShort(product.timeout_at)}
                     </span>
                 </div>
             </div>
@@ -94,10 +95,15 @@ function ProductCard({ product }) {
 
                 {/* Meta */}
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
-                    <span className="flex items-center gap-0.5">
-                        <Scale size={10} />
-                        {(product.weight_grams / 1000).toFixed(1)}kg
+                    <span className="text-emerald-600 font-medium bg-emerald-50 px-1.5 py-0.5 rounded text-[11px]">
+                        {product.quantity || 1} {product.unit || 'satuan'}
                     </span>
+                    {product.weight_grams > 0 && (
+                        <span className="flex items-center gap-0.5">
+                            <Scale size={10} />
+                            {(product.weight_grams / 1000).toFixed(1)}kg
+                        </span>
+                    )}
                     <span className="flex items-center gap-0.5">
                         <MapPin size={10} />
                         {product.desa}
@@ -113,14 +119,22 @@ function ProductCard({ product }) {
                                     <span className="text-base font-bold text-red-500">
                                         Rp {product.discounted_price.toLocaleString()}
                                     </span>
+                                    <span className="text-[11px] text-gray-400 font-normal">
+                                        /{product.unit || 'satuan'}
+                                    </span>
                                     <span className="text-xs text-gray-400 line-through">
                                         Rp {product.price.toLocaleString()}
                                     </span>
                                 </>
                             ) : (
-                                <span className="text-base font-bold text-green-600">
-                                    Rp {product.price.toLocaleString()}
-                                </span>
+                                <>
+                                    <span className="text-base font-bold text-green-600">
+                                        Rp {product.price.toLocaleString()}
+                                    </span>
+                                    <span className="text-[11px] text-gray-400 font-normal">
+                                        /{product.unit || 'satuan'}
+                                    </span>
+                                </>
                             )}
                         </div>
                     ) : (
@@ -241,8 +255,8 @@ export default function Index({ products, filters }) {
                                 <p className="text-xs font-medium text-gray-400 mb-1.5">Kondisi</p>
                                 <div className="flex gap-2 flex-wrap">
                                     <FilterPill label="Semua" active={!filters.condition} onClick={() => handleFilter('condition', '')} />
-                                    <FilterPill label="Layak konsumsi" active={filters.condition === 'layak_konsumsi'} onClick={() => handleFilter('condition', 'layak_konsumsi')} />
-                                    <FilterPill label="Layak olah" active={filters.condition === 'layak_olah'} onClick={() => handleFilter('condition', 'layak_olah')} />
+                                    <FilterPill label="Siap konsumsi" active={filters.condition === 'layak_konsumsi'} onClick={() => handleFilter('condition', 'layak_konsumsi')} />
+                                    <FilterPill label="Perlu diolah" active={filters.condition === 'layak_olah'} onClick={() => handleFilter('condition', 'layak_olah')} />
                                     <FilterPill label="Pakan / kompos" active={filters.condition === 'layak_pakan_kompos'} onClick={() => handleFilter('condition', 'layak_pakan_kompos')} />
                                 </div>
                             </div>

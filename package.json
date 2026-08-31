@@ -23,6 +23,7 @@
     },
     "dependencies": {
         "lucide-react": "^1.24.0",
-        "recharts": "^3.9.2"
+        "recharts": "^3.9.2",
+        "toastr": "^2.1.4"
     }
 }

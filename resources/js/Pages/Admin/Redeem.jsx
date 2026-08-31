@@ -1,10 +1,19 @@
+import { useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
+import ConfirmModal from '@/Components/ConfirmModal';
 import { Head, useForm, router } from '@inertiajs/react';
 import { Search, Coins, User, MapPin, Check } from 'lucide-react';
 
 export default function Redeem({ foundUser, searchedCode }) {
     const searchForm = useForm({ code: searchedCode || '' });
     const redeemForm = useForm({ user_id: foundUser?.id || '', amount: '', description: '' });
+
+    const [confirmModal, setConfirmModal] = useState({
+        show: false,
+        title: '',
+        message: '',
+        onConfirm: () => {},
+    });
 
     function handleSearch(e) {
         e.preventDefault();
@@ -13,14 +22,29 @@ export default function Redeem({ foundUser, searchedCode }) {
 
     function handleRedeem(e) {
         e.preventDefault();
-        if (confirm(`Tukar ${redeemForm.data.amount} poin milik ${foundUser.name}?`)) {
-            redeemForm.post('/admin/redeem/process');
-        }
+        setConfirmModal({
+            show: true,
+            title: 'Konfirmasi Penukaran Poin',
+            message: `Tukar ${redeemForm.data.amount} RePoin milik ${foundUser?.name} untuk reward ini?`,
+            confirmText: 'Proses Penukaran',
+            variant: 'success',
+            onConfirm: () => redeemForm.post('/admin/redeem/process'),
+        });
     }
 
     return (
         <AppLayout>
             <Head title="Tukar RePoin" />
+
+            <ConfirmModal
+                show={confirmModal.show}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                confirmText={confirmModal.confirmText}
+                variant={confirmModal.variant}
+                onConfirm={confirmModal.onConfirm}
+                onClose={() => setConfirmModal((prev) => ({ ...prev, show: false }))}
+            />
             <div className="max-w-2xl mx-auto">
                 <h1 className="text-2xl font-bold text-gray-900 mb-6">Tukar RePoin</h1>
 

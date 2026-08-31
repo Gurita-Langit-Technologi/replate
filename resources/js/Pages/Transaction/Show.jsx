@@ -1,4 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
+import ConfirmModal from '@/Components/ConfirmModal';
 import { Head, Link, router } from '@inertiajs/react';
 import React, { useState } from 'react';
 import {
@@ -459,14 +460,12 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                             <p className="text-sm font-medium text-gray-900">{transaction.buyer?.name}</p>
                         </div>
                     </div>
-                </div>
 
-                {/* Waktu */}
-                <div className="bg-white rounded-xl border border-gray-100 p-5 mb-4">
-                    <div className="flex items-center gap-2 text-xs text-gray-400">
-                        <Clock size={12} />
-                        Dibuat {timeAgo(transaction.created_at)} · {new Date(transaction.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </div>
+                    {hasReviewed ? (
+                        <p className="text-xs text-green-600 mt-2">✓ Anda telah memberikan ulasan untuk transaksi ini.</p>
+                    ) : isBuyer ? (
+                        <p className="text-xs text-gray-400 mt-2">Beri bintang dan feedback untuk penjual guna membangun reputasi desa.</p>
+                    ) : null}
                 </div>
 
                 {/* Actions */}
@@ -476,7 +475,16 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                         {isSeller && (transaction.type === 'donation' || transaction.type?.value === 'donation') && transaction.status === 'pending' && (
                             <div className="flex gap-3">
                                 <button
-                                    onClick={() => router.patch(`/transactions/${transaction.id}/accept-donation`)}
+                                    onClick={() => {
+                                        setConfirmModal({
+                                            show: true,
+                                            title: 'Setujui Klaim Donasi',
+                                            message: `Apakah Anda ingin menyetujui klaim donasi dari ${transaction.buyer?.name}?`,
+                                            confirmText: 'Ya, Setujui',
+                                            variant: 'success',
+                                            onConfirm: () => router.patch(`/transactions/${transaction.id}/accept-donation`),
+                                        });
+                                    }}
                                     className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition"
                                 >
                                     <Check size={18} />
@@ -484,9 +492,14 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        if (confirm('Yakin ingin menolak klaim donasi ini?')) {
-                                            router.patch(`/transactions/${transaction.id}/reject-donation`);
-                                        }
+                                        setConfirmModal({
+                                            show: true,
+                                            title: 'Tolak Klaim Donasi',
+                                            message: `Apakah Anda yakin ingin menolak klaim donasi ini? Produk akan kembali tayang di marketplace.`,
+                                            confirmText: 'Tolak Klaim',
+                                            variant: 'danger',
+                                            onConfirm: () => router.patch(`/transactions/${transaction.id}/reject-donation`),
+                                        });
                                     }}
                                     className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition"
                                 >
@@ -499,7 +512,16 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                         {/* Standard Confirm (Sale/Barter Pending) */}
                         {isSeller && transaction.type !== 'donation' && transaction.type?.value !== 'donation' && transaction.status === 'pending' && (
                             <button
-                                onClick={() => router.patch(`/transactions/${transaction.id}/confirm`)}
+                                onClick={() => {
+                                    setConfirmModal({
+                                        show: true,
+                                        title: 'Konfirmasi Pesanan',
+                                        message: `Konfirmasi pesanan dari ${transaction.buyer?.name}? Silakan siapkan produk untuk serah terima.`,
+                                        confirmText: 'Konfirmasi Pesanan',
+                                        variant: 'success',
+                                        onConfirm: () => router.patch(`/transactions/${transaction.id}/confirm`),
+                                    });
+                                }}
                                 className="w-full flex items-center justify-center gap-2 py-3.5 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition"
                             >
                                 <Check size={18} />
@@ -510,7 +532,16 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                         {isBuyer && transaction.status === 'confirmed' && (
                             <>
                                 <button
-                                    onClick={() => router.patch(`/transactions/${transaction.id}/complete`)}
+                                    onClick={() => {
+                                        setConfirmModal({
+                                            show: true,
+                                            title: 'Konfirmasi Barang Diterima',
+                                            message: 'Apakah Anda telah menerima produk dalam kondisi baik dan sesuai?',
+                                            confirmText: 'Selesai & Diterima',
+                                            variant: 'success',
+                                            onConfirm: () => router.patch(`/transactions/${transaction.id}/complete`),
+                                        });
+                                    }}
                                     className="w-full flex items-center justify-center gap-2 py-3.5 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition"
                                 >
                                     <Check size={18} />
@@ -529,9 +560,14 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
 
                         <button
                             onClick={() => {
-                                if (confirm('Yakin ingin membatalkan transaksi ini?')) {
-                                    router.patch(`/transactions/${transaction.id}/cancel`);
-                                }
+                                setConfirmModal({
+                                    show: true,
+                                    title: 'Batalkan Transaksi',
+                                    message: 'Apakah Anda yakin ingin membatalkan transaksi ini?',
+                                    confirmText: 'Batalkan Transaksi',
+                                    variant: 'danger',
+                                    onConfirm: () => router.patch(`/transactions/${transaction.id}/cancel`),
+                                });
                             }}
                             className="w-full flex items-center justify-center gap-2 py-3 text-sm text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition"
                         >

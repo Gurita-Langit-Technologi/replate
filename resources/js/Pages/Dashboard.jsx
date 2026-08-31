@@ -1,4 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
+import { formatTimeLeftShort } from '@/Utils/time';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
     Package,
@@ -86,7 +87,7 @@ function ProductRow({ product }) {
                 {product.status === 'active' && (
                     <span className="text-xs text-gray-400 flex items-center gap-1">
                         <Clock size={12} />
-                        {timeLeft}j
+                        {formatTimeLeftShort(product.timeout_at)}
                     </span>
                 )}
                 <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${statusStyles[product.status] || 'bg-gray-100 text-gray-600'}`}>

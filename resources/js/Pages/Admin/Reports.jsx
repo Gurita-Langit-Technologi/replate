@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
+import ConfirmModal from '@/Components/ConfirmModal';
 import { Head, router } from '@inertiajs/react';
 
 const reasonLabels = {
@@ -15,9 +17,27 @@ const statusStyles = {
 };
 
 export default function Reports({ reports }) {
+    const [confirmModal, setConfirmModal] = useState({
+        show: false,
+        title: '',
+        message: '',
+        onConfirm: () => {},
+    });
+
     return (
         <AppLayout>
             <Head title="Moderasi Laporan" />
+
+            <ConfirmModal
+                show={confirmModal.show}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                confirmText="Hapus + Beri Warning"
+                variant="danger"
+                onConfirm={confirmModal.onConfirm}
+                onClose={() => setConfirmModal((prev) => ({ ...prev, show: false }))}
+            />
+
             <div className="max-w-4xl mx-auto">
                 <h1 className="text-2xl font-bold text-gray-900 mb-6">Moderasi Laporan Produk</h1>
 
@@ -44,17 +64,20 @@ export default function Reports({ reports }) {
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => {
-                                                if (confirm('Hapus produk dan beri warning ke penjual?')) {
-                                                    router.patch(`/admin/reports/${r.id}/review`);
-                                                }
+                                                setConfirmModal({
+                                                    show: true,
+                                                    title: 'Hapus Produk & Beri Warning',
+                                                    message: `Apakah Anda yakin ingin menghapus produk "${r.product?.title}" dan memberikan peringatan pelanggaran kepada penjual?`,
+                                                    onConfirm: () => router.patch(`/admin/reports/${r.id}/review`),
+                                                });
                                             }}
-                                            className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700"
+                                            className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition font-medium"
                                         >
                                             Hapus produk + warning
                                         </button>
                                         <button
                                             onClick={() => router.patch(`/admin/reports/${r.id}/dismiss`)}
-                                            className="px-4 py-2 bg-gray-100 text-sm rounded-lg hover:bg-gray-200"
+                                            className="px-4 py-2 bg-gray-100 text-sm rounded-lg hover:bg-gray-200 transition font-medium"
                                         >
                                             Abaikan laporan
                                         </button>

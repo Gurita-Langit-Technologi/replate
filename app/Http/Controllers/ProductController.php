@@ -80,16 +80,33 @@ class ProductController extends Controller
     {
         $product->load('user');
 
+        // Hitung stok yang sedang dalam proses transaksi (pending / confirmed)
+        $reservedQty = (int) Transaction::where('product_id', $product->id)
+            ->whereIn('status', [TransactionStatus::PENDING, TransactionStatus::CONFIRMED])
+            ->sum('quantity');
+
+        $availableQty = max(0, (int) ($product->quantity ?? 1) - $reservedQty);
+
         return Inertia::render('Marketplace/Show', [
             'product' => $product,
+            'reservedQty' => $reservedQty,
+            'availableQty' => $availableQty,
         ]);
     }
 
     /**
      * Form upload produk
      */
-    public function create()
+    public function create(Request $request)
     {
+        $user = $request->user();
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard')->with('error', 'Admin tidak memiliki akses untuk upload produk.');
+        }
+        if ($user->isPartner()) {
+            return redirect()->route('partner.dashboard')->with('error', 'Mitra tidak memiliki akses untuk upload produk.');
+        }
+
         return Inertia::render('Marketplace/Create');
     }
 
@@ -99,6 +116,10 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $user = $request->user();
+
+        if ($user->isAdmin() || $user->isPartner()) {
+            return back()->with('error', 'Akun admin atau mitra tidak dapat mengunggah produk.');
+        }
 
         // Cek lokasi
         if (empty($user->desa) || empty($user->kecamatan)) {
@@ -118,7 +139,7 @@ class ProductController extends Controller
             'condition' => ['required', Rule::enum(ProductCondition::class)],
             'weight_grams' => 'nullable|integer|min:0',
             'quantity' => 'required|integer|min:1',
-            'unit' => 'required|string|in:gram,kg,pcs,porsi,kotak,bungkus,liter,ikat',
+            'unit' => 'required|string|in:gram,kg,pcs,porsi,kotak,bungkus,liter,ikat,paket',
             'transaction_mode' => ['required', Rule::enum(TransactionMode::class)],
             'price' => 'nullable|integer|min:0',
             'barter_description' => 'nullable|string',
@@ -144,6 +165,22 @@ class ProductController extends Controller
         $timeoutAt = Product::calculateTimeout($validated['condition']);
         $timeoutStage1At = Product::calculateTimeoutStage1($validated['condition']);
 
+        // Estimasi berat otomatis jika kosong/0
+        $weightGrams = (int) ($validated['weight_grams'] ?? 0);
+        if ($weightGrams <= 0) {
+            $qty = (int) $validated['quantity'];
+            $weightGrams = match ($validated['unit']) {
+                'kg' => $qty * 1000,
+                'gram' => $qty,
+                'liter' => $qty * 1000,
+                'porsi' => $qty * 350,
+                'kotak', 'bungkus' => $qty * 400,
+                'ikat' => $qty * 300,
+                'pcs' => $qty * 150,
+                default => $qty * 300,
+            };
+        }
+
         // Simpan produk
         $product = Product::create([
             'user_id' => $user->id,
@@ -152,7 +189,7 @@ class ProductController extends Controller
             'photo' => $photoPath,
             'category' => $validated['category'],
             'condition' => $validated['condition'],
-            'weight_grams' => $validated['weight_grams'] ?? 0,
+            'weight_grams' => $weightGrams,
             'quantity' => $validated['quantity'],
             'unit' => $validated['unit'],
             'transaction_mode' => $validated['transaction_mode'],
@@ -176,7 +213,15 @@ class ProductController extends Controller
      */
     public function myProducts(Request $request)
     {
-        $products = Product::where('user_id', $request->user()->id)
+        $user = $request->user();
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+        if ($user->isPartner()) {
+            return redirect()->route('partner.dashboard');
+        }
+
+        $products = Product::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -219,11 +264,33 @@ class ProductController extends Controller
             'photo' => 'nullable|image|max:2048',
             'category' => ['required', Rule::enum(ProductCategory::class)],
             'condition' => ['required', Rule::enum(ProductCondition::class)],
-            'weight_grams' => 'required|integer|min:500',
+            'weight_grams' => 'nullable|integer|min:0',
+            'quantity' => 'required|integer|min:1',
+            'unit' => 'required|string|in:gram,kg,pcs,porsi,kotak,bungkus,liter,ikat,paket',
             'transaction_mode' => ['required', Rule::enum(TransactionMode::class)],
             'price' => 'nullable|integer|min:0',
             'barter_description' => 'nullable|string',
+            'pickup_type' => ['nullable', Rule::enum(PickupType::class)],
+            'pickup_address' => 'nullable|string|max:500',
+            'pickup_notes' => 'nullable|string|max:255',
         ]);
+
+        // Estimasi berat otomatis jika kosong/0
+        $weightGrams = (int) ($validated['weight_grams'] ?? 0);
+        if ($weightGrams <= 0) {
+            $qty = (int) $validated['quantity'];
+            $weightGrams = match ($validated['unit']) {
+                'kg' => $qty * 1000,
+                'gram' => $qty,
+                'liter' => $qty * 1000,
+                'porsi' => $qty * 350,
+                'kotak', 'bungkus' => $qty * 400,
+                'ikat' => $qty * 300,
+                'pcs' => $qty * 150,
+                default => $qty * 300,
+            };
+        }
+        $validated['weight_grams'] = $weightGrams;
 
         // Update foto jika ada yang baru
         if ($request->hasFile('photo')) {
@@ -272,8 +339,8 @@ class ProductController extends Controller
             ->where('status', TransactionStatus::COMPLETED)
             ->count();
 
-        $totalWeight = Transaction::where('seller_id', $user->id)
-            ->where('status', TransactionStatus::COMPLETED)
+        $totalWeight = Transaction::where('transactions.seller_id', $user->id)
+            ->where('transactions.status', TransactionStatus::COMPLETED)
             ->join('products', 'transactions.product_id', '=', 'products.id')
             ->sum('products.weight_grams');
 

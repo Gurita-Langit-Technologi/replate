@@ -1,5 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
-import { Head, useForm, Link } from '@inertiajs/react';
+import { Head, useForm, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import {
     ArrowLeft,
@@ -22,12 +22,14 @@ const modeOptions = [
 ];
 
 const conditionOptions = [
-    { value: 'layak_konsumsi', label: 'Layak konsumsi', desc: 'Masih bisa dimakan langsung', color: 'border-green-400 bg-green-50' },
-    { value: 'layak_olah', label: 'Layak olah ulang', desc: 'Perlu diolah sebelum dikonsumsi', color: 'border-amber-400 bg-amber-50' },
-    { value: 'layak_pakan_kompos', label: 'Pakan / kompos', desc: 'Untuk pakan ternak atau kompos', color: 'border-red-400 bg-red-50' },
+    { value: 'layak_konsumsi', label: 'Layak Konsumsi / Siap Santap', desc: 'Makanan segar dan masih aman dikonsumsi langsung', color: 'border-green-400 bg-green-50' },
+    { value: 'layak_olah', label: 'Bahan Olahan / Perlu Diolah', desc: 'Bahan pangan yang perlu dimasak/diolah kembali sebelum dikonsumsi', color: 'border-amber-400 bg-amber-50' },
+    { value: 'layak_pakan_kompos', label: 'Pakan / Kompos', desc: 'Khusus untuk pakan ternak atau bahan kompos (tidak untuk manusia)', color: 'border-red-400 bg-red-50' },
 ];
 
 export default function Edit({ product }) {
+    const { auth } = usePage().props;
+
     const { data, setData, post, processing, errors } = useForm({
         _method: 'PUT',
         title: product.title,
@@ -37,7 +39,7 @@ export default function Edit({ product }) {
         condition: product.condition,
         weight_grams: product.weight_grams || '',
         quantity: product.quantity || 1,
-        unit: product.unit || 'gram',
+        unit: product.unit || 'porsi',
         transaction_mode: product.transaction_mode,
         price: product.price || '',
         barter_description: product.barter_description || '',
@@ -59,6 +61,21 @@ export default function Edit({ product }) {
     function removePhoto() {
         setData('photo', null);
         setPreview(null);
+    }
+
+    function handleUseProfileAddress() {
+        if (!auth?.user) return;
+        const parts = [
+            auth.user.address,
+            auth.user.desa ? `Desa ${auth.user.desa}` : '',
+            auth.user.kecamatan ? `Kec. ${auth.user.kecamatan}` : '',
+        ].filter(Boolean);
+        const fullAddress = parts.join(', ');
+        if (fullAddress) {
+            setData('pickup_address', fullAddress);
+        } else if (auth.user.desa || auth.user.kecamatan) {
+            setData('pickup_address', `${auth.user.desa ? 'Desa ' + auth.user.desa : ''}, ${auth.user.kecamatan ? 'Kec. ' + auth.user.kecamatan : ''}`);
+        }
     }
 
     function handleSubmit(e) {
@@ -149,7 +166,7 @@ export default function Edit({ product }) {
                                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
                             >
                                 <option value="mentah">Mentah</option>
-                                <option value="olahan">Olahan</option>
+                                <option value="olahan">Olahan (Siap Santap / Produk Olahan)</option>
                                 <option value="hasil_bumi">Hasil bumi</option>
                             </select>
                         </div>
@@ -167,20 +184,20 @@ export default function Edit({ product }) {
                                 {errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1.5">Satuan *</label>
+                                <label className="block text-xs font-medium text-gray-500 mb-1.5">Satuan Produk *</label>
                                 <select
                                     value={data.unit}
                                     onChange={e => setData('unit', e.target.value)}
                                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
                                 >
-                                    <option value="gram">Gram</option>
-                                    <option value="kg">Kilogram</option>
-                                    <option value="pcs">Pcs</option>
                                     <option value="porsi">Porsi</option>
-                                    <option value="kotak">Kotak</option>
                                     <option value="bungkus">Bungkus</option>
-                                    <option value="liter">Liter</option>
+                                    <option value="kotak">Kotak / Box</option>
+                                    <option value="pcs">Pcs / Buah</option>
+                                    <option value="kg">Kilogram (kg)</option>
                                     <option value="ikat">Ikat</option>
+                                    <option value="liter">Liter</option>
+                                    <option value="paket">Paket</option>
                                 </select>
                             </div>
                             <div>
@@ -191,8 +208,13 @@ export default function Edit({ product }) {
                                     onChange={e => setData('weight_grams', e.target.value)}
                                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
                                     min="0"
-                                    placeholder="Opsional"
+                                    placeholder={data.unit === 'kg' && data.quantity ? `${(parseInt(data.quantity) || 1) * 1000}` : 'Otomatis dihitung'}
                                 />
+                                <p className="text-[10px] text-gray-400 mt-1">
+                                    {data.unit === 'kg'
+                                        ? `Otomatis: ${data.quantity || 1} kg (${((parseInt(data.quantity) || 1) * 1000).toLocaleString()}g)`
+                                        : 'Boleh dikosongkan (otomatis diestimasi)'}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -244,13 +266,41 @@ export default function Edit({ product }) {
 
                     {/* Harga */}
                     {(data.transaction_mode === 'sell' || data.transaction_mode === 'sell_and_barter') && (
-                        <div className="bg-white rounded-xl border border-gray-100 p-5">
-                            <label className="block text-sm font-medium text-gray-900 mb-3">Harga *</label>
-                            <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">Rp</span>
-                                <input type="number" value={data.price} onChange={e => setData('price', e.target.value)} className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400" min="0" />
+                        <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-3">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-900 mb-1">
+                                    Harga per satuan * <span className="text-xs text-gray-400 font-normal">(Rp / {data.unit || 'satuan'})</span>
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">Rp</span>
+                                    <input
+                                        type="number"
+                                        value={data.price}
+                                        onChange={e => setData('price', e.target.value)}
+                                        className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                                        min="0"
+                                        placeholder="Contoh: 15000"
+                                    />
+                                </div>
+                                {errors.price && <p className="text-red-500 text-xs mt-1.5">{errors.price}</p>}
                             </div>
-                            {errors.price && <p className="text-red-500 text-xs mt-2">{errors.price}</p>}
+
+                            <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs space-y-1.5">
+                                <p className="font-semibold text-amber-900 flex items-center gap-1.5">
+                                    💡 Ini adalah harga untuk 1 {data.unit || 'satuan'}, bukan total keseluruhan.
+                                </p>
+                                <p className="text-amber-700 leading-relaxed">
+                                    Pembeli dapat menentukan jumlah yang ingin mereka beli (misal: 1 {data.unit || 'satuan'} atau seluruhnya).
+                                </p>
+                                {parseInt(data.price || 0) > 0 && (
+                                    <div className="pt-2 mt-1.5 border-t border-amber-200 flex items-center justify-between font-medium text-amber-950">
+                                        <span>Estimasi total ({data.quantity || 1} {data.unit}):</span>
+                                        <span className="font-bold text-green-700 text-sm">
+                                            Rp {(parseInt(data.price || 0) * (parseInt(data.quantity) || 1)).toLocaleString('id-ID')}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
 
@@ -266,7 +316,7 @@ export default function Edit({ product }) {
                     )}
 
                     {/* Lokasi Pengambilan */}
-                    <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-3">
+                    <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
                         <p className="text-sm font-medium text-gray-900 flex items-center gap-2">
                             <MapPin size={16} className="text-gray-400" /> Lokasi pengambilan
                         </p>
@@ -294,14 +344,29 @@ export default function Edit({ product }) {
                                     </div>
                                 </label>
                             </div>
+                            {errors.pickup_type && <p className="text-red-500 text-xs mt-1.5">{errors.pickup_type}</p>}
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1.5">Alamat lengkap</label>
+                            <div className="flex items-center justify-between mb-1.5">
+                                <label className="block text-xs font-medium text-gray-500">Alamat lengkap</label>
+                                {auth?.user && (
+                                    <button
+                                        type="button"
+                                        onClick={handleUseProfileAddress}
+                                        className="text-xs font-semibold text-green-600 hover:text-green-700 hover:underline flex items-center gap-1 transition"
+                                    >
+                                        <MapPin size={12} />
+                                        Gunakan Alamat Profil Saya
+                                    </button>
+                                )}
+                            </div>
                             <textarea value={data.pickup_address} onChange={e => setData('pickup_address', e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400" rows={2} />
+                            {errors.pickup_address && <p className="text-red-500 text-xs mt-1">{errors.pickup_address}</p>}
                         </div>
                         <div>
                             <label className="block text-xs font-medium text-gray-500 mb-1.5">Catatan pengambilan</label>
                             <input type="text" value={data.pickup_notes} onChange={e => setData('pickup_notes', e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400" />
+                            {errors.pickup_notes && <p className="text-red-500 text-xs mt-1">{errors.pickup_notes}</p>}
                         </div>
                     </div>
 

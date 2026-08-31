@@ -58,7 +58,11 @@ class PointHistory extends Model
             ? $product->weight_grams / 1000
             : $product->quantity;
 
-        $multiplier = match ($product->condition) {
+        $conditionVal = $product->condition instanceof \BackedEnum
+            ? $product->condition->value
+            : (string) $product->condition;
+
+        $multiplier = match ($conditionVal) {
             'layak_konsumsi' => 3,
             'layak_olah' => 2,
             'layak_pakan_kompos' => 1,

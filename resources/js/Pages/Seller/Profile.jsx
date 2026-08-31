@@ -1,4 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
+import { formatTimeLeftShort } from '@/Utils/time';
 import { Head, Link } from '@inertiajs/react';
 import { User, Package, Scale, TrendingUp, Clock, MapPin } from 'lucide-react';
 
@@ -60,11 +61,19 @@ export default function Profile({ seller, products, stats }) {
                                     </div>
                                     <div className="p-3">
                                         <h3 className="text-sm font-semibold text-gray-900 truncate">{product.title}</h3>
-                                        <p className="text-xs text-gray-400 mt-1">
-                                            {product.quantity} {product.unit} · <Clock size={10} className="inline" /> {hoursLeft}j
+                                        <p className="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
+                                            <span>{product.quantity} {product.unit}</span>
+                                            <span>·</span>
+                                            <span className="flex items-center gap-0.5">
+                                                <Clock size={10} />
+                                                {formatTimeLeftShort(product.timeout_at)}
+                                            </span>
                                         </p>
                                         {product.price ? (
-                                            <p className="text-sm font-bold text-green-600 mt-1">Rp {product.price.toLocaleString()}</p>
+                                            <p className="text-sm font-bold text-green-600 mt-1">
+                                                Rp {product.price.toLocaleString()}
+                                                <span className="text-[11px] text-gray-400 font-normal">/{product.unit || 'satuan'}</span>
+                                            </p>
                                         ) : (
                                             <p className="text-sm font-bold text-purple-600 mt-1">
                                                 {product.transaction_mode === 'donate' ? 'Donasi' : 'Barter'}

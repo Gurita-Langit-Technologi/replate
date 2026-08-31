@@ -21,6 +21,7 @@ class Transaction extends Model
         'type',
         'status',
         'price',
+        'quantity',
         'notes',
         'barter_notes',
         'proof_photo',
@@ -33,6 +34,7 @@ class Transaction extends Model
             'type' => TransactionType::class,
             'status' => TransactionStatus::class,
             'price' => 'integer',
+            'quantity' => 'integer',
             'completed_at' => 'datetime',
         ];
     }

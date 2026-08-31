@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
+import ConfirmModal from '@/Components/ConfirmModal';
+import { formatTimeLeftShort } from '@/Utils/time';
 import { Head, Link, router } from '@inertiajs/react';
 import {
     Package,
@@ -36,17 +39,11 @@ const modeLabels = {
     donate: 'Donasi',
 };
 
-function ProductCard({ product }) {
+function ProductCard({ product, onDelete }) {
     const status = statusConfig[product.status] || statusConfig.active;
     const timeLeft = Math.max(0, Math.floor((new Date(product.timeout_at) - new Date()) / (1000 * 60 * 60)));
     const isActive = ['active', 'timeout_stage_1'].includes(product.status);
     const isDone = ['sold', 'bartered', 'donated', 'transferred'].includes(product.status);
-
-    function handleDelete() {
-        if (confirm('Yakin ingin menghapus produk ini?')) {
-            router.delete(`/products/${product.id}`);
-        }
-    }
 
     return (
         <div className={`bg-white rounded-xl border overflow-hidden transition hover:shadow-sm ${isDone ? 'border-gray-100 opacity-75' : 'border-gray-100'}`}>
@@ -77,10 +74,15 @@ function ProductCard({ product }) {
 
                         {/* Details */}
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
-                            <span className="flex items-center gap-1">
-                                <Scale size={12} />
-                                {(product.weight_grams / 1000).toFixed(1)} kg
+                            <span className="font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[11px]">
+                                Stok: {product.quantity || 1} {product.unit || 'satuan'}
                             </span>
+                            {product.weight_grams > 0 && (
+                                <span className="flex items-center gap-1">
+                                    <Scale size={12} />
+                                    {(product.weight_grams / 1000).toFixed(1)} kg
+                                </span>
+                            )}
                             <span>{product.condition.replace(/_/g, ' ')}</span>
                             <span className="flex items-center gap-1">
                                 {modeIcons[product.transaction_mode]} {modeLabels[product.transaction_mode]}
@@ -88,7 +90,7 @@ function ProductCard({ product }) {
                             {isActive && (
                                 <span className="flex items-center gap-1 text-amber-500">
                                     <Clock size={12} />
-                                    {timeLeft}j lagi
+                                    {formatTimeLeftShort(product.timeout_at)}
                                 </span>
                             )}
                         </div>
@@ -100,10 +102,14 @@ function ProductCard({ product }) {
                                     {product.discounted_price ? (
                                         <>
                                             <span className="text-sm font-bold text-red-500">Rp {product.discounted_price.toLocaleString()}</span>
+                                            <span className="text-xs text-gray-400 font-normal">/{product.unit || 'satuan'}</span>
                                             <span className="text-xs text-gray-400 line-through">Rp {product.price.toLocaleString()}</span>
                                         </>
                                     ) : (
-                                        <span className="text-sm font-bold text-green-600">Rp {product.price.toLocaleString()}</span>
+                                        <>
+                                            <span className="text-sm font-bold text-green-600">Rp {product.price.toLocaleString()}</span>
+                                            <span className="text-xs text-gray-400 font-normal">/{product.unit || 'satuan'}</span>
+                                        </>
                                     )}
                                 </div>
                             ) : (
@@ -141,7 +147,7 @@ function ProductCard({ product }) {
                                     Edit
                                 </Link>
                                 <button
-                                    onClick={handleDelete}
+                                    onClick={() => onDelete(product)}
                                     className="inline-flex items-center gap-1 text-xs px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
                                 >
                                     <Trash2 size={12} />
@@ -157,12 +163,39 @@ function ProductCard({ product }) {
 }
 
 export default function MyProducts({ products }) {
+    const [confirmModal, setConfirmModal] = useState({
+        show: false,
+        title: '',
+        message: '',
+        onConfirm: () => {},
+    });
+
+    function handleDelete(product) {
+        setConfirmModal({
+            show: true,
+            title: 'Hapus Produk',
+            message: `Apakah Anda yakin ingin menghapus produk "${product.title}"?`,
+            onConfirm: () => router.delete(`/products/${product.id}`),
+        });
+    }
+
     const activeProducts = products.filter(p => ['active', 'timeout_stage_1', 'timeout_stage_2'].includes(p.status));
     const doneProducts = products.filter(p => ['sold', 'bartered', 'donated', 'transferred', 'timeout_stage_3'].includes(p.status));
 
     return (
         <AppLayout>
             <Head title="Produk Saya" />
+
+            <ConfirmModal
+                show={confirmModal.show}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                confirmText="Hapus Produk"
+                variant="danger"
+                onConfirm={confirmModal.onConfirm}
+                onClose={() => setConfirmModal((prev) => ({ ...prev, show: false }))}
+            />
+
             <div className="max-w-4xl mx-auto">
                 <div className="flex items-center justify-between mb-6">
                     <div>
@@ -188,7 +221,7 @@ export default function MyProducts({ products }) {
                                 </h2>
                                 <div className="space-y-3">
                                     {activeProducts.map((product) => (
-                                        <ProductCard key={product.id} product={product} />
+                                        <ProductCard key={product.id} product={product} onDelete={handleDelete} />
                                     ))}
                                 </div>
                             </div>
@@ -202,7 +235,7 @@ export default function MyProducts({ products }) {
                                 </h2>
                                 <div className="space-y-3">
                                     {doneProducts.map((product) => (
-                                        <ProductCard key={product.id} product={product} />
+                                        <ProductCard key={product.id} product={product} onDelete={handleDelete} />
                                     ))}
                                 </div>
                             </div>

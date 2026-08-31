@@ -247,7 +247,7 @@ export default function Welcome({ auth }) {
                             </p>
                         </div>
                         <div className="max-w-2xl mx-auto space-y-8">
-                            <StepCard number="1" title="Upload produk" description="Foto produk, pilih kondisi (layak konsumsi / layak olah / layak pakan-kompos), tentukan jumlah, satuan, dan mode transaksi." />
+                            <StepCard number="1" title="Upload produk" description="Foto produk, pilih kondisi (layak konsumsi / bahan olahan / pakan-kompos), tentukan jumlah, satuan, dan mode transaksi." />
                             <div className="ml-5 h-6 border-l-2 border-dashed border-green-200" />
                             <StepCard number="2" title="Tayang di marketplace" description="Produk tampil berdasarkan filter lokasi desa/kecamatan. Timer timeout mulai berjalan otomatis." />
                             <div className="ml-5 h-6 border-l-2 border-dashed border-green-200" />

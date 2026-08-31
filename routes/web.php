@@ -109,6 +109,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 // ============ PARTNER ONLY ============
 Route::middleware(['auth', 'role:partner'])->prefix('partner')->name('partner.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'partner'])->name('dashboard');
+    Route::get('/history', [DashboardController::class, 'partnerHistory'])->name('history');
     Route::patch('/transactions/{transaction}/confirm', [TransactionController::class, 'partnerConfirm'])->name('confirm');
 });
 

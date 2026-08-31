@@ -18,6 +18,8 @@ import {
     MessageCircle,
     ChevronsLeft,
     ChevronsRight,
+    Truck,
+    History,
 } from 'lucide-react';
 import Toast from '@/Components/Toast';
 
@@ -40,7 +42,8 @@ const NAV_ITEMS = {
         { label: 'Tukar RePoin', href: '/admin/redeem', icon: Coins },
     ],
     partner: [
-        { label: 'Partner Panel', href: '/partner/dashboard', icon: Handshake },
+        { label: 'Tugas Penjemputan', href: '/partner/dashboard', icon: Truck },
+        { label: 'Riwayat Penerimaan', href: '/partner/history', icon: History },
     ],
 };
 
@@ -53,9 +56,9 @@ export default function AppLayout({ children }) {
     const user = auth.user;
     const role = user.role;
 
-    let navItems = [...NAV_ITEMS.user];
-    if (role === 'admin') navItems = [...navItems, ...NAV_ITEMS.admin];
-    if (role === 'partner') navItems = [...navItems, ...NAV_ITEMS.partner];
+    let navItems = NAV_ITEMS.user;
+    if (role === 'admin') navItems = NAV_ITEMS.admin;
+    else if (role === 'partner') navItems = NAV_ITEMS.partner;
 
     function isActive(href) {
         if (href === '/dashboard') return currentPath === '/dashboard';
@@ -101,7 +104,6 @@ export default function AppLayout({ children }) {
                 {/* Logo */}
                 <div className="h-16 flex items-center gap-3 px-4 border-b border-gray-100 flex-shrink-0">
                     <img src="/image/logo(2).png" alt="Replate" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
-                    {!collapsed && <span className="text-lg font-bold text-gray-900 tracking-tight">Replate</span>}
                     <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-gray-400">
                         <X size={20} />
                     </button>
@@ -212,13 +214,15 @@ export default function AppLayout({ children }) {
 
                     <div className="flex-1" />
 
-                    <Link
-                        href="/products/create"
-                        className="hidden sm:flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition mr-3"
-                    >
-                        <Package size={16} />
-                        Upload Produk
-                    </Link>
+                    {role !== 'admin' && role !== 'partner' && (
+                        <Link
+                            href="/products/create"
+                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition mr-3"
+                        >
+                            <Package size={16} />
+                            Upload Produk
+                        </Link>
+                    )}
 
                     <Link href="/notifications" className="relative p-2 text-gray-400 hover:text-gray-600">
                         <Bell size={20} />

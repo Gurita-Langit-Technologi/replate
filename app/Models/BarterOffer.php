@@ -16,6 +16,7 @@ class BarterOffer extends Model
     protected $fillable = [
         'product_id',
         'offerer_id',
+        'quantity',
         'offer_description',
         'offer_photo',
         'status',
@@ -28,6 +29,7 @@ class BarterOffer extends Model
     protected function casts(): array
     {
         return [
+            'quantity' => 'integer',
             'status' => BarterOfferStatus::class,
         ];
     }

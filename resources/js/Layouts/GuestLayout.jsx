@@ -40,9 +40,10 @@ export default function GuestLayout({ children }) {
             <div className="w-full lg:w-7/12 flex flex-col justify-center px-6 py-12 bg-white">
                 <div className="w-full max-w-md mx-auto">
                     {/* Logo for mobile */}
-                    <div className="lg:hidden flex items-center gap-2.5 mb-8">
-                        <img src="/image/logo.png" alt="Replate" className="w-10 h-10 rounded-xl object-cover" />
-                        <span className="text-xl font-bold text-gray-900">Replate</span>
+                    <div className="lg:hidden flex items-center mb-8">
+                        <Link href="/">
+                            <img src="/image/logo(2).png" alt="Replate" className="h-10 w-auto object-contain" />
+                        </Link>
                     </div>
 
                     {children}
