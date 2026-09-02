@@ -69,6 +69,11 @@ function TransactionCard({ transaction }) {
                             {type.label}
                         </span>
                         {product && (
+                            <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-medium text-[11px]">
+                                {transaction.quantity || 1} {product.unit || 'satuan'}
+                            </span>
+                        )}
+                        {product && (
                             <span className="flex items-center gap-0.5">
                                 <Scale size={10} />
                                 {(product.weight_grams / 1000).toFixed(1)}kg

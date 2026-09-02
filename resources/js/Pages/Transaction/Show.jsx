@@ -363,6 +363,9 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                         <div className="flex-1 min-w-0">
                             <p className="font-semibold text-gray-900 group-hover:text-green-600 transition truncate">{product.title}</p>
                             <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                                <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold text-xs">
+                                    {transaction.quantity || 1} {product.unit}
+                                </span>
                                 <span className="flex items-center gap-1"><Scale size={12} /> {(product.weight_grams / 1000).toFixed(1)}kg</span>
                                 {product.desa && <span className="flex items-center gap-1"><MapPin size={12} /> {product.desa}</span>}
                             </div>

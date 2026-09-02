@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\BarterOfferStatus;
 use App\Enums\NotificationType;
 use App\Enums\ProductStatus;
+use App\Enums\TransactionMode;
 use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
 use App\Models\BarterOffer;
@@ -199,6 +200,7 @@ class BarterOfferController extends Controller
             'seller_id' => $user->id,
             'type' => TransactionType::BARTER,
             'status' => TransactionStatus::CONFIRMED,
+            'quantity' => $barterQty,
             'notes' => "Jumlah barter: {$barterQty} {$product->unit}",
             'barter_notes' => $offer->offer_description,
         ]);
