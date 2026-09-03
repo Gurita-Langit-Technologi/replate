@@ -11,13 +11,20 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SellerVerificationController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ImpactController;
+use App\Services\ImpactAnalyticsService;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// ============ LANDING PAGE (PUBLIC) ============
-Route::get('/', function () {
-    return Inertia::render('Welcome');
+// ============ LANDING PAGE & HALAMAN PUBLIK ============
+Route::get('/', function (ImpactAnalyticsService $impactService) {
+    return Inertia::render('Welcome', [
+        'impact' => $impactService->getGlobalImpact(),
+    ]);
 })->name('home');
+
+Route::get('/impact', [ImpactController::class, 'index'])->name('impact');
+Route::get('/leaderboard', [ImpactController::class, 'leaderboard'])->name('leaderboard');
 
 // ============ DASHBOARD (SEMUA USER LOGIN) ============
 Route::get('/dashboard', [DashboardController::class, 'index'])

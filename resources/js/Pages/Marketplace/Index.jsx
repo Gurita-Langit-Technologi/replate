@@ -1,146 +1,137 @@
 import AppLayout from '@/Layouts/AppLayout';
+import ProductImage from '@/Components/ui/ProductImage';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { formatTimeLeftShort } from '@/Utils/time';
 import {
     Search,
-    SlidersHorizontal,
-    Package,
     Clock,
     MapPin,
     Scale,
-    ArrowLeftRight,
     ShoppingBasket,
-    Heart,
     Plus,
     X,
+    Filter,
+    ArrowUpDown,
+    Tag,
 } from 'lucide-react';
 
-const conditionLabels = {
-    layak_konsumsi: 'Siap Konsumsi',
-    layak_olah: 'Perlu Diolah',
-    layak_pakan_kompos: 'Pakan / Kompos',
+const CATEGORY_MAP = {
+    mentah: 'Bahan Mentah',
+    olahan: 'Makanan Olahan',
+    hasil_bumi: 'Hasil Bumi',
 };
 
-const conditionColors = {
-    layak_konsumsi: 'bg-green-50 text-green-700 border-green-200',
-    layak_olah: 'bg-amber-50 text-amber-700 border-amber-200',
-    layak_pakan_kompos: 'bg-red-50 text-red-700 border-red-200',
+const CONDITION_MAP = {
+    layak_konsumsi: { label: 'Siap Konsumsi', style: 'text-green-700 bg-green-50 border-green-200' },
+    layak_olah: { label: 'Perlu Diolah', style: 'text-amber-700 bg-amber-50 border-amber-200' },
+    layak_pakan_kompos: { label: 'Pakan / Kompos', style: 'text-orange-700 bg-orange-50 border-orange-200' },
 };
 
 function ProductCard({ product }) {
-    const isTimeout = product.status === 'timeout_stage_1';
-    const isDonation = product.status === 'timeout_stage_2' || product.transaction_mode === 'donate';
-    const timeLeft = new Date(product.timeout_at) - new Date();
-    const hoursLeft = Math.max(0, Math.floor(timeLeft / (1000 * 60 * 60)));
+    const isDiscounted = product.status === 'timeout_stage_1';
+    const cond = CONDITION_MAP[product.condition] ?? { label: product.condition, style: 'text-gray-600 bg-gray-100 border-gray-200' };
 
     return (
         <Link
             href={`/products/${product.id}`}
-            className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md hover:border-gray-200 transition-all"
+            className="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md hover:border-green-500/60 transition duration-150 flex flex-col justify-between"
         >
-            {/* Image */}
-            <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
-                {product.photo ? (
-                    <img
-                        src={`/storage/${product.photo}`}
+            <div>
+                {/* Photo container */}
+                <div className="relative aspect-square bg-gray-100 overflow-hidden">
+                    <ProductImage
+                        src={product.photo}
                         alt={product.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        aspect="aspect-square"
                     />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300">
-                        <Package size={36} />
-                    </div>
-                )}
 
-                {/* Overlay badges */}
-                <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-                    {isTimeout && (
-                        <span className="text-[10px] font-medium px-2 py-0.5 bg-red-500 text-white rounded-full">
-                            Diskon 25%
+                    {/* Mode Tag on image */}
+                    <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                        {isDiscounted && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-red-600 text-white rounded shadow-sm">
+                                Diskon 25%
+                            </span>
+                        )}
+                        {product.transaction_mode === 'donate' && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-blue-600 text-white rounded shadow-sm">
+                                Donasi
+                            </span>
+                        )}
+                        {product.transaction_mode === 'barter' && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-purple-600 text-white rounded shadow-sm">
+                                Barter
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Countdown Timer */}
+                    <div className="absolute bottom-2 right-2 z-10">
+                        <span className="text-[10px] font-medium px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white rounded flex items-center gap-1">
+                            <Clock size={10} className="text-amber-300" />
+                            {formatTimeLeftShort(product.timeout_at)}
                         </span>
-                    )}
-                    {isDonation && (
-                        <span className="text-[10px] font-medium px-2 py-0.5 bg-blue-500 text-white rounded-full flex items-center gap-0.5">
-                            <Heart size={10} /> Donasi
-                        </span>
-                    )}
-                    {product.transaction_mode.includes('barter') && !isDonation && (
-                        <span className="text-[10px] font-medium px-2 py-0.5 bg-purple-500 text-white rounded-full flex items-center gap-0.5">
-                            <ArrowLeftRight size={10} /> Barter
-                        </span>
-                    )}
+                    </div>
                 </div>
 
-                {/* Countdown */}
-                <div className="absolute bottom-2 right-2">
-                    <span className="text-[10px] font-medium px-2 py-0.5 bg-black/60 text-white rounded-full flex items-center gap-1">
-                        <Clock size={10} />
-                        {formatTimeLeftShort(product.timeout_at)}
-                    </span>
+                {/* Body */}
+                <div className="p-3">
+                    {/* Condition badge & stock */}
+                    <div className="flex items-center justify-between gap-1 mb-1.5">
+                        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${cond.style}`}>
+                            {cond.label}
+                        </span>
+                        <span className="text-[11px] text-gray-500">
+                            Stok: {product.quantity || 1} {product.unit || 'satuan'}
+                        </span>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-green-600 transition leading-snug">
+                        {product.title}
+                    </h3>
+
+                    {/* Location & Weight */}
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
+                        {product.desa && (
+                            <span className="flex items-center gap-1 truncate text-xs">
+                                <MapPin size={11} className="text-gray-400 flex-shrink-0" />
+                                {product.desa}
+                            </span>
+                        )}
+                        {product.weight_grams > 0 && (
+                            <span className="flex items-center gap-0.5 text-xs text-gray-400">
+                                • {(product.weight_grams / 1000).toFixed(1)} kg
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="p-3.5">
-                {/* Condition badge */}
-                <span className={`inline-flex text-[10px] font-medium px-2 py-0.5 rounded-full border mb-2 ${conditionColors[product.condition]}`}>
-                    {conditionLabels[product.condition]}
-                </span>
-
-                {/* Title */}
-                <h3 className="text-sm font-semibold text-gray-900 truncate group-hover:text-green-600 transition">
-                    {product.title}
-                </h3>
-
-                {/* Meta */}
-                <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
-                    <span className="text-emerald-600 font-medium bg-emerald-50 px-1.5 py-0.5 rounded text-[11px]">
-                        {product.quantity || 1} {product.unit || 'satuan'}
-                    </span>
-                    {product.weight_grams > 0 && (
-                        <span className="flex items-center gap-0.5">
-                            <Scale size={10} />
-                            {(product.weight_grams / 1000).toFixed(1)}kg
-                        </span>
-                    )}
-                    <span className="flex items-center gap-0.5">
-                        <MapPin size={10} />
-                        {product.desa}
-                    </span>
-                </div>
-
-                {/* Price */}
-                <div className="mt-2">
-                    {product.price ? (
-                        <div className="flex items-baseline gap-1.5">
-                            {product.discounted_price ? (
-                                <>
-                                    <span className="text-base font-bold text-red-500">
-                                        Rp {product.discounted_price.toLocaleString()}
-                                    </span>
-                                    <span className="text-[11px] text-gray-400 font-normal">
-                                        /{product.unit || 'satuan'}
-                                    </span>
-                                    <span className="text-xs text-gray-400 line-through">
-                                        Rp {product.price.toLocaleString()}
-                                    </span>
-                                </>
-                            ) : (
-                                <>
-                                    <span className="text-base font-bold text-green-600">
-                                        Rp {product.price.toLocaleString()}
-                                    </span>
-                                    <span className="text-[11px] text-gray-400 font-normal">
-                                        /{product.unit || 'satuan'}
-                                    </span>
-                                </>
-                            )}
+            {/* Price section */}
+            <div className="p-3 pt-0 border-t border-gray-100 mt-2">
+                <div className="pt-2">
+                    {product.transaction_mode === 'donate' ? (
+                        <span className="text-sm font-bold text-blue-600">Gratis</span>
+                    ) : !product.price && product.transaction_mode === 'barter' ? (
+                        <span className="text-sm font-bold text-purple-600">Barter</span>
+                    ) : product.discounted_price ? (
+                        <div className="flex items-baseline gap-1.5 flex-wrap">
+                            <span className="text-sm font-bold text-red-600">
+                                Rp {product.discounted_price.toLocaleString('id-ID')}
+                            </span>
+                            <span className="text-xs text-gray-400 line-through">
+                                Rp {product.price.toLocaleString('id-ID')}
+                            </span>
+                            <span className="text-[11px] text-gray-500">/{product.unit || 'satuan'}</span>
                         </div>
                     ) : (
-                        <span className="text-base font-bold text-purple-600">
-                            {product.transaction_mode === 'donate' ? 'Gratis' : 'Barter'}
-                        </span>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-sm font-bold text-gray-900">
+                                Rp {(product.price ?? 0).toLocaleString('id-ID')}
+                            </span>
+                            <span className="text-xs text-gray-500">/{product.unit || 'satuan'}</span>
+                        </div>
                     )}
                 </div>
             </div>
@@ -148,24 +139,8 @@ function ProductCard({ product }) {
     );
 }
 
-function FilterPill({ label, active, onClick }) {
-    return (
-        <button
-            onClick={onClick}
-            className={`text-xs font-medium px-3 py-1.5 rounded-full border transition whitespace-nowrap
-                ${active
-                    ? 'bg-green-600 text-white border-green-600'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                }`}
-        >
-            {label}
-        </button>
-    );
-}
-
 export default function Index({ products, filters }) {
     const [search, setSearch] = useState(filters.search || '');
-    const [showFilters, setShowFilters] = useState(false);
 
     function handleFilter(key, value) {
         router.get('/marketplace', { ...filters, [key]: value || undefined }, {
@@ -185,31 +160,31 @@ export default function Index({ products, filters }) {
     }
 
     const hasActiveFilters = filters.category || filters.condition || filters.mode || filters.search;
+    const totalCount = products.total ?? products.data?.length ?? 0;
 
     return (
         <AppLayout>
-            <Head title="Marketplace" />
+            <Head title="Marketplace — Replate" />
 
-            <div className="max-w-6xl mx-auto">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-5">
+            <div className="max-w-6xl mx-auto space-y-4">
+                {/* Header title */}
+                <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Marketplace</h1>
-                        <p className="text-sm text-gray-500 mt-0.5">
-                            {products.total || products.data?.length || 0} produk tersedia
+                        <h1 className="text-xl font-bold text-gray-900">Marketplace</h1>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                            {totalCount} produk sisa pangan & hasil kebun tersedia di desa Anda
                         </p>
                     </div>
                     <Link
                         href="/products/create"
-                        className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white text-sm font-medium rounded-xl hover:bg-green-700 transition"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition"
                     >
-                        <Plus size={16} />
-                        Upload produk
+                        <Plus size={15} /> Upload Produk
                     </Link>
                 </div>
 
-                {/* Search bar */}
-                <div className="bg-white rounded-xl border border-gray-100 p-3 mb-4">
+                {/* Filter & Search Bar */}
+                <div className="bg-white rounded-lg border border-gray-200 p-3 shadow-sm space-y-3">
                     <form onSubmit={handleSearch} className="flex gap-2">
                         <div className="flex-1 relative">
                             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -217,134 +192,139 @@ export default function Index({ products, filters }) {
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Cari produk food waste..."
-                                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                                placeholder="Cari nasi kotak, sayuran, roti, jagung..."
+                                className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-md text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
                             />
                         </div>
                         <button
                             type="submit"
-                            className="px-5 py-2.5 bg-green-600 text-white text-sm font-medium rounded-xl hover:bg-green-700 transition"
+                            className="px-4 py-2 bg-green-600 text-white text-xs font-semibold rounded-md hover:bg-green-700 transition"
                         >
                             Cari
                         </button>
-                        <button
-                            type="button"
-                            onClick={() => setShowFilters(!showFilters)}
-                            className={`px-3 py-2.5 border rounded-xl transition ${showFilters ? 'border-green-400 bg-green-50 text-green-600' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
-                        >
-                            <SlidersHorizontal size={16} />
-                        </button>
                     </form>
 
-                    {/* Expandable filters */}
-                    {showFilters && (
-                        <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
-                            {/* Category */}
-                            <div>
-                                <p className="text-xs font-medium text-gray-400 mb-1.5">Kategori</p>
-                                <div className="flex gap-2 flex-wrap">
-                                    <FilterPill label="Semua" active={!filters.category} onClick={() => handleFilter('category', '')} />
-                                    <FilterPill label="Mentah" active={filters.category === 'mentah'} onClick={() => handleFilter('category', 'mentah')} />
-                                    <FilterPill label="Olahan" active={filters.category === 'olahan'} onClick={() => handleFilter('category', 'olahan')} />
-                                    <FilterPill label="Hasil bumi" active={filters.category === 'hasil_bumi'} onClick={() => handleFilter('category', 'hasil_bumi')} />
-                                </div>
-                            </div>
+                    {/* Filter categories pills */}
+                    <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-t border-gray-100 pt-2.5">
+                        <span className="text-gray-400 font-medium flex items-center gap-1 text-[11px] whitespace-nowrap">
+                            <Filter size={12} /> Kategori:
+                        </span>
+                        <button
+                            onClick={() => handleFilter('category', '')}
+                            className={`px-2.5 py-1 rounded-md border text-xs whitespace-nowrap transition ${
+                                !filters.category
+                                    ? 'bg-green-600 text-white border-green-600 font-semibold'
+                                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                            }`}
+                        >
+                            Semua
+                        </button>
+                        <button
+                            onClick={() => handleFilter('category', 'mentah')}
+                            className={`px-2.5 py-1 rounded-md border text-xs whitespace-nowrap transition ${
+                                filters.category === 'mentah'
+                                    ? 'bg-green-600 text-white border-green-600 font-semibold'
+                                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                            }`}
+                        >
+                            Bahan Mentah
+                        </button>
+                        <button
+                            onClick={() => handleFilter('category', 'olahan')}
+                            className={`px-2.5 py-1 rounded-md border text-xs whitespace-nowrap transition ${
+                                filters.category === 'olahan'
+                                    ? 'bg-green-600 text-white border-green-600 font-semibold'
+                                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                            }`}
+                        >
+                            Makanan Olahan
+                        </button>
+                        <button
+                            onClick={() => handleFilter('category', 'hasil_bumi')}
+                            className={`px-2.5 py-1 rounded-md border text-xs whitespace-nowrap transition ${
+                                filters.category === 'hasil_bumi'
+                                    ? 'bg-green-600 text-white border-green-600 font-semibold'
+                                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                            }`}
+                        >
+                            Hasil Bumi
+                        </button>
 
-                            {/* Condition */}
-                            <div>
-                                <p className="text-xs font-medium text-gray-400 mb-1.5">Kondisi</p>
-                                <div className="flex gap-2 flex-wrap">
-                                    <FilterPill label="Semua" active={!filters.condition} onClick={() => handleFilter('condition', '')} />
-                                    <FilterPill label="Siap konsumsi" active={filters.condition === 'layak_konsumsi'} onClick={() => handleFilter('condition', 'layak_konsumsi')} />
-                                    <FilterPill label="Perlu diolah" active={filters.condition === 'layak_olah'} onClick={() => handleFilter('condition', 'layak_olah')} />
-                                    <FilterPill label="Pakan / kompos" active={filters.condition === 'layak_pakan_kompos'} onClick={() => handleFilter('condition', 'layak_pakan_kompos')} />
-                                </div>
-                            </div>
+                        <span className="text-gray-300">|</span>
 
-                            {/* Mode */}
-                            <div>
-                                <p className="text-xs font-medium text-gray-400 mb-1.5">Mode transaksi</p>
-                                <div className="flex gap-2 flex-wrap">
-                                    <FilterPill label="Semua" active={!filters.mode} onClick={() => handleFilter('mode', '')} />
-                                    <FilterPill label="Jual" active={filters.mode === 'sell'} onClick={() => handleFilter('mode', 'sell')} />
-                                    <FilterPill label="Barter" active={filters.mode === 'barter'} onClick={() => handleFilter('mode', 'barter')} />
-                                    <FilterPill label="Jual & barter" active={filters.mode === 'sell_and_barter'} onClick={() => handleFilter('mode', 'sell_and_barter')} />
-                                    <FilterPill label="Donasi" active={filters.mode === 'donate'} onClick={() => handleFilter('mode', 'donate')} />
-                                </div>
-                            </div>
+                        <span className="text-gray-400 font-medium text-[11px] whitespace-nowrap">Mode:</span>
+                        <button
+                            onClick={() => handleFilter('mode', '')}
+                            className={`px-2.5 py-1 rounded-md border text-xs whitespace-nowrap transition ${
+                                !filters.mode
+                                    ? 'bg-gray-800 text-white border-gray-800 font-semibold'
+                                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                            }`}
+                        >
+                            Semua
+                        </button>
+                        <button
+                            onClick={() => handleFilter('mode', 'sell')}
+                            className={`px-2.5 py-1 rounded-md border text-xs whitespace-nowrap transition ${
+                                filters.mode === 'sell'
+                                    ? 'bg-green-600 text-white border-green-600 font-semibold'
+                                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                            }`}
+                        >
+                            Jual Beli
+                        </button>
+                        <button
+                            onClick={() => handleFilter('mode', 'barter')}
+                            className={`px-2.5 py-1 rounded-md border text-xs whitespace-nowrap transition ${
+                                filters.mode === 'barter'
+                                    ? 'bg-purple-600 text-white border-purple-600 font-semibold'
+                                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                            }`}
+                        >
+                            Barter
+                        </button>
+                        <button
+                            onClick={() => handleFilter('mode', 'donate')}
+                            className={`px-2.5 py-1 rounded-md border text-xs whitespace-nowrap transition ${
+                                filters.mode === 'donate'
+                                    ? 'bg-blue-600 text-white border-blue-600 font-semibold'
+                                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                            }`}
+                        >
+                            Donasi
+                        </button>
 
-                            {/* Sort */}
-                            <div>
-                                <p className="text-xs font-medium text-gray-400 mb-1.5">Urutkan</p>
-                                <div className="flex gap-2 flex-wrap">
-                                    <FilterPill label="Terbaru" active={!filters.sort || filters.sort === 'newest'} onClick={() => handleFilter('sort', 'newest')} />
-                                    <FilterPill label="Harga terendah" active={filters.sort === 'price_low'} onClick={() => handleFilter('sort', 'price_low')} />
-                                    <FilterPill label="Harga tertinggi" active={filters.sort === 'price_high'} onClick={() => handleFilter('sort', 'price_high')} />
-                                    <FilterPill label="Segera habis" active={filters.sort === 'timeout'} onClick={() => handleFilter('sort', 'timeout')} />
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                        {hasActiveFilters && (
+                            <button
+                                onClick={clearFilters}
+                                className="ml-auto text-xs text-red-600 hover:underline font-medium flex items-center gap-1 whitespace-nowrap"
+                            >
+                                <X size={12} /> Reset Filter
+                            </button>
+                        )}
+                    </div>
                 </div>
 
-                {/* Active filters indicator */}
-                {hasActiveFilters && (
-                    <div className="flex items-center gap-2 mb-4">
-                        <span className="text-xs text-gray-400">Filter aktif:</span>
-                        {filters.category && (
-                            <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full border border-green-200">
-                                {filters.category}
-                            </span>
-                        )}
-                        {filters.condition && (
-                            <span className="text-xs px-2 py-1 bg-amber-50 text-amber-700 rounded-full border border-amber-200">
-                                {conditionLabels[filters.condition]}
-                            </span>
-                        )}
-                        {filters.mode && (
-                            <span className="text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded-full border border-purple-200">
-                                {filters.mode.replace(/_/g, ' ')}
-                            </span>
-                        )}
-                        {filters.search && (
-                            <span className="text-xs px-2 py-1 bg-gray-50 text-gray-600 rounded-full border border-gray-200">
-                                "{filters.search}"
-                            </span>
-                        )}
-                        <button onClick={clearFilters} className="text-xs text-red-500 hover:text-red-600 flex items-center gap-0.5">
-                            <X size={12} /> Hapus filter
-                        </button>
-                    </div>
-                )}
-
-                {/* Product Grid */}
+                {/* Products Grid */}
                 {products.data && products.data.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                         {products.data.map((product) => (
                             <ProductCard key={product.id} product={product} />
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
-                        <ShoppingBasket size={48} className="mx-auto text-gray-200 mb-3" />
-                        <p className="text-gray-500 mb-1">Tidak ada produk yang ditemukan</p>
-                        {hasActiveFilters ? (
-                            <button onClick={clearFilters} className="text-sm text-green-600 hover:underline mt-2">
-                                Hapus semua filter
-                            </button>
-                        ) : (
-                            <p className="text-sm text-gray-400">Jadilah yang pertama upload produk</p>
-                        )}
+                    <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                        <ShoppingBasket size={36} className="mx-auto text-gray-300 mb-2" />
+                        <h3 className="text-sm font-semibold text-gray-800">Tidak ada produk ditemukan</h3>
+                        <p className="text-xs text-gray-400 mt-1">Coba sesuaikan kata kunci pencarian atau reset filter.</p>
+                        <button
+                            onClick={clearFilters}
+                            className="mt-3 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-md transition"
+                        >
+                            Reset Filter
+                        </button>
                     </div>
                 )}
-
-                {/* Mobile FAB */}
-                <Link
-                    href="/products/create"
-                    className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-700 transition z-20"
-                >
-                    <Plus size={24} />
-                </Link>
             </div>
         </AppLayout>
     );

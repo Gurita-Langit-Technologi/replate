@@ -1,0 +1,24 @@
+{
+  "name": "Replate — Platform Food Waste Desa",
+  "short_name": "Replate",
+  "description": "Digitalisasi pemanfaatan sumber daya dan pengurangan food waste desa berbasis circular economy.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "icons": [
+    {
+      "src": "/image/logo(2).png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/image/logo(2).png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

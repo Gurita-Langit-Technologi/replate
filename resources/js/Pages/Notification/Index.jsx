@@ -1,6 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
-import { Head } from '@inertiajs/react';
-import { Bell, ShoppingBasket, ArrowLeftRight, Clock, AlertTriangle, Shield } from 'lucide-react';
+import { Head, Link } from '@inertiajs/react';
+import { Bell, ShoppingBasket, ArrowLeftRight, Clock, AlertTriangle, Shield, ChevronRight } from 'lucide-react';
 
 const typeConfig = {
     transaction: { icon: ShoppingBasket, color: 'bg-green-100 text-green-600' },
@@ -19,6 +19,27 @@ function timeAgo(dateString) {
     return `${Math.floor(seconds / 86400)} hari lalu`;
 }
 
+function getNotificationUrl(notif) {
+    if (!notif.related_id) {
+        if (notif.type === 'barter_offer') return '/barter';
+        return null;
+    }
+    const relType = notif.related_type || '';
+    if (relType.includes('Transaction') || notif.type === 'transaction' || notif.type === 'partner_transfer') {
+        return `/transactions/${notif.related_id}`;
+    }
+    if (relType.includes('BarterOffer') || notif.type === 'barter_offer') {
+        return '/barter';
+    }
+    if (relType.includes('Product') || notif.type === 'timeout') {
+        return `/products/${notif.related_id}`;
+    }
+    if (relType.includes('Report') || notif.type === 'report') {
+        return '/admin/reports';
+    }
+    return null;
+}
+
 export default function Index({ notifications }) {
     return (
         <AppLayout>
@@ -31,25 +52,38 @@ export default function Index({ notifications }) {
                         {notifications.map((notif) => {
                             const config = typeConfig[notif.type] || typeConfig.transaction;
                             const Icon = config.icon;
+                            const targetUrl = getNotificationUrl(notif);
+
+                            const ContentWrapper = targetUrl ? Link : 'div';
+                            const wrapperProps = targetUrl
+                                ? { href: targetUrl, className: 'group block' }
+                                : {};
 
                             return (
-                                <div
-                                    key={notif.id}
-                                    className={`bg-white rounded-xl border p-4 flex items-start gap-4 transition
-                                        ${notif.is_read ? 'border-gray-100' : 'border-green-200 bg-green-50/30'}`}
-                                >
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${config.color}`}>
-                                        <Icon size={18} />
+                                <ContentWrapper key={notif.id} {...wrapperProps}>
+                                    <div
+                                        className={`bg-white rounded-xl border p-4 flex items-start gap-4 transition hover:shadow-sm
+                                            ${targetUrl ? 'hover:border-green-300 cursor-pointer' : ''}
+                                            ${notif.is_read ? 'border-gray-100' : 'border-green-200 bg-green-50/30'}`}
+                                    >
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${config.color}`}>
+                                            <Icon size={18} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-gray-900 group-hover:text-green-600 transition">
+                                                {notif.title}
+                                            </p>
+                                            <p className="text-sm text-gray-500 mt-0.5">{notif.message}</p>
+                                            <p className="text-xs text-gray-400 mt-1">{timeAgo(notif.created_at)}</p>
+                                        </div>
+                                        {targetUrl && (
+                                            <ChevronRight size={16} className="text-gray-300 group-hover:text-green-600 group-hover:translate-x-0.5 transition flex-shrink-0 mt-3" />
+                                        )}
+                                        {!notif.is_read && !targetUrl && (
+                                            <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-2" />
+                                        )}
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-gray-900">{notif.title}</p>
-                                        <p className="text-sm text-gray-500 mt-0.5">{notif.message}</p>
-                                        <p className="text-xs text-gray-400 mt-1">{timeAgo(notif.created_at)}</p>
-                                    </div>
-                                    {!notif.is_read && (
-                                        <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-2" />
-                                    )}
-                                </div>
+                                </ContentWrapper>
                             );
                         })}
                     </div>

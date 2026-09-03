@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\NotificationType;
+use App\Events\MessageSent;
 use App\Models\Message;
 use App\Models\Notification;
 use App\Models\Product;
@@ -101,24 +102,36 @@ class MessageController extends Controller
         $productId = $request->input('product_id');
 
         $message = Message::create([
-            'sender_id' => $request->user()->id,
+            'sender_id'   => $request->user()->id,
             'receiver_id' => $partner->id,
-            'product_id' => $productId,
-            'body' => $validated['body'],
+            'product_id'  => $productId,
+            'body'        => $validated['body'],
         ]);
 
-        // Notifikasi ke penerima
+        // Load relasi sender agar tersedia di broadcastWith()
+        $message->load('sender');
+
+        // Broadcast pesan ke channel private penerima (real-time via Reverb)
+        try {
+            event(new MessageSent($message));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Broadcast pesan gagal (Reverb offline): ' . $e->getMessage());
+        }
+
+        // Notifikasi ke penerima (NotificationObserver akan broadcast otomatis)
         Notification::create([
-            'user_id' => $partner->id,
-            'title' => 'Pesan baru',
-            'message' => "{$request->user()->name}: " . substr($validated['body'], 0, 50) . (strlen($validated['body']) > 50 ? '...' : ''),
-            'type' => NotificationType::TRANSACTION,
-            'related_id' => $message->id,
+            'user_id'      => $partner->id,
+            'title'        => 'Pesan baru',
+            'message'      => "{$request->user()->name}: " . substr($validated['body'], 0, 50) . (strlen($validated['body']) > 50 ? '...' : ''),
+            'type'         => NotificationType::TRANSACTION,
+            'related_id'   => $message->id,
             'related_type' => Message::class,
         ]);
 
-        $productParam = $productId ? "/{$productId}" : '';
-        return redirect("/chat/{$partner->id}{$productParam}");
+        // Return JSON agar frontend bisa kirim via axios tanpa full-page redirect
+        return response()->json([
+            'message' => $message,
+        ]);
     }
 
     /**

@@ -20,18 +20,18 @@ import {
 } from 'lucide-react';
 
 const statusConfig = {
-    pending: { label: 'Menunggu konfirmasi', color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', dot: 'bg-amber-400' },
-    confirmed: { label: 'Dikonfirmasi', color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200', dot: 'bg-blue-400' },
-    completed: { label: 'Selesai', color: 'text-green-600', bg: 'bg-green-50 border-green-200', dot: 'bg-green-400' },
-    cancelled: { label: 'Dibatalkan', color: 'text-red-600', bg: 'bg-red-50 border-red-200', dot: 'bg-red-400' },
-    dispute_spoiled: { label: 'Dispute — Makanan Basi/Rusak', color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200', dot: 'bg-orange-400' },
+    pending:         { label: 'Menunggu konfirmasi',             color: 'text-amber-700',  bg: 'bg-amber-50  border-amber-200',  dot: 'bg-amber-400'  },
+    confirmed:       { label: 'Dikonfirmasi',                    color: 'text-blue-700',   bg: 'bg-blue-50   border-blue-200',   dot: 'bg-blue-400'   },
+    completed:       { label: 'Selesai',                         color: 'text-green-700',  bg: 'bg-green-50  border-green-200',  dot: 'bg-green-500'  },
+    cancelled:       { label: 'Dibatalkan',                      color: 'text-red-700',    bg: 'bg-red-50    border-red-200',    dot: 'bg-red-400'    },
+    dispute_spoiled: { label: 'Dispute — Makanan Basi/Rusak',    color: 'text-orange-700', bg: 'bg-orange-50 border-orange-200', dot: 'bg-orange-400' },
 };
 
 const typeConfig = {
-    sale: { label: 'Jual beli', icon: ShoppingBasket, color: 'text-green-600 bg-green-50' },
-    barter: { label: 'Barter', icon: ArrowLeftRight, color: 'text-purple-600 bg-purple-50' },
-    donation: { label: 'Donasi', icon: Heart, color: 'text-blue-600 bg-blue-50' },
-    partner_transfer: { label: 'Alih ke partner', icon: Handshake, color: 'text-amber-600 bg-amber-50' },
+    sale:             { label: 'Jual beli',      icon: ShoppingBasket, color: 'text-green-700  bg-green-50'  },
+    barter:           { label: 'Barter',          icon: ArrowLeftRight, color: 'text-violet-700 bg-violet-50' },
+    donation:         { label: 'Donasi',          icon: Heart,          color: 'text-sky-700    bg-sky-50'    },
+    partner_transfer: { label: 'Alih ke partner', icon: Handshake,      color: 'text-amber-700  bg-amber-50'  },
 };
 
 const steps = ['pending', 'confirmed', 'completed'];
@@ -328,7 +328,7 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                 </Link>
 
                 {/* Header */}
-                <div className="bg-white rounded-xl border border-gray-100 p-5 mb-4">
+                <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${type.color}`}>
@@ -348,8 +348,8 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                 </div>
 
                 {/* Produk */}
-                <div className="bg-white rounded-xl border border-gray-100 p-5 mb-4">
-                    <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">Produk</p>
+                <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
+                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-3">Produk</p>
                     <Link href={`/products/${product.id}`} className="flex items-center gap-4 group">
                         <div className="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
                             {product.photo ? (
@@ -362,8 +362,8 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="font-semibold text-gray-900 group-hover:text-green-600 transition truncate">{product.title}</p>
-                            <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                                <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold text-xs">
+                            <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-400">
+                                <span className="text-green-700 bg-green-50 px-2 py-0.5 rounded-md font-semibold text-[11px] border border-green-100">
                                     {transaction.quantity || 1} {product.unit}
                                 </span>
                                 <span className="flex items-center gap-1"><Scale size={12} /> {(product.weight_grams / 1000).toFixed(1)}kg</span>
@@ -371,24 +371,24 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                             </div>
                         </div>
                         {transaction.price ? (
-                            <p className="text-lg font-bold text-green-600 flex-shrink-0">Rp {transaction.price.toLocaleString()}</p>
+                            <p className="text-lg font-bold text-green-700 flex-shrink-0">Rp {transaction.price.toLocaleString('id-ID')}</p>
                         ) : (
-                            <p className="text-sm font-semibold text-purple-600 flex-shrink-0">{type.label}</p>
+                            <p className="text-sm font-semibold text-violet-600 flex-shrink-0">{type.label}</p>
                         )}
                     </Link>
 
                     {transaction.barter_notes && (
-                        <div className="mt-3 p-3 bg-purple-50 border border-purple-100 rounded-lg">
-                            <p className="text-xs text-purple-500 mb-0.5 font-medium">Catatan barter</p>
-                            <p className="text-sm text-purple-700">{transaction.barter_notes}</p>
+                        <div className="mt-3 p-3 bg-violet-50 border border-violet-100 rounded-xl">
+                            <p className="text-xs text-violet-500 mb-0.5 font-medium">Catatan barter</p>
+                            <p className="text-sm text-violet-700">{transaction.barter_notes}</p>
                         </div>
                     )}
                 </div>
 
                 {/* Foto Bukti Transaksi */}
-                <div className="bg-white rounded-xl border border-gray-100 p-5 mb-4">
+                <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
                     <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Foto Bukti Transaksi</p>
+                        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Foto Bukti Transaksi</p>
                         {!transaction.proof_photo && ['confirmed', 'completed'].includes(transaction.status) && (
                             <button
                                 onClick={() => setShowProofModal(true)}
@@ -409,9 +409,9 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
 
                 {/* Reviews Section */}
                 {transaction.status === 'completed' && (
-                    <div className="bg-white rounded-xl border border-gray-100 p-5 mb-4">
+                    <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
                         <div className="flex items-center justify-between mb-3">
-                            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Ulasan & Rating</p>
+                            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Ulasan & Rating</p>
                             {!hasReviewed && (
                                 <button
                                     onClick={() => setShowReviewModal(true)}
@@ -443,8 +443,8 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                 )}
 
                 {/* Pihak */}
-                <div className="bg-white rounded-xl border border-gray-100 p-5 mb-4">
-                    <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">Pihak terlibat</p>
+                <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
+                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-3">Pihak terlibat</p>
                     <div className="grid grid-cols-2 gap-3">
                         <div className={`p-4 rounded-xl ${isSeller ? 'bg-green-50 border border-green-100' : 'bg-gray-50'}`}>
                             <div className="flex items-center gap-2 mb-1">

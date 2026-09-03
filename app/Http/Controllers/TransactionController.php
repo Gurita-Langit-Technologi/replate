@@ -456,7 +456,7 @@ class TransactionController extends Controller
     }
 
     /**
-     * Klaim donasi
+     * Klaim donasi dengan kuantitas yang bisa dipilih
      */
     public function claimDonation(Request $request, Product $product)
     {
@@ -482,29 +482,57 @@ class TransactionController extends Controller
             return back()->with('error', 'Produk ini tidak tersedia untuk donasi.');
         }
 
-        // Cek apakah sudah ada klaim pending
-        $existing = Transaction::where('product_id', $product->id)
-            ->where('status', TransactionStatus::PENDING)
-            ->first();
+        // Hitung sisa stok yang tersedia (dikurangi transaksi pending/confirmed)
+        $reservedQty = (int) Transaction::where('product_id', $product->id)
+            ->whereIn('status', [TransactionStatus::PENDING, TransactionStatus::CONFIRMED])
+            ->sum('quantity');
 
-        if ($existing) {
-            return back()->with('error', 'Produk sudah diklaim oleh orang lain.');
+        $totalStock = (int) ($product->quantity ?? 1);
+        $availableQty = max(0, $totalStock - $reservedQty);
+
+        if ($availableQty <= 0) {
+            return back()->with('error', "Seluruh stok donasi \"{$product->title}\" ({$totalStock} {$product->unit}) sedang dalam proses klaim oleh pengguna lain.");
         }
 
-        // Buat transaksi donasi
+        // Validasi kuantitas yang diminta
+        $requestQty = (int) $request->input('quantity', 1);
+        if ($requestQty <= 0) {
+            return back()->with('error', 'Jumlah donasi yang diambil minimal 1 ' . ($product->unit || 'satuan') . '.');
+        } elseif ($requestQty > $availableQty) {
+            return back()->with('error', "Jumlah yang diminta ({$requestQty} {$product->unit}) melebihi sisa donasi yang tersedia ({$availableQty} {$product->unit}).");
+        }
+
+        // Buat transaksi donasi dengan kuantitas yang dipilih
         $transaction = Transaction::create([
             'product_id' => $product->id,
             'buyer_id' => $user->id,
             'seller_id' => $product->user_id,
             'type' => TransactionType::DONATION,
             'status' => TransactionStatus::PENDING,
+            'quantity' => $requestQty,
+            'notes' => "Klaim donasi: {$requestQty} {$product->unit}",
         ]);
+
+        $remainingAfter = $availableQty - $requestQty;
+        $remainingInfo = $remainingAfter > 0
+            ? " Sisa donasi tersedia untuk warga lain: {$remainingAfter} {$product->unit}."
+            : " Seluruh stok donasi ({$totalStock} {$product->unit}) kini telah habis diklaim.";
 
         // Notifikasi ke pendonor
         Notification::create([
             'user_id' => $product->user_id,
-            'title' => 'Donasi Anda diklaim!',
-            'message' => "{$user->name} ingin mengambil donasi \"{$product->title}\".",
+            'title' => "Klaim Donasi Masuk ({$requestQty} {$product->unit})",
+            'message' => "{$user->name} ingin mengambil {$requestQty} {$product->unit} donasi \"{$product->title}\".{$remainingInfo}",
+            'type' => NotificationType::TRANSACTION,
+            'related_id' => $transaction->id,
+            'related_type' => Transaction::class,
+        ]);
+
+        // Notifikasi ke penerima donasi
+        Notification::create([
+            'user_id' => $user->id,
+            'title' => 'Pengajuan Donasi Berhasil',
+            'message' => "Permintaan klaim {$requestQty} {$product->unit} donasi \"{$product->title}\" telah dikirim ke pendonor. Menunggu konfirmasi pendonor.",
             'type' => NotificationType::TRANSACTION,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,

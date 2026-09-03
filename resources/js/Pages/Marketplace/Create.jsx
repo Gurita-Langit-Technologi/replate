@@ -16,10 +16,10 @@ import {
 } from 'lucide-react';
 
 const modeOptions = [
-    { value: 'sell', label: 'Jual', icon: ShoppingBasket, desc: 'Jual dengan harga yang ditentukan', color: 'border-green-400 bg-green-50 text-green-700' },
-    { value: 'barter', label: 'Barter', icon: ArrowLeftRight, desc: 'Tukar dengan barang lain', color: 'border-purple-400 bg-purple-50 text-purple-700' },
-    { value: 'sell_and_barter', label: 'Jual & Barter', icon: Tag, desc: 'Bisa dijual atau dibarter', color: 'border-amber-400 bg-amber-50 text-amber-700' },
-    { value: 'donate', label: 'Donasi', icon: Heart, desc: 'Berikan gratis untuk yang membutuhkan', color: 'border-blue-400 bg-blue-50 text-blue-700' },
+    { value: 'sell',          label: 'Jual',         icon: ShoppingBasket,  desc: 'Jual dengan harga yang ditentukan',          color: 'border-green-400  bg-green-50  text-green-700'  },
+    { value: 'barter',        label: 'Barter',       icon: ArrowLeftRight,  desc: 'Tukar dengan barang lain',                   color: 'border-violet-400 bg-violet-50 text-violet-700' },
+    { value: 'sell_and_barter', label: 'Jual & Barter', icon: Tag,          desc: 'Bisa dijual atau dibarter',                  color: 'border-amber-400  bg-amber-50  text-amber-700'  },
+    { value: 'donate',        label: 'Donasi',       icon: Heart,           desc: 'Berikan gratis untuk yang membutuhkan',       color: 'border-sky-400    bg-sky-50    text-sky-700'    },
 ];
 
 const conditionOptions = [
@@ -100,7 +100,7 @@ export default function Create() {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Foto */}
-                    <div className="bg-white rounded-xl border border-gray-100 p-5">
+                    <div className="bg-white rounded-2xl border border-gray-100 p-5">
                         <label className="block text-sm font-medium text-gray-900 mb-3">
                             <span className="flex items-center gap-2"><Image size={16} className="text-gray-400" /> Foto produk *</span>
                         </label>
@@ -127,8 +127,8 @@ export default function Create() {
                     </div>
 
                     {/* Info Produk */}
-                    <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
-                        <p className="text-sm font-medium text-gray-900">Informasi produk</p>
+                    <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4">
+                        <p className="text-sm font-semibold text-gray-900">Informasi produk</p>
 
                         <div>
                             <label className="block text-xs font-medium text-gray-500 mb-1.5">Judul produk *</label>
@@ -136,7 +136,7 @@ export default function Create() {
                                 type="text"
                                 value={data.title}
                                 onChange={e => setData('title', e.target.value)}
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                                className="input-field"
                                 placeholder="Contoh: Nasi Kotak Sisa Katering"
                             />
                             {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
@@ -224,8 +224,8 @@ export default function Create() {
                     </div>
 
                     {/* Kondisi */}
-                    <div className="bg-white rounded-xl border border-gray-100 p-5">
-                        <p className="text-sm font-medium text-gray-900 mb-3">Kondisi produk *</p>
+                    <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                        <p className="text-sm font-semibold text-gray-900 mb-3">Kondisi produk *</p>
                         <div className="space-y-2">
                             {conditionOptions.map((opt) => (
                                 <label
@@ -255,8 +255,8 @@ export default function Create() {
                     </div>
 
                     {/* Mode Transaksi */}
-                    <div className="bg-white rounded-xl border border-gray-100 p-5">
-                        <p className="text-sm font-medium text-gray-900 mb-3">Mode transaksi *</p>
+                    <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                        <p className="text-sm font-semibold text-gray-900 mb-3">Mode transaksi *</p>
                         <div className="grid grid-cols-2 gap-2">
                             {modeOptions.map((opt) => {
                                 const Icon = opt.icon;
@@ -286,7 +286,7 @@ export default function Create() {
 
                     {/* Harga */}
                     {(data.transaction_mode === 'sell' || data.transaction_mode === 'sell_and_barter') && (
-                        <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-3">
+                        <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-900 mb-1">
                                     Harga per satuan * <span className="text-xs text-gray-400 font-normal">(Rp / {data.unit || 'satuan'})</span>
@@ -326,15 +326,15 @@ export default function Create() {
 
                     {/* Barter Description */}
                     {(data.transaction_mode === 'barter' || data.transaction_mode === 'sell_and_barter') && (
-                        <div className="bg-white rounded-xl border border-purple-100 p-5">
-                            <label className="flex items-center gap-2 text-sm font-medium text-purple-700 mb-3">
+                        <div className="bg-white rounded-2xl border border-violet-100 p-5">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-violet-700 mb-3">
                                 <ArrowLeftRight size={16} />
                                 Menerima barter dalam bentuk *
                             </label>
                             <textarea
                                 value={data.barter_description}
                                 onChange={e => setData('barter_description', e.target.value)}
-                                className="w-full border border-purple-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400 bg-purple-50/30"
+                                className="w-full border border-violet-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/20 bg-violet-50/30"
                                 rows={2}
                                 placeholder="Contoh: Mau ditukar dengan telur, beras, singkong, atau hasil kebun lainnya"
                             />
@@ -343,8 +343,8 @@ export default function Create() {
                     )}
 
                     {/* Lokasi Pengambilan */}
-                    <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
-                        <p className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                    <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4">
+                        <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                             <MapPin size={16} className="text-gray-400" /> Lokasi pengambilan
                         </p>
 

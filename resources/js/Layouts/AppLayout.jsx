@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+
 import { Link, usePage } from '@inertiajs/react';
 import {
     LayoutDashboard,
@@ -20,6 +21,8 @@ import {
     ChevronsRight,
     Truck,
     History,
+    Trophy,
+    Leaf,
 } from 'lucide-react';
 import Toast from '@/Components/Toast';
 
@@ -31,7 +34,9 @@ const NAV_ITEMS = {
         { label: 'Transaksi', href: '/transactions', icon: Receipt },
         { label: 'Barter', href: '/barter', icon: ArrowLeftRight },
         { label: 'Chat', href: '/chat', icon: MessageCircle },
-        { label: 'RePoin', href: '/points', icon: Coins },
+        { label: 'RePoin & Lencana', href: '/points', icon: Coins },
+        { label: 'Peringkat Warga', href: '/leaderboard', icon: Trophy },
+        { label: 'Dampak Desa', href: '/impact', icon: Leaf },
     ],
     admin: [
         { label: 'Admin Panel', href: '/admin/dashboard', icon: Shield },
@@ -53,6 +58,45 @@ export default function AppLayout({ children }) {
     const [collapsed, setCollapsed] = useState(false);
     const currentPath = window.location.pathname;
 
+    // State untuk unread count yang bisa diupdate real-time
+    const [unreadCount, setUnreadCount] = useState(unreadNotifications ?? 0);
+
+    // State untuk toast notifikasi
+    const [toasts, setToasts] = useState([]);
+    const toastIdRef = useRef(0);
+
+    // Subscribe ke channel notifikasi milik user yang sedang login
+    useEffect(() => {
+        if (!auth?.user?.id) return;
+
+        const channel = window.Echo.private(`notifications.${auth.user.id}`)
+            .listen('.NotificationCreated', (e) => {
+                const notif = e.notification ?? e;
+
+                // Update badge
+                setUnreadCount((prev) => prev + 1);
+
+                // Tampilkan toast popup
+                const toastId = ++toastIdRef.current;
+                setToasts((prev) => [...prev, { id: toastId, ...notif }]);
+
+                // Auto-dismiss toast setelah 5 detik
+                setTimeout(() => {
+                    setToasts((prev) => prev.filter((t) => t.id !== toastId));
+                }, 5000);
+            });
+
+        return () => {
+            channel.stopListening('.NotificationCreated');
+            window.Echo.leave(`notifications.${auth.user.id}`);
+        };
+    }, [auth?.user?.id]);
+
+    // Reset unread count saat user mengklik icon notifikasi
+    function handleNotificationClick() {
+        setUnreadCount(0);
+    }
+
     const user = auth.user;
     const role = user.role;
 
@@ -66,10 +110,10 @@ export default function AppLayout({ children }) {
     }
 
     const roleColors = {
-        user: 'bg-green-100 text-green-700',
-        verified_seller: 'bg-purple-100 text-purple-700',
-        partner: 'bg-blue-100 text-blue-700',
-        admin: 'bg-red-100 text-red-700',
+        user:            'bg-green-100  text-green-700',
+        verified_seller: 'bg-violet-100 text-violet-700',
+        partner:         'bg-sky-100    text-sky-700',
+        admin:           'bg-red-100    text-red-700',
     };
 
     const roleLabels = {
@@ -150,9 +194,12 @@ export default function AppLayout({ children }) {
                                     href={item.href}
                                     title={collapsed ? item.label : undefined}
                                     className={`
-                                        flex items-center gap-3 rounded-lg text-sm font-medium transition
+                                        flex items-center gap-3 rounded-xl text-sm font-medium transition
                                         ${collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'}
-                                        ${active ? 'bg-green-50 text-green-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}
+                                        ${active
+                                            ? 'bg-green-50 text-green-700'
+                                            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                                        }
                                     `}
                                 >
                                     <Icon size={18} className={`flex-shrink-0 ${active ? 'text-green-600' : 'text-gray-400'}`} />
@@ -168,9 +215,9 @@ export default function AppLayout({ children }) {
                             <Link
                                 href="/profile"
                                 title={collapsed ? 'Profil' : undefined}
-                                className={`flex items-center gap-3 rounded-lg text-sm font-medium transition
+                                className={`flex items-center gap-3 rounded-xl text-sm font-medium transition
                                     ${collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'}
-                                    ${currentPath === '/profile' ? 'bg-green-50 text-green-700' : 'text-gray-600 hover:bg-gray-50'}`}
+                                    ${currentPath === '/profile' ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
                             >
                                 <User size={18} className={`flex-shrink-0 ${currentPath === '/profile' ? 'text-green-600' : 'text-gray-400'}`} />
                                 {!collapsed && 'Profil'}
@@ -224,15 +271,45 @@ export default function AppLayout({ children }) {
                         </Link>
                     )}
 
-                    <Link href="/notifications" className="relative p-2 text-gray-400 hover:text-gray-600">
-                        <Bell size={20} />
-                        {unreadNotifications > 0 && (
-                            <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                                {unreadNotifications > 9 ? '9+' : unreadNotifications}
-                            </span>
-                        )}
-                    </Link>
+                    <Link
+                            href="/notifications"
+                            onClick={handleNotificationClick}
+                            className="relative p-2 text-gray-400 hover:text-gray-600"
+                        >
+                            <Bell size={20} />
+                            {unreadCount > 0 && (
+                                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
+                            )}
+                        </Link>
                 </header>
+                {/* Toast Notifikasi Real-time */}
+            {toasts.length > 0 && (
+                <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 max-w-sm">
+                    {toasts.map((toast) => (
+                        <div
+                            key={toast.id}
+                            className="bg-white border border-gray-200 rounded-xl shadow-lg p-4 flex items-start gap-3 animate-in slide-in-from-right"
+                            style={{ animation: 'slideInRight 0.3s ease-out' }}
+                        >
+                            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                                <Bell size={14} className="text-green-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-gray-900 truncate">{toast.title}</p>
+                                <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{toast.message}</p>
+                            </div>
+                            <button
+                                onClick={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}
+                                className="text-gray-300 hover:text-gray-500 flex-shrink-0"
+                            >
+                                <X size={14} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
 
                 {/* Page content */}
                 <main className="p-4 lg:p-6">

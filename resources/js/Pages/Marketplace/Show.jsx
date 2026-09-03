@@ -2,6 +2,7 @@ import { useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import ConfirmModal from '@/Components/ConfirmModal';
 import Modal from '@/Components/Modal';
+import ProductImage from '@/Components/ui/ProductImage';
 import { formatTimeLeft } from '@/Utils/time';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
@@ -60,6 +61,7 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
     const currentAvailable = availableQty !== undefined ? availableQty : Math.max(0, (product.quantity || 1) - reservedQty);
     const maxQty = Math.max(1, currentAvailable);
     const [buyQty, setBuyQty] = useState(1);
+    const [donateQty, setDonateQty] = useState(1);
 
     const unitPrice = product.discounted_price ?? product.price ?? 0;
     const totalPrice = unitPrice * buyQty;
@@ -217,24 +219,18 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
                     Kembali ke marketplace
                 </Link>
 
-                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden grid grid-cols-1 md:grid-cols-2">
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden grid grid-cols-1 md:grid-cols-2 shadow-sm">
                     {/* Image */}
-                    <div className="relative aspect-square bg-gray-100">
-                        {product.photo ? (
-                            <img
-                                src={`/storage/${product.photo}`}
-                                alt={product.title}
-                                className="w-full h-full object-cover"
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                Tidak ada foto
-                            </div>
-                        )}
+                    <div className="relative aspect-square bg-gray-100 overflow-hidden">
+                        <ProductImage
+                            src={product.photo}
+                            alt={product.title}
+                            aspect="aspect-square"
+                        />
                         {/* Countdown overlay */}
-                        <div className="absolute top-4 left-4">
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/60 backdrop-blur-sm text-white text-xs font-medium rounded-full">
-                                <Clock size={12} />
+                        <div className="absolute top-4 left-4 z-10">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-950/75 backdrop-blur-md text-white text-xs font-semibold rounded-lg shadow-sm">
+                                <Clock size={12} className="text-emerald-400" />
                                 {formatTimeLeft(product.timeout_at)}
                             </span>
                         </div>
@@ -469,22 +465,77 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
                                     </div>
 
                                     {(product.transaction_mode === 'donate' || product.status === 'timeout_stage_2') && (
-                                        <button
-                                            onClick={() => {
-                                                setConfirmModal({
-                                                    show: true,
-                                                    title: 'Klaim Donasi Makanan',
-                                                    message: `Apakah Anda yakin ingin mengklaim donasi "${product.title}"?`,
-                                                    confirmText: 'Klaim Sekarang',
-                                                    variant: 'primary',
-                                                    onConfirm: () => router.post(`/products/${product.id}/claim-donation`),
-                                                });
-                                            }}
-                                            className="w-full flex items-center justify-center gap-2 py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition"
-                                        >
-                                            <Heart size={18} />
-                                            Klaim donasi
-                                        </button>
+                                        <div className="space-y-3">
+                                            {currentAvailable > 0 ? (
+                                                <>
+                                                    <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl space-y-2">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-xs font-semibold text-blue-900">Jumlah Donasi yang Diambil:</span>
+                                                            <span className="text-xs text-blue-700 font-medium">Tersedia: {currentAvailable} {product.unit}</span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between gap-3">
+                                                            <div className="flex items-center gap-2 bg-white border border-blue-200 rounded-lg p-1 shadow-xs">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setDonateQty(Math.max(1, donateQty - 1))}
+                                                                    disabled={donateQty <= 1}
+                                                                    className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 disabled:opacity-30 transition"
+                                                                >
+                                                                    <Minus size={15} />
+                                                                </button>
+                                                                <input
+                                                                    type="number"
+                                                                    value={donateQty}
+                                                                    onChange={(e) => {
+                                                                        const val = parseInt(e.target.value) || 1;
+                                                                        setDonateQty(Math.min(currentAvailable, Math.max(1, val)));
+                                                                    }}
+                                                                    min={1}
+                                                                    max={currentAvailable}
+                                                                    className="w-12 text-center font-bold text-sm border-none p-0 focus:ring-0 text-blue-900"
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setDonateQty(Math.min(currentAvailable, donateQty + 1))}
+                                                                    disabled={donateQty >= currentAvailable}
+                                                                    className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 disabled:opacity-30 transition"
+                                                                >
+                                                                    <Plus size={15} />
+                                                                </button>
+                                                            </div>
+                                                            <span className="text-xs font-bold text-blue-700">
+                                                                {donateQty} {product.unit} (Gratis)
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <button
+                                                        onClick={() => {
+                                                            setConfirmModal({
+                                                                show: true,
+                                                                title: 'Klaim Donasi Makanan',
+                                                                message: `Klaim ${donateQty} ${product.unit} donasi "${product.title}"?`,
+                                                                confirmText: 'Klaim Sekarang',
+                                                                variant: 'primary',
+                                                                onConfirm: () => router.post(`/products/${product.id}/claim-donation`, { quantity: donateQty }),
+                                                            });
+                                                        }}
+                                                        className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition shadow-sm"
+                                                    >
+                                                        <Heart size={16} />
+                                                        Klaim {donateQty} {product.unit} Donasi
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <button
+                                                    disabled
+                                                    className="w-full flex items-center justify-center gap-2 py-3 bg-gray-200 text-gray-400 font-semibold rounded-xl cursor-not-allowed"
+                                                >
+                                                    <Clock size={16} />
+                                                    Semua Donasi Sedang Diklaim
+                                                </button>
+                                            )}
+                                        </div>
                                     )}
 
                                     <Link
