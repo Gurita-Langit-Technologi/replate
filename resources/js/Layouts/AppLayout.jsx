@@ -40,6 +40,7 @@ const NAV_ITEMS = {
     ],
     admin: [
         { label: 'Admin Panel', href: '/admin/dashboard', icon: Shield },
+        { label: 'Semua Transaksi', href: '/admin/transactions', icon: Receipt },
         { label: 'Verifikasi', href: '/admin/verifications', icon: Shield },
         { label: 'Laporan', href: '/admin/reports', icon: Shield },
         { label: 'Partner', href: '/admin/partners', icon: Handshake },
@@ -75,6 +76,27 @@ export default function AppLayout({ children }) {
 
                 // Update badge
                 setUnreadCount((prev) => prev + 1);
+
+                // Play subtle notification chime
+                try {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) {
+                        const ctx = new AudioCtx();
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+                        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.08); // A5
+                        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start();
+                        osc.stop(ctx.currentTime + 0.35);
+                    }
+                } catch (e) {
+                    // Audio context ignored if user has not interacted
+                }
 
                 // Tampilkan toast popup
                 const toastId = ++toastIdRef.current;

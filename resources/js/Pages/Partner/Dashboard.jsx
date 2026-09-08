@@ -14,7 +14,8 @@ import {
     ArrowRight,
     MessageCircle,
     Info,
-    CheckCircle2
+    CheckCircle2,
+    Navigation,
 } from 'lucide-react';
 
 export default function Dashboard({ pending, completed, totalWeight, pointHistory }) {
@@ -192,11 +193,22 @@ export default function Dashboard({ pending, completed, totalWeight, pointHistor
                                         {/* Details Grid (Pickup Address & Contact) */}
                                         <div className="mt-4 pt-4 border-t border-amber-200/60 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                                             {/* Alamat Pengambilan */}
-                                            <div className="bg-white/80 p-3 rounded-xl border border-amber-100 flex items-start gap-2.5">
+                                            <div className="bg-white/90 p-3.5 rounded-xl border border-amber-100 flex items-start gap-2.5">
                                                 <MapPin size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
-                                                <div className="min-w-0">
-                                                    <p className="font-semibold text-gray-800">Alamat Penjemputan:</p>
-                                                    <p className="text-gray-700 mt-0.5 font-medium">{pickupAddress}</p>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <p className="font-semibold text-gray-800">Alamat Penjemputan:</p>
+                                                        <a
+                                                            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${pickupAddress}, Desa ${product?.desa || ''}, Kec. ${product?.kecamatan || ''}`)}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200 transition"
+                                                        >
+                                                            <Navigation size={11} />
+                                                            Petunjuk Arah Maps
+                                                        </a>
+                                                    </div>
+                                                    <p className="text-gray-700 mt-1 font-medium">{pickupAddress}</p>
                                                     <p className="text-gray-400 text-[11px] mt-0.5">
                                                         Desa {product?.desa}, Kec. {product?.kecamatan}
                                                     </p>
@@ -209,35 +221,33 @@ export default function Dashboard({ pending, completed, totalWeight, pointHistor
                                             </div>
 
                                             {/* Kontak Penjual */}
-                                            <div className="bg-white/80 p-3 rounded-xl border border-amber-100 flex items-start gap-2.5">
+                                            <div className="bg-white/90 p-3.5 rounded-xl border border-amber-100 flex items-start gap-2.5">
                                                 <User size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-semibold text-gray-800">Penjual / Pemilik:</p>
                                                     <p className="text-gray-700 mt-0.5 font-medium">{seller?.name || 'Warga'}</p>
-                                                    <div className="flex items-center gap-3 mt-2">
-                                                        {seller?.phone ? (
+                                                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                                                        {(seller?.whatsapp_number || seller?.phone) ? (
                                                             <>
                                                                 <a
-                                                                    href={`tel:${seller.phone}`}
-                                                                    className="inline-flex items-center gap-1 text-gray-600 hover:text-green-600 font-medium"
+                                                                    href={`tel:${seller?.whatsapp_number || seller?.phone}`}
+                                                                    className="inline-flex items-center gap-1 text-gray-600 hover:text-green-600 font-medium bg-gray-50 px-2 py-0.5 rounded border border-gray-200"
                                                                 >
-                                                                    <Phone size={13} />
-                                                                    {seller.phone}
+                                                                    <Phone size={12} />
+                                                                    {seller?.whatsapp_number || seller?.phone}
                                                                 </a>
-                                                                {waUrl && (
-                                                                    <a
-                                                                        href={waUrl}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="inline-flex items-center gap-1 text-green-600 hover:text-green-700 font-semibold bg-green-50 px-2 py-0.5 rounded border border-green-200"
-                                                                    >
-                                                                        <MessageCircle size={13} />
-                                                                        WhatsApp
-                                                                    </a>
-                                                                )}
+                                                                <a
+                                                                    href={`https://wa.me/${(seller?.whatsapp_number || seller?.phone).replace(/[^0-9]/g, '').replace(/^0/, '62')}?text=${encodeURIComponent(`Halo kak ${seller?.name || ''}, saya dari mitra pengolah limbah organik Replate ingin konfirmasi penjemputan produk "${product?.title}".`)}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex items-center gap-1 text-emerald-700 hover:text-emerald-800 font-semibold bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded border border-emerald-200 transition"
+                                                                >
+                                                                    <MessageCircle size={12} />
+                                                                    WhatsApp Penjual
+                                                                </a>
                                                             </>
                                                         ) : (
-                                                            <span className="text-gray-400 italic">Nomor HP tidak tercantum</span>
+                                                            <span className="text-gray-400 italic text-[11px]">Nomor kontak tidak tercantum</span>
                                                         )}
                                                     </div>
                                                 </div>

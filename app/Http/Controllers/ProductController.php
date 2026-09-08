@@ -12,6 +12,7 @@ use App\Enums\UserRole;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -19,6 +20,9 @@ use Inertia\Inertia;
 
 class ProductController extends Controller
 {
+    public function __construct(
+        protected ImageService $imageService
+    ) {}
     /**
      * Marketplace — tampilkan semua produk aktif
      */
@@ -158,8 +162,8 @@ class ProductController extends Controller
             return back()->withErrors(['barter_description' => 'Deskripsi barter wajib diisi.']);
         }
 
-        // Upload foto
-        $photoPath = $request->file('photo')->store('products', 'public');
+        // Upload foto teroptimasi
+        $photoPath = $this->imageService->storeOptimized($request->file('photo'), 'products');
 
         // Hitung timeout
         $timeoutAt = Product::calculateTimeout($validated['condition']);
@@ -298,7 +302,7 @@ class ProductController extends Controller
             if ($product->photo) {
                 Storage::disk('public')->delete($product->photo);
             }
-            $validated['photo'] = $request->file('photo')->store('products', 'public');
+            $validated['photo'] = $this->imageService->storeOptimized($request->file('photo'), 'products');
         }
 
         $product->update($validated);

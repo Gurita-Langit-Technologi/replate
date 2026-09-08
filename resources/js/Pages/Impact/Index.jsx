@@ -62,6 +62,12 @@ function ImpactContent({ impact, topContributors = [] }) {
                 </div>
                 <div className="flex items-center gap-2">
                     <Link
+                        href="/impact/report"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-lg transition"
+                    >
+                        <FileText size={14} className="text-emerald-600" /> Dokumen Laporan ESG
+                    </Link>
+                    <Link
                         href="/leaderboard"
                         className="inline-flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition"
                     >

@@ -317,11 +317,90 @@ class AdminController extends Controller
     }
 
     /**
+     * Monitoring seluruh transaksi desa
+     */
+    public function transactions(Request $request)
+    {
+        $query = Transaction::with(['product', 'buyer', 'seller', 'partner'])
+            ->orderBy('created_at', 'desc');
+
+        // Filter status
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        // Filter jenis
+        if ($request->filled('type') && $request->type !== 'all') {
+            $query->where('type', $request->type);
+        }
+
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                    ->orWhereHas('product', function ($pq) use ($search) {
+                        $pq->where('title', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('buyer', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('seller', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $transactions = $query->get();
+
+        // Metrik ringkasan untuk header dashboard transaksi
+        $totalTransactions = Transaction::count();
+        $activeTransactions = Transaction::whereIn('status', [TransactionStatus::PENDING, TransactionStatus::CONFIRMED])->count();
+        $completedTransactions = Transaction::where('status', TransactionStatus::COMPLETED)->count();
+        $disputeTransactions = Transaction::where('status', TransactionStatus::DISPUTE_SPOILED)->count();
+        $cancelledTransactions = Transaction::where('status', TransactionStatus::CANCELLED)->count();
+
+        $totalRevenueRp = Transaction::where('status', TransactionStatus::COMPLETED)
+            ->where('type', TransactionType::SALE)
+            ->sum('price');
+
+        $totalWeightSavedKg = round(Transaction::where('transactions.status', TransactionStatus::COMPLETED)
+            ->join('products', 'transactions.product_id', '=', 'products.id')
+            ->sum('products.weight_grams') / 1000, 1);
+
+        return Inertia::render('Admin/Transactions', [
+            'transactions' => $transactions,
+            'filters' => [
+                'status' => $request->status ?? 'all',
+                'type' => $request->type ?? 'all',
+                'search' => $request->search ?? '',
+            ],
+            'metrics' => [
+                'total' => $totalTransactions,
+                'active' => $activeTransactions,
+                'completed' => $completedTransactions,
+                'dispute' => $disputeTransactions,
+                'cancelled' => $cancelledTransactions,
+                'revenueRp' => $totalRevenueRp,
+                'weightSavedKg' => $totalWeightSavedKg,
+            ],
+        ]);
+    }
+
+    /**
      * Halaman tukar poin
      */
     public function redeemPage()
     {
-        return Inertia::render('Admin/Redeem');
+        $recentRedemptions = PointHistory::where('type', 'redeemed')
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->take(15)
+            ->get();
+
+        return Inertia::render('Admin/Redeem', [
+            'recentRedemptions' => $recentRedemptions,
+        ]);
     }
 
     /**
@@ -337,6 +416,12 @@ class AdminController extends Controller
             return back()->with('error', 'Kode tidak ditemukan.');
         }
 
+        $recentRedemptions = PointHistory::where('type', 'redeemed')
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->take(15)
+            ->get();
+
         return Inertia::render('Admin/Redeem', [
             'foundUser' => [
                 'id' => $user->id,
@@ -347,6 +432,7 @@ class AdminController extends Controller
                 'redeem_code' => $user->redeem_code,
             ],
             'searchedCode' => $request->code,
+            'recentRedemptions' => $recentRedemptions,
         ]);
     }
 

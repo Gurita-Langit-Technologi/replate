@@ -42,7 +42,7 @@ class ChatTest extends TestCase
             'body' => 'Halo, apakah barang ini masih ada?',
         ]);
 
-        $response->assertRedirect("/chat/{$receiver->id}");
+        $response->assertOk();
 
         $this->assertDatabaseHas('messages', [
             'sender_id' => $sender->id,

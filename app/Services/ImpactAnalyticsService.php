@@ -275,6 +275,72 @@ class ImpactAnalyticsService
         ];
     }
 
+    /**
+     * Laporan Komprehensif ESG (Environmental, Social, Governance) & CSR
+     * Berdasarkan standar estimasi UNEP Food Waste Index & FAO Food Loss Protocol
+     */
+    public function getEsgReport(string $period = 'all'): array
+    {
+        $query = Transaction::where('transactions.status', TransactionStatus::COMPLETED)
+            ->join('products', 'transactions.product_id', '=', 'products.id');
+
+        if ($period === 'month') {
+            $query->where('transactions.updated_at', '>=', now()->startOfMonth());
+        } elseif ($period === 'year') {
+            $query->where('transactions.updated_at', '>=', now()->startOfYear());
+        }
+
+        $totalWeightGrams = (float) $query->sum('products.weight_grams');
+        $totalKg = round($totalWeightGrams / 1000, 2);
+        $totalTons = round($totalKg / 1000, 3);
+
+        // Standar UNEP / IPCC:
+        // 1 kg food waste di TPA menghasilkan ~2.5 kg CO2e dan ~0.105 kg gas Metana (CH4)
+        $co2AvoidedKg = round($totalKg * 2.5, 1);
+        $co2AvoidedTons = round($co2AvoidedKg / 1000, 2);
+        $methaneAvoidedKg = round($totalKg * 0.105, 2);
+
+        // Water footprint avoided: rata-rata 1 kg makanan mewakili ~250 liter air jejak virtual (water footprint)
+        $waterSavedLiters = round($totalKg * 250);
+
+        // Rasio Penyelamatan & Sirkularitas
+        $consumptionKg = round((float) Transaction::where('transactions.status', TransactionStatus::COMPLETED)
+            ->join('products', 'transactions.product_id', '=', 'products.id')
+            ->whereIn('products.condition', ['layak_konsumsi', 'layak_olah'])
+            ->sum('products.weight_grams') / 1000, 1);
+
+        $compostPakanKg = round((float) Transaction::where('transactions.status', TransactionStatus::COMPLETED)
+            ->join('products', 'transactions.product_id', '=', 'products.id')
+            ->where('products.condition', 'layak_pakan_kompos')
+            ->sum('products.weight_grams') / 1000, 1);
+
+        $totalEconomicVal = (int) Transaction::where('status', TransactionStatus::COMPLETED)->sum('price');
+        $mealsSaved = (int) floor($totalWeightGrams / 350);
+
+        return [
+            'period' => $period,
+            'generated_at' => now()->translatedFormat('d F Y, H:i:s T'),
+            'metrics' => [
+                'total_food_rescued_kg' => $totalKg,
+                'total_food_rescued_tons' => $totalTons,
+                'co2_avoided_kg' => $co2AvoidedKg,
+                'co2_avoided_tons' => $co2AvoidedTons,
+                'methane_avoided_kg' => $methaneAvoidedKg,
+                'water_footprint_saved_liters' => $waterSavedLiters,
+                'meals_distributed' => $mealsSaved,
+                'economic_circular_value' => $totalEconomicVal,
+                'human_consumption_kg' => $consumptionKg,
+                'compost_feed_kg' => $compostPakanKg,
+            ],
+            'standards' => [
+                'framework' => 'UNEP Food Waste Index & FAO SDG 12.3 Protocol',
+                'emission_factor' => '2.50 kg CO2e / kg food waste prevented from landfill',
+                'methane_factor' => '0.105 kg CH4 / kg organic waste avoided',
+                'water_factor' => '250 L virtual water / kg food waste',
+            ],
+        ];
+    }
+
     private function getUserLevelTitle(float $weightKg): string
     {
         if ($weightKg >= 50) return 'Ksatria Sirkular ⭐⭐⭐';

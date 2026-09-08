@@ -24,6 +24,7 @@ Route::get('/', function (ImpactAnalyticsService $impactService) {
 })->name('home');
 
 Route::get('/impact', [ImpactController::class, 'index'])->name('impact');
+Route::get('/impact/report', [ImpactController::class, 'report'])->name('impact.report');
 Route::get('/leaderboard', [ImpactController::class, 'leaderboard'])->name('leaderboard');
 
 // ============ DASHBOARD (SEMUA USER LOGIN) ============
@@ -86,6 +87,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
 
     Route::get('/points', [App\Http\Controllers\PointController::class, 'index'])->name('points.index');
+    Route::post('/points/redeem', [App\Http\Controllers\PointController::class, 'redeem'])->name('points.redeem');
 
     // Chat
     Route::get('/chat', [MessageController::class, 'index'])->name('chat.index');
@@ -97,6 +99,7 @@ Route::middleware('auth')->group(function () {
 // ============ ADMIN ONLY ============
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/transactions', [AdminController::class, 'transactions'])->name('transactions');
     Route::get('/verifications', [AdminController::class, 'verifications'])->name('verifications');
     Route::patch('/verifications/{verification}/approve', [AdminController::class, 'approveVerification'])->name('verifications.approve');
     Route::patch('/verifications/{verification}/reject', [AdminController::class, 'rejectVerification'])->name('verifications.reject');

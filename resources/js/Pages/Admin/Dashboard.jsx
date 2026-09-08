@@ -70,10 +70,10 @@ export default function Dashboard({ stats, villageImpactMetrics, transactionsByT
 
                 {/* Stats Summary */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <StatCard icon={Users} label="Total pengguna" value={stats.totalUsers} color="blue" />
-                    <StatCard icon={Package} label="Produk aktif" value={stats.activeProducts} color="green" />
-                    <StatCard icon={TrendingUp} label="Transaksi selesai" value={stats.completedTransactions} color="purple" />
-                    <StatCard icon={Leaf} label="Total dampak desa" value={impact.totalVillageImpactKg} unit="kg" color="amber" />
+                    <StatCard icon={Users} label="Total pengguna" value={stats.totalUsers} color="blue" href="/admin/users" />
+                    <StatCard icon={Package} label="Produk aktif" value={stats.activeProducts} color="green" href="/marketplace" />
+                    <StatCard icon={TrendingUp} label="Transaksi selesai" value={stats.completedTransactions} color="purple" href="/admin/transactions" />
+                    <StatCard icon={Leaf} label="Total dampak desa" value={impact.totalVillageImpactKg} unit="kg" color="amber" href="/impact" />
                 </div>
 
                 {/* BUMDes Village Impact Section */}

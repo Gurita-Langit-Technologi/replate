@@ -58,4 +58,20 @@ class ImpactController extends Controller
             'currentUserRank' => $currentUserRank,
         ]);
     }
+
+    /**
+     * Halaman Laporan ESG (Environmental, Social, Governance) & CSR Resmi
+     */
+    public function report(Request $request): Response
+    {
+        $period = $request->get('period', 'all');
+        $esgData = $this->impactService->getEsgReport($period);
+        $globalImpact = $this->impactService->getGlobalImpact();
+
+        return Inertia::render('Impact/Report', [
+            'esg' => $esgData,
+            'globalImpact' => $globalImpact,
+            'currentPeriod' => $period,
+        ]);
+    }
 }

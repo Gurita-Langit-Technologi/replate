@@ -19,11 +19,16 @@ use App\Models\Report;
 use App\Models\Review;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class TransactionController extends Controller
 {
+    public function __construct(
+        protected ImageService $imageService
+    ) {}
     /**
      * Beli produk
      */
@@ -74,42 +79,46 @@ class TransactionController extends Controller
         $unitPrice = (int) ($product->discounted_price ?? $product->price ?? 0);
         $totalPrice = (int) round($unitPrice * $requestQty);
 
-        // Buat transaksi
-        $transaction = Transaction::create([
-            'product_id' => $product->id,
-            'buyer_id' => $user->id,
-            'seller_id' => $product->user_id,
-            'type' => TransactionType::SALE,
-            'status' => TransactionStatus::PENDING,
-            'price' => $totalPrice,
-            'quantity' => $requestQty,
-            'notes' => "Jumlah: {$requestQty} {$product->unit}",
-        ]);
+        $transaction = DB::transaction(function () use ($product, $user, $requestQty, $totalPrice, $availableQty, $totalStock) {
+            // Buat transaksi
+            $tx = Transaction::create([
+                'product_id' => $product->id,
+                'buyer_id' => $user->id,
+                'seller_id' => $product->user_id,
+                'type' => TransactionType::SALE,
+                'status' => TransactionStatus::PENDING,
+                'price' => $totalPrice,
+                'quantity' => $requestQty,
+                'notes' => "Jumlah: {$requestQty} {$product->unit}",
+            ]);
 
-        $remainingAfter = $availableQty - $requestQty;
-        $remainingInfo = $remainingAfter > 0
-            ? " Sisa stok tersedia untuk pembeli lain: {$remainingAfter} {$product->unit}."
-            : " Seluruh stok ({$totalStock} {$product->unit}) kini telah dipesan.";
+            $remainingAfter = $availableQty - $requestQty;
+            $remainingInfo = $remainingAfter > 0
+                ? " Sisa stok tersedia untuk pembeli lain: {$remainingAfter} {$product->unit}."
+                : " Seluruh stok ({$totalStock} {$product->unit}) kini telah dipesan.";
 
-        // Notifikasi informatif ke penjual
-        Notification::create([
-            'user_id' => $product->user_id,
-            'title' => "Pesanan Masuk ({$requestQty} {$product->unit})",
-            'message' => "{$user->name} memesan {$requestQty} {$product->unit} \"{$product->title}\" seharga Rp " . number_format($totalPrice, 0, ',', '.') . ".{$remainingInfo}",
-            'type' => NotificationType::TRANSACTION,
-            'related_id' => $transaction->id,
-            'related_type' => Transaction::class,
-        ]);
+            // Notifikasi informatif ke penjual
+            Notification::create([
+                'user_id' => $product->user_id,
+                'title' => "Pesanan Masuk ({$requestQty} {$product->unit})",
+                'message' => "{$user->name} memesan {$requestQty} {$product->unit} \"{$product->title}\" seharga Rp " . number_format($totalPrice, 0, ',', '.') . ".{$remainingInfo}",
+                'type' => NotificationType::TRANSACTION,
+                'related_id' => $tx->id,
+                'related_type' => Transaction::class,
+            ]);
 
-        // Notifikasi informatif ke pembeli
-        Notification::create([
-            'user_id' => $user->id,
-            'title' => 'Pesanan Berhasil Diajukan',
-            'message' => "Pesanan Anda untuk {$requestQty} {$product->unit} \"{$product->title}\" (Rp " . number_format($totalPrice, 0, ',', '.') . ") telah dikirim ke penjual. Menunggu konfirmasi penjual.",
-            'type' => NotificationType::TRANSACTION,
-            'related_id' => $transaction->id,
-            'related_type' => Transaction::class,
-        ]);
+            // Notifikasi informatif ke pembeli
+            Notification::create([
+                'user_id' => $user->id,
+                'title' => 'Pesanan Berhasil Diajukan',
+                'message' => "Pesanan Anda untuk {$requestQty} {$product->unit} \"{$product->title}\" (Rp " . number_format($totalPrice, 0, ',', '.') . ") telah dikirim ke penjual. Menunggu konfirmasi penjual.",
+                'type' => NotificationType::TRANSACTION,
+                'related_id' => $tx->id,
+                'related_type' => Transaction::class,
+            ]);
+
+            return $tx;
+        });
 
         return redirect("/transactions/{$transaction->id}");
     }
@@ -502,41 +511,45 @@ class TransactionController extends Controller
             return back()->with('error', "Jumlah yang diminta ({$requestQty} {$product->unit}) melebihi sisa donasi yang tersedia ({$availableQty} {$product->unit}).");
         }
 
-        // Buat transaksi donasi dengan kuantitas yang dipilih
-        $transaction = Transaction::create([
-            'product_id' => $product->id,
-            'buyer_id' => $user->id,
-            'seller_id' => $product->user_id,
-            'type' => TransactionType::DONATION,
-            'status' => TransactionStatus::PENDING,
-            'quantity' => $requestQty,
-            'notes' => "Klaim donasi: {$requestQty} {$product->unit}",
-        ]);
+        // Buat transaksi donasi dengan kuantitas yang dipilih dalam DB transaction
+        $transaction = DB::transaction(function () use ($product, $user, $requestQty, $availableQty, $totalStock) {
+            $tx = Transaction::create([
+                'product_id' => $product->id,
+                'buyer_id' => $user->id,
+                'seller_id' => $product->user_id,
+                'type' => TransactionType::DONATION,
+                'status' => TransactionStatus::PENDING,
+                'quantity' => $requestQty,
+                'notes' => "Klaim donasi: {$requestQty} {$product->unit}",
+            ]);
 
-        $remainingAfter = $availableQty - $requestQty;
-        $remainingInfo = $remainingAfter > 0
-            ? " Sisa donasi tersedia untuk warga lain: {$remainingAfter} {$product->unit}."
-            : " Seluruh stok donasi ({$totalStock} {$product->unit}) kini telah habis diklaim.";
+            $remainingAfter = $availableQty - $requestQty;
+            $remainingInfo = $remainingAfter > 0
+                ? " Sisa donasi tersedia untuk warga lain: {$remainingAfter} {$product->unit}."
+                : " Seluruh stok donasi ({$totalStock} {$product->unit}) kini telah habis diklaim.";
 
-        // Notifikasi ke pendonor
-        Notification::create([
-            'user_id' => $product->user_id,
-            'title' => "Klaim Donasi Masuk ({$requestQty} {$product->unit})",
-            'message' => "{$user->name} ingin mengambil {$requestQty} {$product->unit} donasi \"{$product->title}\".{$remainingInfo}",
-            'type' => NotificationType::TRANSACTION,
-            'related_id' => $transaction->id,
-            'related_type' => Transaction::class,
-        ]);
+            // Notifikasi ke pendonor
+            Notification::create([
+                'user_id' => $product->user_id,
+                'title' => "Klaim Donasi Masuk ({$requestQty} {$product->unit})",
+                'message' => "{$user->name} ingin mengambil {$requestQty} {$product->unit} donasi \"{$product->title}\".{$remainingInfo}",
+                'type' => NotificationType::TRANSACTION,
+                'related_id' => $tx->id,
+                'related_type' => Transaction::class,
+            ]);
 
-        // Notifikasi ke penerima donasi
-        Notification::create([
-            'user_id' => $user->id,
-            'title' => 'Pengajuan Donasi Berhasil',
-            'message' => "Permintaan klaim {$requestQty} {$product->unit} donasi \"{$product->title}\" telah dikirim ke pendonor. Menunggu konfirmasi pendonor.",
-            'type' => NotificationType::TRANSACTION,
-            'related_id' => $transaction->id,
-            'related_type' => Transaction::class,
-        ]);
+            // Notifikasi ke penerima donasi
+            Notification::create([
+                'user_id' => $user->id,
+                'title' => 'Pengajuan Donasi Berhasil',
+                'message' => "Permintaan klaim {$requestQty} {$product->unit} donasi \"{$product->title}\" telah dikirim ke pendonor. Menunggu konfirmasi pendonor.",
+                'type' => NotificationType::TRANSACTION,
+                'related_id' => $tx->id,
+                'related_type' => Transaction::class,
+            ]);
+
+            return $tx;
+        });
 
         return redirect("/transactions/{$transaction->id}");
     }
@@ -625,7 +638,7 @@ class TransactionController extends Controller
             'proof_photo' => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
         ]);
 
-        $path = $request->file('proof_photo')->store('proofs', 'public');
+        $path = $this->imageService->storeOptimized($request->file('proof_photo'), 'proofs');
         $transaction->update(['proof_photo' => $path]);
 
         return back()->with('success', 'Foto bukti transaksi berhasil diunggah.');
