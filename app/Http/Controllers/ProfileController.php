@@ -18,9 +18,15 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user = $request->user();
+        $latestVerification = \App\Models\SellerVerification::where('user_id', $user->id)
+            ->latest()
+            ->first();
+
         return Inertia::render('Profile/Edit', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
+            'verification' => $latestVerification,
         ]);
     }
 

@@ -269,9 +269,22 @@ class TransactionController extends Controller
             return back()->with('error', 'Transaksi belum dikonfirmasi penjual atau sudah selesai.');
         }
 
-        $transaction->update(['status' => TransactionStatus::DISPUTE_SPOILED]);
         $product = $transaction->product;
-        $product->update(['status' => ProductStatus::DIALIHKAN_KE_MITRA]);
+        $desaName = $product->desa ?? 'Replate';
+        $ticketCode = "DROP-TX{$transaction->id}";
+        $dropAddress = "Pos Drop-Off BUMDes Desa {$desaName}, Jl. Desa No. 1";
+
+        $transaction->update([
+            'status' => TransactionStatus::DISPUTE_SPOILED,
+            'notes' => "Dispute Makanan Basi. Tiket Drop-Off: {$ticketCode} | Lokasi: {$dropAddress}",
+        ]);
+
+        $product->update([
+            'status' => ProductStatus::DIALIHKAN_KE_MITRA,
+            'pickup_type' => 'drop_point',
+            'pickup_address' => $dropAddress,
+            'pickup_notes' => "Tiket: {$ticketCode}. Wajib kemasan tertutup rapat. Serahkan ke Petugas Pos BUMDes.",
+        ]);
 
         // Auto-route ke partner berdasarkan kondisi produk & sisa kuota harian
         $conditionVal = $product->condition instanceof \BackedEnum ? $product->condition->value : (string) $product->condition;
@@ -305,13 +318,13 @@ class TransactionController extends Controller
                 'type' => TransactionType::PARTNER_TRANSFER,
                 'status' => TransactionStatus::PENDING,
                 'partner_id' => $partner->user_id,
-                'notes' => 'Dialihkan ke mitra akibat produk basi/rusak (DISPUTE_SPOILED)',
+                'notes' => "Tiket: {$ticketCode} | Pengambilan di {$dropAddress} (Bulk Pickup)",
             ]);
 
             Notification::create([
                 'user_id' => $partner->user_id,
-                'title' => 'Produk Dispute Dialihkan ke Anda',
-                'message' => "\"{$product->title}\" ({$weightKg}kg) dialihkan ke Anda setelah dilaporkan basi/rusak.",
+                'title' => "Produk Dispute Masuk ke Pos Drop-Off ({$weightKg}kg)",
+                'message' => "\"{$product->title}\" ({$weightKg}kg) dialihkan ke Pos Drop-Off BUMDes (Tiket: {$ticketCode}). Silakan ambil di Pos Drop-Off saat jadwal pengangkutan.",
                 'type' => NotificationType::PARTNER_TRANSFER,
                 'related_id' => $product->id,
                 'related_type' => Product::class,
@@ -324,19 +337,20 @@ class TransactionController extends Controller
             'product_id' => $transaction->product_id,
             'reason' => ReportReason::DISPUTE_SPOILED,
             'status' => ReportStatus::PENDING,
+            'description' => "Dispute makanan basi. Tiket Drop-Off: {$ticketCode} ke Pos BUMDes.",
         ]);
 
         // Notifikasi ke penjual
         Notification::create([
             'user_id' => $transaction->seller_id,
-            'title' => 'Transaksi Di-Dispute',
-            'message' => "Pembeli melaporkan bahwa \"{$transaction->product->title}\" basi/rusak. Produk dialihkan ke mitra pengolah dan admin akan meninjau.",
+            'title' => 'Transaksi Di-Dispute (Alih ke Pos BUMDes)',
+            'message' => "Pembeli melaporkan bahwa \"{$transaction->product->title}\" basi/rusak. Silakan antarkan sisa makanan dalam kemasan tertutup ke Pos Drop-Off BUMDes dengan Tiket: {$ticketCode}.",
             'type' => NotificationType::TRANSACTION,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
         ]);
 
-        return back()->with('success', 'Keluhan berhasil dilaporkan. Produk telah dialihkan ke mitra pengolah.');
+        return back()->with('success', "Keluhan berhasil dilaporkan. Tiket Drop-Off: {$ticketCode}. Produk dialihkan ke Pos Drop-Off BUMDes untuk diolah mitra.");
     }
 
     /**
@@ -453,14 +467,43 @@ class TransactionController extends Controller
             return redirect()->route('partner.dashboard');
         }
 
-        $transactions = Transaction::with(['product', 'buyer', 'seller'])
-            ->where('buyer_id', $user->id)
-            ->orWhere('seller_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $period = $request->input('period', 'all');
+        if (!in_array($period, ['all', 'week', 'month', 'year'])) {
+            $period = 'all';
+        }
+
+        $query = Transaction::with(['product', 'buyer', 'seller'])
+            ->where(function ($q) use ($user) {
+                $q->where('buyer_id', $user->id)
+                  ->orWhere('seller_id', $user->id);
+            });
+
+        if ($period === 'week') {
+            $query->whereBetween('transactions.created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+        } elseif ($period === 'month') {
+            $query->whereBetween('transactions.created_at', [now()->startOfMonth(), now()->endOfMonth()]);
+        } elseif ($period === 'year') {
+            $query->whereBetween('transactions.created_at', [now()->startOfYear(), now()->endOfYear()]);
+        }
+
+        $transactions = $query->orderBy('transactions.created_at', 'desc')->get();
+
+        $allQuery = Transaction::where(function ($q) use ($user) {
+            $q->where('transactions.buyer_id', $user->id)
+              ->orWhere('transactions.seller_id', $user->id);
+        });
+
+        $periodCounts = [
+            'all' => (clone $allQuery)->count(),
+            'week' => (clone $allQuery)->whereBetween('transactions.created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+            'month' => (clone $allQuery)->whereBetween('transactions.created_at', [now()->startOfMonth(), now()->endOfMonth()])->count(),
+            'year' => (clone $allQuery)->whereBetween('transactions.created_at', [now()->startOfYear(), now()->endOfYear()])->count(),
+        ];
 
         return Inertia::render('Transaction/Index', [
             'transactions' => $transactions,
+            'currentPeriod' => $period,
+            'periodCounts' => $periodCounts,
         ]);
     }
 

@@ -193,7 +193,7 @@ class ImpactAnalyticsService
                 'id' => 'pioneer',
                 'title' => 'Pionir Komunitas',
                 'description' => 'Mendaftar dan bergabung dalam gerakan circular economy desa.',
-                'icon' => '🌱',
+                'icon' => 'leaf',
                 'category' => 'Warga',
                 'unlocked' => true,
                 'progress' => '1/1',
@@ -203,7 +203,7 @@ class ImpactAnalyticsService
                 'id' => 'first_rescue',
                 'title' => 'Penyelamat Pemula',
                 'description' => 'Menyelamatkan minimal 1 kg makanan dari potensi terbuang.',
-                'icon' => '🥉',
+                'icon' => 'medal_bronze',
                 'category' => 'Penyelamatan',
                 'unlocked' => $weightKg >= 1.0,
                 'progress' => min($weightKg, 1.0) . ' / 1.0 kg',
@@ -213,7 +213,7 @@ class ImpactAnalyticsService
                 'id' => 'food_hero',
                 'title' => 'Pahlawan Pangan',
                 'description' => 'Menyelamatkan akumulasi minimal 10 kg makanan berkelanjutan.',
-                'icon' => '🥈',
+                'icon' => 'medal_silver',
                 'category' => 'Penyelamatan',
                 'unlocked' => $weightKg >= 10.0,
                 'progress' => min($weightKg, 10.0) . ' / 10.0 kg',
@@ -223,7 +223,7 @@ class ImpactAnalyticsService
                 'id' => 'circular_knight',
                 'title' => 'Ksatria Sirkular',
                 'description' => 'Pencapaian luar biasa: menyelamatkan lebih dari 50 kg food waste.',
-                'icon' => '🥇',
+                'icon' => 'medal_gold',
                 'category' => 'Penyelamatan',
                 'unlocked' => $weightKg >= 50.0,
                 'progress' => min($weightKg, 50.0) . ' / 50.0 kg',
@@ -233,7 +233,7 @@ class ImpactAnalyticsService
                 'id' => 'barter_master',
                 'title' => 'Sahabat Barter',
                 'description' => 'Menyelesaikan minimal 3 transaksi barter produk pangan desa.',
-                'icon' => '🔄',
+                'icon' => 'refresh_cw',
                 'category' => 'Gotong Royong',
                 'unlocked' => $barterCount >= 3,
                 'progress' => min($barterCount, 3) . ' / 3 transaksi',
@@ -243,7 +243,7 @@ class ImpactAnalyticsService
                 'id' => 'generous_donor',
                 'title' => 'Donatur Berhati Emas',
                 'description' => 'Menyalurkan minimal 1 donasi makanan untuk warga yang membutuhkan.',
-                'icon' => '💖',
+                'icon' => 'heart',
                 'category' => 'Kemanusiaan',
                 'unlocked' => $donationCount >= 1,
                 'progress' => min($donationCount, 1) . ' / 1 donasi',
@@ -253,7 +253,7 @@ class ImpactAnalyticsService
                 'id' => 'active_seller',
                 'title' => 'Pedagang Berdaya',
                 'description' => 'Mengunggah minimal 5 produk pangan berlebih di marketplace.',
-                'icon' => '🧺',
+                'icon' => 'shopping_bag',
                 'category' => 'Pemberdayaan',
                 'unlocked' => $productCount >= 5,
                 'progress' => min($productCount, 5) . ' / 5 produk',
@@ -343,9 +343,9 @@ class ImpactAnalyticsService
 
     private function getUserLevelTitle(float $weightKg): string
     {
-        if ($weightKg >= 50) return 'Ksatria Sirkular ⭐⭐⭐';
-        if ($weightKg >= 25) return 'Pejuang Nol Sampah ⭐⭐';
-        if ($weightKg >= 10) return 'Pahlawan Pangan ⭐';
+        if ($weightKg >= 50) return 'Ksatria Sirkular';
+        if ($weightKg >= 25) return 'Pejuang Nol Sampah';
+        if ($weightKg >= 10) return 'Pahlawan Pangan';
         if ($weightKg >= 1) return 'Penyelamat Aktif';
         return 'Warga Peduli Pangan';
     }

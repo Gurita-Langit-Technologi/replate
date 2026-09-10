@@ -162,10 +162,28 @@ export default function Create() {
                                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
                             >
                                 <option value="mentah">Mentah</option>
-                                <option value="olahan">Olahan (Siap Santap / Produk Olahan)</option>
+                                <option value="olahan">Olahan (Siap Santap / Produk Olahan UMKM)</option>
                                 <option value="hasil_bumi">Hasil bumi</option>
                             </select>
                             {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
+
+                            {data.category === 'olahan' && auth?.user?.role !== 'verified_seller' && auth?.user?.role !== 'admin' && (
+                                <div className="mt-2.5 p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-1.5">
+                                    <p className="font-semibold flex items-center gap-1.5">
+                                        <AlertTriangle size={14} className="text-amber-600 flex-shrink-0" />
+                                        Perhatian: Penjualan Produk Olahan Perlu Verifikasi
+                                    </p>
+                                    <p className="text-amber-800">
+                                        Untuk menjaga standar higienitas pangan desa, produk olahan hanya dapat diunggah oleh <strong>Penjual Terverifikasi</strong> (memiliki izin PIRT atau rekomendasi BUMDes/Desa).
+                                    </p>
+                                    <Link
+                                        href="/seller/apply"
+                                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg text-xs transition"
+                                    >
+                                        Ajukan Verifikasi Penjual Olahan <ArrowRight size={12} />
+                                    </Link>
+                                </div>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-3 gap-3">
@@ -307,7 +325,8 @@ export default function Create() {
 
                             <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs space-y-1.5">
                                 <p className="font-semibold text-amber-900 flex items-center gap-1.5">
-                                    💡 Ini adalah harga untuk 1 {data.unit || 'satuan'}, bukan total keseluruhan.
+                                    <Info size={14} className="text-amber-700 shrink-0" />
+                                    <span>Ini adalah harga untuk 1 {data.unit || 'satuan'}, bukan total keseluruhan.</span>
                                 </p>
                                 <p className="text-amber-700 leading-relaxed">
                                     Pembeli dapat menentukan jumlah yang ingin mereka beli (misal: 1 {data.unit || 'satuan'} atau seluruhnya).

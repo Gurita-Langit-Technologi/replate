@@ -23,6 +23,7 @@ import {
     History,
     Trophy,
     Leaf,
+    ShieldCheck,
 } from 'lucide-react';
 import Toast from '@/Components/Toast';
 
@@ -37,6 +38,7 @@ const NAV_ITEMS = {
         { label: 'RePoin & Lencana', href: '/points', icon: Coins },
         { label: 'Peringkat Warga', href: '/leaderboard', icon: Trophy },
         { label: 'Dampak Desa', href: '/impact', icon: Leaf },
+        { label: 'Verifikasi Penjual', href: '/seller/apply', icon: ShieldCheck },
     ],
     admin: [
         { label: 'Admin Panel', href: '/admin/dashboard', icon: Shield },
@@ -168,9 +170,11 @@ export default function AppLayout({ children }) {
                 `}
             >
                 {/* Logo */}
-                <div className="h-16 flex items-center gap-3 px-4 border-b border-gray-100 flex-shrink-0">
-                    <img src="/image/logo(2).png" alt="Replate" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
-                    <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-gray-400">
+                <div className="h-16 flex items-center justify-between px-4 border-b border-gray-100 flex-shrink-0">
+                    <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden">
+                        <img src="/image/logo(2).png" alt="Replate" className="h-8 max-w-[150px] object-contain flex-shrink-0" />
+                    </Link>
+                    <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-400 hover:text-gray-600">
                         <X size={20} />
                     </button>
                 </div>

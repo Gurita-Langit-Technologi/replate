@@ -161,11 +161,7 @@ export default function Welcome({ auth, impact }) {
                 </nav>
 
                 {/* Hero Section */}
-                <section className="relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-green-50/80 via-white to-emerald-50/60" />
-                    <div className="absolute top-10 right-0 w-96 h-96 bg-green-200/20 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute bottom-0 left-0 w-72 h-72 bg-emerald-200/20 rounded-full blur-3xl pointer-events-none" />
-
+                <section className="relative overflow-hidden bg-gray-50/70 border-b border-gray-100">
                     <div className="relative max-w-6xl mx-auto px-4 py-16 md:py-24">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                             {/* Left Text */}
@@ -345,7 +341,7 @@ export default function Welcome({ auth, impact }) {
 
                 {/* Kontribusi SDGs */}
                 <section className="max-w-6xl mx-auto px-4 py-16">
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl border border-green-200/80 p-8 md:p-12">
+                    <div className="bg-emerald-50/50 rounded-3xl border border-emerald-200/80 p-8 md:p-12">
                         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
                             <div>
                                 <span className="text-xs font-bold uppercase tracking-wider text-green-700 bg-green-100 px-3 py-1 rounded-full border border-green-200">
@@ -384,7 +380,7 @@ export default function Welcome({ auth, impact }) {
 
                 {/* CTA Bergabung */}
                 <section className="max-w-6xl mx-auto px-4 py-16">
-                    <div className="bg-gradient-to-r from-green-700 to-emerald-700 rounded-3xl p-10 md:p-14 text-center text-white relative overflow-hidden shadow-xl">
+                    <div className="bg-emerald-900 border border-emerald-800 rounded-3xl p-10 md:p-14 text-center text-white relative overflow-hidden shadow-md">
                         <h2 className="text-3xl md:text-4xl font-extrabold mb-4">Mari Jadi Bagian dari Desa Nol Sampah Makanan</h2>
                         <p className="text-green-100 max-w-xl mx-auto text-sm md:text-base mb-8">
                             Kumpulkan RePoin dari setiap aksi penyelamatan makanan dan jadilah Pahlawan Pangan di desamu.
@@ -394,7 +390,7 @@ export default function Welcome({ auth, impact }) {
                                 Daftar Sebagai Warga
                                 <ChevronRight size={18} />
                             </Link>
-                            <Link href="/leaderboard" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-green-800/60 text-white font-bold rounded-xl hover:bg-green-800/80 transition border border-green-400/30">
+                            <Link href="/leaderboard" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-emerald-800 text-white font-bold rounded-xl hover:bg-emerald-750 transition border border-emerald-700">
                                 <Trophy size={18} className="text-amber-300" /> Lihat Peringkat Warga
                             </Link>
                         </div>

@@ -287,7 +287,8 @@ export default function Edit({ product }) {
 
                             <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs space-y-1.5">
                                 <p className="font-semibold text-amber-900 flex items-center gap-1.5">
-                                    💡 Ini adalah harga untuk 1 {data.unit || 'satuan'}, bukan total keseluruhan.
+                                    <Info size={14} className="text-amber-700 shrink-0" />
+                                    <span>Ini adalah harga untuk 1 {data.unit || 'satuan'}, bukan total keseluruhan.</span>
                                 </p>
                                 <p className="text-amber-700 leading-relaxed">
                                     Pembeli dapat menentukan jumlah yang ingin mereka beli (misal: 1 {data.unit || 'satuan'} atau seluruhnya).

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\NotificationType;
 use App\Models\Notification;
 use App\Models\PointHistory;
+use App\Models\User;
 use App\Services\ImpactAnalyticsService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -26,43 +27,52 @@ class PointController extends Controller
                 'title' => 'Beras Organik Desa 2.5 kg',
                 'points' => 50,
                 'category' => 'Sembako',
-                'icon' => '🌾',
+                'icon' => 'wheat',
                 'stock' => 15,
-                'description' => 'Beras kualitas premium hasil panen kelompok tani desa.',
+                'description' => 'Beras pulen hasil panen petani lokal mitra BUMDes.',
             ],
             [
                 'id' => 'cooking_oil_1l',
-                'title' => 'Minyak Goreng Kemasan 1 Liter',
-                'points' => 30,
+                'title' => 'Minyak Goreng Sawit 1 Liter',
+                'points' => 35,
                 'category' => 'Sembako',
-                'icon' => '🍳',
+                'icon' => 'cooking_pot',
                 'stock' => 20,
-                'description' => 'Minyak goreng higienis untuk kebutuhan harian keluarga.',
+                'description' => 'Minyak goreng kemasan higienis untuk kebutuhan dapur.',
             ],
             [
                 'id' => 'organic_fertilizer_5kg',
-                'title' => 'Pupuk Kompos Organik Mitra 5 kg',
-                'points' => 15,
-                'category' => 'Pertanian Sirkular',
-                'icon' => '🌱',
+                'title' => 'Pupuk Kompos Organik 5 kg',
+                'points' => 20,
+                'category' => 'Pertanian',
+                'icon' => 'sprout',
                 'stock' => 50,
-                'description' => 'Pupuk organik hasil pengolahan food waste oleh mitra Replate.',
+                'description' => 'Pupuk kompos siap pakai dari hasil olahan food waste desa.',
             ],
             [
-                'id' => 'veggie_seed_pack',
-                'title' => 'Paket Benih Pekarangan (3 Varietas)',
-                'points' => 10,
+                'id' => 'chili_seeds_pack',
+                'title' => 'Bibit Cabai Rawit & Sayuran (3 Pack)',
+                'points' => 15,
                 'category' => 'Bibit Tanaman',
-                'icon' => '🥬',
+                'icon' => 'flower',
                 'stock' => 40,
-                'description' => 'Benih cabai rawit, tomat ceri, dan kangkung hidroponik.',
+                'description' => 'Bibit tanaman pangan lokal siap semai untuk kebun pekarangan.',
+            ],
+            [
+                'id' => 'egg_pack_10',
+                'title' => 'Telur Ayam Kampung (10 Butir)',
+                'points' => 30,
+                'category' => 'Sembako',
+                'icon' => 'egg',
+                'stock' => 25,
+                'description' => 'Telur segar dari peternak lokal penerima pakan sirkular Replate.',
             ],
             [
                 'id' => 'umkm_voucher_20k',
                 'title' => 'Kupon Belanja UMKM Desa Rp 20.000',
                 'points' => 25,
                 'category' => 'Voucher Belanja',
-                'icon' => '🎟️',
+                'icon' => 'ticket',
                 'stock' => 30,
                 'description' => 'Potongan belanja langsung pada UMKM olahan terverifikasi.',
             ],
@@ -84,6 +94,10 @@ class PointController extends Controller
         $leaderboard = $this->impactService->getLeaderboard(100);
         $userRank = collect($leaderboard)->firstWhere('id', $user->id)['rank'] ?? '-';
 
+        $allUsers = User::orderBy('points', 'desc')
+            ->orderBy('name', 'asc')
+            ->get(['id', 'name', 'email', 'role', 'points', 'redeem_code', 'desa', 'kecamatan', 'whatsapp_number']);
+
         return Inertia::render('Points/Index', [
             'points' => $user->points ?? 0,
             'history' => $history,
@@ -94,6 +108,7 @@ class PointController extends Controller
             'userStats' => $badgesData['user_stats'],
             'userRank' => $userRank,
             'rewards' => self::getRewardsCatalog(),
+            'allUsers' => $allUsers,
         ]);
     }
 

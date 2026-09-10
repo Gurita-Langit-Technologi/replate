@@ -16,10 +16,9 @@ import {
     Filter,
     Package,
     Scale,
-    TrendingUp,
     Printer,
     Coins,
-    User,
+    Calendar,
 } from 'lucide-react';
 
 const statusConfig = {
@@ -31,10 +30,17 @@ const statusConfig = {
 };
 
 const typeConfig = {
-    sale:             { label: 'Jual Beli',      icon: ShoppingBasket, color: 'text-green-700 bg-green-50' },
-    barter:           { label: 'Barter',          icon: ArrowLeftRight, color: 'text-purple-700 bg-purple-50' },
-    donation:         { label: 'Donasi',          icon: Heart,          color: 'text-sky-700 bg-sky-50' },
-    partner_transfer: { label: 'Alih ke Mitra',   icon: Handshake,      color: 'text-amber-700 bg-amber-50' },
+    sale:             { label: 'Jual Beli',      icon: ShoppingBasket, color: 'text-green-700 bg-green-50 border-green-200' },
+    barter:           { label: 'Barter',          icon: ArrowLeftRight, color: 'text-purple-700 bg-purple-50 border-purple-200' },
+    donation:         { label: 'Donasi',          icon: Heart,          color: 'text-sky-700 bg-sky-50 border-sky-200' },
+    partner_transfer: { label: 'Alih ke Mitra',   icon: Handshake,      color: 'text-amber-700 bg-amber-50 border-amber-200' },
+};
+
+const periodLabels = {
+    all: 'Semua Waktu',
+    week: 'Minggu Ini (Per Minggu)',
+    month: 'Bulan Ini (Per Bulan)',
+    year: 'Tahun Ini (Per Tahun)',
 };
 
 function formatRupiah(num) {
@@ -42,17 +48,20 @@ function formatRupiah(num) {
     return `Rp ${Number(num).toLocaleString('id-ID')}`;
 }
 
-export default function Transactions({ transactions, filters, metrics }) {
+export default function Transactions({ transactions = [], filters = {}, periodCounts = {}, metrics = {} }) {
     const [search, setSearch] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
     const [typeFilter, setTypeFilter] = useState(filters.type || 'all');
+    const [periodFilter, setPeriodFilter] = useState(filters.period || 'all');
 
-    const handleFilterChange = (newStatus, newType, newSearch) => {
+    const handleFilterChange = (newPeriod, newStatus, newType, newSearch) => {
         const query = {};
+        const p = newPeriod !== undefined ? newPeriod : periodFilter;
         const s = newStatus !== undefined ? newStatus : statusFilter;
         const t = newType !== undefined ? newType : typeFilter;
         const q = newSearch !== undefined ? newSearch : search;
 
+        if (p && p !== 'all') query.period = p;
         if (s && s !== 'all') query.status = s;
         if (t && t !== 'all') query.type = t;
         if (q && q.trim() !== '') query.search = q.trim();
@@ -65,13 +74,14 @@ export default function Transactions({ transactions, filters, metrics }) {
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-        handleFilterChange(undefined, undefined, search);
+        handleFilterChange(undefined, undefined, undefined, search);
     };
 
     const resetFilters = () => {
         setSearch('');
         setStatusFilter('all');
         setTypeFilter('all');
+        setPeriodFilter('all');
         router.get('/admin/transactions');
     };
 
@@ -84,7 +94,7 @@ export default function Transactions({ transactions, filters, metrics }) {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <div className="flex items-center gap-2">
-                            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
                                 BUMDes Supervisor
                             </span>
                             <span className="text-xs text-gray-400">Live Audit Log</span>
@@ -108,65 +118,116 @@ export default function Transactions({ transactions, filters, metrics }) {
                     </div>
                 </div>
 
-                {/* Metrics Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                    <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-2xs">
+                {/* Period Filter Card (Semua, Per Minggu, Per Bulan, Per Tahun) */}
+                <div className="bg-white p-4 rounded-2xl border border-gray-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                        <p className="text-xs font-bold text-gray-700 flex items-center gap-1.5 uppercase tracking-wide">
+                            <Calendar size={14} className="text-green-600" />
+                            Filter Rentang Waktu Transaksi:
+                        </p>
+                        <span className="text-xs font-medium text-gray-500">
+                            Aktif: <strong className="text-gray-800">{periodLabels[periodFilter] || 'Semua Waktu'}</strong>
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                        {[
+                            { key: 'all', label: 'Semuanya', sub: 'Semua Waktu' },
+                            { key: 'week', label: 'Per Minggu', sub: 'Minggu Ini' },
+                            { key: 'month', label: 'Per Bulan', sub: 'Bulan Ini' },
+                            { key: 'year', label: 'Per Tahun', sub: 'Tahun Ini' },
+                        ].map((tab) => {
+                            const isActive = periodFilter === tab.key;
+                            const count = periodCounts[tab.key] ?? 0;
+                            return (
+                                <button
+                                    key={tab.key}
+                                    onClick={() => {
+                                        setPeriodFilter(tab.key);
+                                        handleFilterChange(tab.key, undefined, undefined, undefined);
+                                    }}
+                                    className={`flex flex-col items-start p-3 rounded-xl border text-left transition duration-150 ${
+                                        isActive
+                                            ? 'bg-green-50 border-green-600 text-green-900 ring-1 ring-green-600'
+                                            : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between w-full">
+                                        <span className="text-xs font-bold">{tab.label}</span>
+                                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
+                                            isActive ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600'
+                                        }`}>
+                                            {count}
+                                        </span>
+                                    </div>
+                                    <span className={`text-[11px] mt-0.5 ${isActive ? 'text-green-700 font-medium' : 'text-gray-400'}`}>
+                                        {tab.sub}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Metrics Cards (Reflects Active Period) */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <div className="bg-white p-4 rounded-2xl border border-gray-200">
                         <div className="flex items-center justify-between text-gray-400 mb-1">
                             <span className="text-xs font-medium">Total Transaksi</span>
                             <Receipt size={16} className="text-blue-500" />
                         </div>
-                        <p className="text-2xl font-bold text-gray-900">{metrics.total}</p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">Semua jalur</p>
+                        <p className="text-2xl font-bold text-gray-900">{metrics.total ?? 0}</p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">{periodLabels[periodFilter]}</p>
                     </div>
 
-                    <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-2xs">
+                    <div className="bg-white p-4 rounded-2xl border border-gray-200">
                         <div className="flex items-center justify-between text-gray-400 mb-1">
                             <span className="text-xs font-medium">Sedang Berjalan</span>
                             <Clock size={16} className="text-amber-500" />
                         </div>
-                        <p className="text-2xl font-bold text-amber-600">{metrics.active}</p>
+                        <p className="text-2xl font-bold text-amber-600">{metrics.active ?? 0}</p>
                         <p className="text-[11px] text-gray-400 mt-0.5">Pending & Confirmed</p>
                     </div>
 
-                    <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-2xs">
+                    <div className="bg-white p-4 rounded-2xl border border-gray-200">
                         <div className="flex items-center justify-between text-gray-400 mb-1">
                             <span className="text-xs font-medium">Selesai Berhasil</span>
                             <CheckCircle2 size={16} className="text-green-500" />
                         </div>
-                        <p className="text-2xl font-bold text-green-600">{metrics.completed}</p>
+                        <p className="text-2xl font-bold text-green-700">{metrics.completed ?? 0}</p>
                         <p className="text-[11px] text-gray-400 mt-0.5">Tersalurkan tuntas</p>
                     </div>
 
-                    <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-2xs">
+                    <div className="bg-white p-4 rounded-2xl border border-gray-200">
                         <div className="flex items-center justify-between text-gray-400 mb-1">
                             <span className="text-xs font-medium">Dispute / Basi</span>
                             <AlertTriangle size={16} className="text-orange-500" />
                         </div>
-                        <p className="text-2xl font-bold text-orange-600">{metrics.dispute}</p>
+                        <p className="text-2xl font-bold text-orange-600">{metrics.dispute ?? 0}</p>
                         <p className="text-[11px] text-gray-400 mt-0.5">Dialihkan ke mitra</p>
                     </div>
 
-                    <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-2xs">
+                    <div className="bg-white p-4 rounded-2xl border border-gray-200">
                         <div className="flex items-center justify-between text-gray-400 mb-1">
-                            <span className="text-xs font-medium">Omset Jual Diskon</span>
+                            <span className="text-xs font-medium">Omset Jual Beli</span>
                             <Coins size={16} className="text-emerald-500" />
                         </div>
-                        <p className="text-lg font-bold text-gray-900 truncate">{formatRupiah(metrics.revenueRp)}</p>
+                        <p className="text-base font-bold text-gray-900 truncate">{formatRupiah(metrics.revenueRp)}</p>
                         <p className="text-[11px] text-gray-400 mt-0.5">Perputaran desa</p>
                     </div>
 
-                    <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-2xs">
+                    <div className="bg-white p-4 rounded-2xl border border-gray-200">
                         <div className="flex items-center justify-between text-gray-400 mb-1">
-                            <span className="text-xs font-medium">Pangan Terselamatkan</span>
+                            <span className="text-xs font-medium">Pangan Selamat</span>
                             <Scale size={16} className="text-green-600" />
                         </div>
-                        <p className="text-xl font-bold text-green-700">{metrics.weightSavedKg} <span className="text-xs font-semibold">kg</span></p>
+                        <p className="text-xl font-bold text-green-700">{metrics.weightSavedKg ?? 0} <span className="text-xs font-semibold">kg</span></p>
                         <p className="text-[11px] text-gray-400 mt-0.5">Cegah food waste</p>
                     </div>
                 </div>
 
                 {/* Filter & Search Bar */}
-                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-2xs space-y-4">
+                <div className="bg-white p-5 rounded-2xl border border-gray-200 space-y-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                         {/* Search Input */}
                         <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
@@ -187,12 +248,12 @@ export default function Transactions({ transactions, filters, metrics }) {
                         </form>
 
                         {/* Reset Filter Button */}
-                        {(filters.status !== 'all' || filters.type !== 'all' || filters.search) && (
+                        {(filters.status !== 'all' || filters.type !== 'all' || filters.period !== 'all' || filters.search) && (
                             <button
                                 onClick={resetFilters}
-                                className="text-xs font-semibold text-red-600 hover:text-red-700 hover:underline flex items-center gap-1"
+                                className="text-xs font-semibold text-red-600 hover:text-red-700 hover:underline flex items-center gap-1 self-start md:self-auto"
                             >
-                                <XCircle size={14} /> Reset Filter
+                                <XCircle size={14} /> Reset Semua Filter
                             </button>
                         )}
                     </div>
@@ -218,12 +279,12 @@ export default function Transactions({ transactions, filters, metrics }) {
                                         key={tab.key}
                                         onClick={() => {
                                             setStatusFilter(tab.key);
-                                            handleFilterChange(tab.key, undefined, undefined);
+                                            handleFilterChange(undefined, tab.key, undefined, undefined);
                                         }}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
                                             isActive
-                                                ? 'bg-green-600 text-white shadow-2xs'
-                                                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                                                ? 'bg-green-600 text-white'
+                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                         }`}
                                     >
                                         {tab.label}
@@ -248,12 +309,12 @@ export default function Transactions({ transactions, filters, metrics }) {
                                         key={tab.key}
                                         onClick={() => {
                                             setTypeFilter(tab.key);
-                                            handleFilterChange(undefined, tab.key, undefined);
+                                            handleFilterChange(undefined, undefined, tab.key, undefined);
                                         }}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
                                             isActive
-                                                ? 'bg-gray-900 text-white shadow-2xs'
-                                                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                                                ? 'bg-gray-900 text-white'
+                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                         }`}
                                     >
                                         {tab.label}
@@ -265,11 +326,11 @@ export default function Transactions({ transactions, filters, metrics }) {
                 </div>
 
                 {/* Table Data */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-2xs overflow-hidden">
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-gray-50/80 border-b border-gray-100 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                                <tr className="bg-gray-50 border-b border-gray-200 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                                     <th className="py-3.5 px-4">ID & Tanggal</th>
                                     <th className="py-3.5 px-4">Produk Pangan</th>
                                     <th className="py-3.5 px-4">Penjual / Pendonor</th>
@@ -306,7 +367,7 @@ export default function Transactions({ transactions, filters, metrics }) {
                                                 {/* Product */}
                                                 <td className="py-3.5 px-4 max-w-xs">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-100">
+                                                        <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
                                                             {product?.photo ? (
                                                                 <img
                                                                     src={`/storage/${product.photo}`}
@@ -328,7 +389,7 @@ export default function Transactions({ transactions, filters, metrics }) {
                                                                 {product?.title || 'Produk dihapus'}
                                                             </p>
                                                             <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-0.5">
-                                                                <span className="font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
+                                                                <span className="font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded">
                                                                     {t.quantity || 1} {product?.unit || 'item'}
                                                                 </span>
                                                                 {product?.weight_grams && (
@@ -359,7 +420,7 @@ export default function Transactions({ transactions, filters, metrics }) {
 
                                                 {/* Type & Value */}
                                                 <td className="py-3.5 px-4">
-                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold ${type.color} mb-1`}>
+                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${type.color} mb-1`}>
                                                         <TypeIcon size={12} />
                                                         {type.label}
                                                     </span>
@@ -384,7 +445,7 @@ export default function Transactions({ transactions, filters, metrics }) {
                                                 <td className="py-3.5 px-4 text-right">
                                                     <Link
                                                         href={`/transactions/${t.id}`}
-                                                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-green-50 text-gray-700 hover:text-green-700 border border-gray-200 hover:border-green-200 text-xs font-semibold rounded-lg transition"
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-gray-50 text-gray-700 hover:text-green-700 border border-gray-200 hover:border-green-300 text-xs font-semibold rounded-lg transition"
                                                     >
                                                         Detail
                                                         <ExternalLink size={12} />
@@ -397,8 +458,14 @@ export default function Transactions({ transactions, filters, metrics }) {
                                     <tr>
                                         <td colSpan={7} className="py-12 text-center text-gray-400">
                                             <Receipt size={36} className="mx-auto text-gray-300 mb-2" />
-                                            <p className="font-medium text-gray-600">Tidak ada transaksi yang cocok</p>
-                                            <p className="text-xs text-gray-400 mt-0.5">Coba ubah filter status, jenis transaksi, atau kata kunci pencarian.</p>
+                                            <p className="font-medium text-gray-700">Tidak ada transaksi yang cocok untuk {periodLabels[periodFilter].toLowerCase()}</p>
+                                            <p className="text-xs text-gray-400 mt-0.5 mb-3">Coba ubah filter rentang waktu, status, jalur transaksi, atau kata kunci pencarian.</p>
+                                            <button
+                                                onClick={resetFilters}
+                                                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition"
+                                            >
+                                                Tampilkan Semua Transaksi
+                                            </button>
                                         </td>
                                     </tr>
                                 )}

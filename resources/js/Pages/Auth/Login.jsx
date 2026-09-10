@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import InputError from '@/Components/InputError';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function Login({ status, canResetPassword }) {
+    const [showPassword, setShowPassword] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -48,14 +51,29 @@ export default function Login({ status, canResetPassword }) {
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-                    <input
-                        type="password"
-                        value={data.password}
-                        onChange={(e) => setData('password', e.target.value)}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
-                        placeholder="••••••••"
-                        autoComplete="current-password"
-                    />
+                    <div className="relative">
+                        <input
+                            type={showPassword ? 'text' : 'password'}
+                            value={data.password}
+                            onChange={(e) => setData('password', e.target.value)}
+                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-11 text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+                            placeholder="••••••••"
+                            autoComplete="current-password"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1 transition-colors"
+                            title={showPassword ? 'Sembunyikan password' : 'Lihat password'}
+                            aria-label={showPassword ? 'Sembunyikan password' : 'Lihat password'}
+                        >
+                            {showPassword ? (
+                                <EyeOff className="w-5 h-5" />
+                            ) : (
+                                <Eye className="w-5 h-5" />
+                            )}
+                        </button>
+                    </div>
                     <InputError message={errors.password} className="mt-1" />
                 </div>
 

@@ -112,7 +112,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::patch('/users/{user}/toggle-blacklist', [AdminController::class, 'toggleBlacklist'])->name('users.toggleBlacklist');
     Route::get('/redeem', [AdminController::class, 'redeemPage'])->name('redeem');
-    Route::post('/redeem/search', [AdminController::class, 'redeemSearch'])->name('redeem.search');
+    Route::match(['get', 'post'], '/redeem/search', [AdminController::class, 'redeemSearch'])->name('redeem.search');
     Route::post('/redeem/process', [AdminController::class, 'redeemProcess'])->name('redeem.process');
 });
 

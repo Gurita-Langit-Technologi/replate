@@ -19,6 +19,11 @@ import {
     Camera,
     MessageSquare,
     Phone,
+    AlertTriangle,
+    AlertCircle,
+    Ticket,
+    FileText,
+    CheckCircle2,
 } from 'lucide-react';
 
 const statusConfig = {
@@ -44,7 +49,7 @@ function StatusTracker({ currentStatus }) {
     const currentIdx = steps.indexOf(currentStatus);
 
     const stepLabels = {
-        pending: 'Pesanan dibuat',
+        pending: 'Menunggu',
         confirmed: 'Dikonfirmasi',
         completed: 'Selesai',
     };
@@ -63,8 +68,8 @@ function StatusTracker({ currentStatus }) {
     if (isDispute) {
         return (
             <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-xl">
-                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-lg">
-                    ⚠️
+                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                    <AlertTriangle size={18} />
                 </div>
                 <div>
                     <p className="text-sm font-semibold text-orange-700">Sedang dalam dispute</p>
@@ -120,8 +125,8 @@ function DisputeModal({ transactionId, onClose }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-                <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center mx-auto mb-4 text-3xl">
-                    ⚠️
+                <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center mx-auto mb-4 text-orange-600">
+                    <AlertTriangle size={32} />
                 </div>
                 <h2 className="text-lg font-bold text-gray-900 text-center mb-1">
                     Lapor Makanan Basi/Rusak?
@@ -130,8 +135,8 @@ function DisputeModal({ transactionId, onClose }) {
                     Tindakan ini akan mengalihkan produk ke mitra pengolah dan membuat laporan dispute untuk ditinjau admin.
                 </p>
                 <div className="p-3 bg-orange-50 border border-orange-100 rounded-xl mb-5">
-                    <p className="text-xs text-orange-700 text-center font-medium">
-                        ⚠️ Produk akan otomatis dialihkan ke Mitra Alih Fungsi
+                    <p className="text-xs text-orange-700 text-center font-medium flex items-center justify-center gap-1.5">
+                        <AlertCircle size={14} /> Produk akan otomatis dialihkan ke Mitra Alih Fungsi
                     </p>
                 </div>
                 <div className="flex gap-3">
@@ -187,9 +192,9 @@ function ReviewModal({ transactionId, onClose }) {
                                 key={star}
                                 type="button"
                                 onClick={() => setRating(star)}
-                                className={`text-2xl transition ${star <= rating ? 'text-amber-400 scale-110' : 'text-gray-300'}`}
+                                className={`p-1 transition ${star <= rating ? 'text-amber-400 scale-110' : 'text-gray-300'}`}
                             >
-                                ★
+                                <Star size={24} className={star <= rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'} />
                             </button>
                         ))}
                     </div>
@@ -369,6 +374,44 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                     <StatusTracker currentStatus={transaction.status} />
                 </div>
 
+                {/* Drop-Off Ticket Card for Dispute */}
+                {transaction.status === 'dispute_spoiled' && (
+                    <div className="bg-amber-50/70 rounded-2xl border border-amber-300 p-5 mb-4">
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                            <div className="flex items-center gap-2">
+                                <Ticket size={20} className="text-orange-700" />
+                                <div>
+                                    <h3 className="text-sm font-bold text-gray-900">Tiket Drop-Off BUMDes Resmi</h3>
+                                    <p className="text-[11px] text-gray-500">Gunakan tiket ini untuk verifikasi di Pos Drop-Off Desa</p>
+                                </div>
+                            </div>
+                            <span className="px-2.5 py-1 bg-orange-100 text-orange-800 font-mono font-bold text-xs rounded-lg border border-orange-200">
+                                DROP-TX{transaction.id}
+                            </span>
+                        </div>
+
+                        <div className="bg-white rounded-xl p-3.5 border border-orange-100 mb-3 space-y-2 text-xs">
+                            <div className="flex items-start gap-2">
+                                <MapPin size={15} className="text-red-500 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-semibold text-gray-800">Lokasi Pos Pengumpulan Terpusat:</p>
+                                    <p className="text-gray-600 font-medium">Pos Drop-Off BUMDes Desa {product.desa || 'Sumbermulyo'}, Jl. Desa No. 1</p>
+                                    <p className="text-[11px] text-gray-400">Jam Operasional: 08.00 - 16.00 WIB (Diangkut Mitra Pukul 17.00 WIB)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-orange-50 rounded-xl p-3 border border-orange-100 text-[11px] text-gray-600 space-y-1.5">
+                            <p className="font-bold text-orange-900 flex items-center gap-1.5">
+                                <FileText size={13} /> SOP Pengantaran Sisa Makanan Basi ke Pos:
+                            </p>
+                            <p>1. Wajib dikemas dalam <strong>kantong / wadah tertutup rapat</strong> agar tidak menimbulkan bau.</p>
+                            <p>2. Hanya menerima <strong>sisa organik/pangan</strong> (dilarang mencampur plastik, tusuk sate, atau sampah anorganik).</p>
+                            <p>3. Tunjukkan kode <strong>DROP-TX{transaction.id}</strong> kepada Petugas BUMDes untuk pencatatan timbangan.</p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Produk */}
                 <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
                     <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-3">Produk</p>
@@ -450,9 +493,11 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                                     <div key={rev.id} className="p-3 bg-gray-50 rounded-xl text-xs">
                                         <div className="flex items-center justify-between mb-1">
                                             <span className="font-semibold text-gray-800">{rev.reviewer?.name}</span>
-                                            <span className="flex text-amber-400">
-                                                {'★'.repeat(rev.rating)}
-                                            </span>
+                                            <div className="flex items-center gap-0.5 text-amber-400">
+                                                {Array.from({ length: rev.rating || 5 }).map((_, i) => (
+                                                    <Star key={i} size={12} className="fill-amber-400 text-amber-400" />
+                                                ))}
+                                            </div>
                                         </div>
                                         {rev.comment && <p className="text-gray-600 mt-1">{rev.comment}</p>}
                                     </div>
@@ -476,7 +521,9 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                             </div>
                             <p className="text-sm font-semibold text-gray-900">{transaction.seller?.name}</p>
                             {transaction.seller?.desa && (
-                                <p className="text-xs text-gray-500 mt-0.5">📍 Desa {transaction.seller.desa}</p>
+                                <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                                    <MapPin size={11} className="text-gray-400" /> Desa {transaction.seller.desa}
+                                </p>
                             )}
                             {!isSeller && (
                                 <div className="mt-3 pt-2.5 border-t border-gray-200/60 flex flex-wrap gap-2">
@@ -510,7 +557,9 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                             </div>
                             <p className="text-sm font-semibold text-gray-900">{transaction.buyer?.name}</p>
                             {transaction.buyer?.desa && (
-                                <p className="text-xs text-gray-500 mt-0.5">📍 Desa {transaction.buyer.desa}</p>
+                                <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                                    <MapPin size={11} className="text-gray-400" /> Desa {transaction.buyer.desa}
+                                </p>
                             )}
                             {!isBuyer && (
                                 <div className="mt-3 pt-2.5 border-t border-gray-200/60 flex flex-wrap gap-2">
@@ -538,7 +587,9 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                     </div>
 
                     {hasReviewed ? (
-                        <p className="text-xs text-green-600 mt-2">✓ Anda telah memberikan ulasan untuk transaksi ini.</p>
+                        <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
+                            <CheckCircle2 size={13} /> Anda telah memberikan ulasan untuk transaksi ini.
+                        </p>
                     ) : isBuyer ? (
                         <p className="text-xs text-gray-400 mt-2">Beri bintang dan feedback untuk penjual guna membangun reputasi desa.</p>
                     ) : null}
@@ -626,9 +677,9 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
 
                                 <button
                                     onClick={() => setShowDisputeModal(true)}
-                                    className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-orange-500 border border-orange-200 hover:bg-orange-50 rounded-xl transition"
+                                    className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-orange-600 border border-orange-200 hover:bg-orange-50 rounded-xl transition"
                                 >
-                                    <span>⚠️</span>
+                                    <AlertTriangle size={15} />
                                     Lapor makanan basi / rusak
                                 </button>
                             </>

@@ -347,7 +347,9 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
                                         <p className="text-sm text-gray-700">{product.pickup_address}</p>
                                     )}
                                     {product.pickup_notes && (
-                                        <p className="text-xs text-gray-500 mt-1">📝 {product.pickup_notes}</p>
+                                        <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                            <FileText size={12} className="text-gray-400" /> {product.pickup_notes}
+                                        </p>
                                     )}
                                 </div>
                             )}
@@ -365,7 +367,7 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
                             {!isOwner && !isSpecialRole && currentAvailable <= 0 && ['active', 'timeout_stage_1'].includes(product.status) && (
                                 <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-xs space-y-1">
                                     <p className="font-semibold flex items-center gap-1.5 text-amber-900">
-                                        ⏳ Seluruh Stok Sedang Dalam Transaksi
+                                        <Clock size={14} className="text-amber-700" /> Seluruh Stok Sedang Dalam Transaksi
                                     </p>
                                     <p className="text-amber-700 leading-relaxed">
                                         Semua stok produk ini ({product.quantity} {product.unit}) saat ini sedang diproses dalam transaksi oleh pembeli lain. Jika ada transaksi yang dibatalkan, sisa stok akan kembali tersedia.
@@ -560,7 +562,7 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
                             {isSpecialRole && (
                                 <div className="p-3 bg-gray-100 border border-gray-200 rounded-xl text-center">
                                     <p className="text-xs text-gray-500">
-                                        {auth.user.role === 'admin' ? '🛡️ Mode Admin — Hanya melihat rincian produk.' : '🤝 Mode Mitra — Produk ini dikelola oleh pengguna.'}
+                                        {auth.user.role === 'admin' ? 'Mode Administrator — Meninjau rincian produk.' : 'Mode Mitra — Produk ini dikelola oleh pengguna.'}
                                     </p>
                                 </div>
                             )}

@@ -384,7 +384,7 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => $createdAt->copy()->addHours(rand(1, 24)),
             ]);
 
-            Transaction::create([
+            $tx = Transaction::create([
                 'product_id' => $product->id,
                 'buyer_id' => $t['buyer']->id,
                 'seller_id' => $t['seller']->id,
@@ -396,7 +396,136 @@ class DatabaseSeeder extends Seeder
                 'created_at' => $createdAt,
                 'updated_at' => $createdAt->copy()->addHours(rand(1, 24)),
             ]);
+
+            // Review for completed sale/barter/donation
+            if (in_array($t['type'], ['sale', 'barter', 'donation'])) {
+                $rating = rand(4, 5);
+                $comments = [
+                    'Makanan masih sangat bagus dan penjual sangat ramah!',
+                    'Porsi berlimpah dan bersih. Terima kasih banyak!',
+                    'Kondisi mantap, pengemasan aman. Sangat membantu mengurangi food waste.',
+                    'Pelayanan cepat dan komunikasi lancar via WA.',
+                ];
+                \App\Models\Review::create([
+                    'transaction_id' => $tx->id,
+                    'reviewer_id' => $t['buyer']->id,
+                    'reviewee_id' => $t['seller']->id,
+                    'rating' => $rating,
+                    'comment' => $comments[array_rand($comments)],
+                    'created_at' => $createdAt->copy()->addHours(rand(2, 24)),
+                ]);
+            }
+
+            // Award Points
+            $points = \App\Models\PointHistory::calculatePoints($product);
+            \App\Models\PointHistory::awardPoints(
+                $t['seller'],
+                $points,
+                "Produk \"{$product->title}\" tersalurkan",
+                $t['type'] === 'partner_transfer' ? 'earned_partner' : ($t['type'] === 'donation' ? 'earned_donate' : 'earned_sell'),
+                $tx
+            );
         }
+
+        // ============================================
+        // TUGAS MITRA AKTIF (PENDING PICKUP)
+        // ============================================
+
+        $partnerProduct1 = Product::create([
+            'user_id' => $users[0]->id,
+            'title' => 'Sisa Olahan Dapur & Nasi Pagi (15kg)',
+            'description' => 'Sisa produksi dapur pagi hari, bersih dalam ember tertutup. Cocok untuk pakan ternak / maggot.',
+            'photo' => 'dummy/placeholder.jpg',
+            'category' => 'mentah',
+            'condition' => 'layak_pakan_kompos',
+            'weight_grams' => 15000,
+            'quantity' => 15,
+            'unit' => 'kg',
+            'transaction_mode' => 'donate',
+            'desa' => $users[0]->desa,
+            'kecamatan' => $users[0]->kecamatan,
+            'pickup_type' => 'rumah',
+            'pickup_address' => $users[0]->address,
+            'pickup_notes' => 'Ember ditaruh di samping garasi, tolong embernya dikembalikan ya pak.',
+            'status' => 'dialihkan_ke_mitra',
+            'timeout_at' => now()->subHours(2),
+        ]);
+
+        Transaction::create([
+            'product_id' => $partnerProduct1->id,
+            'buyer_id' => $partner1->id,
+            'seller_id' => $users[0]->id,
+            'partner_id' => $partner1->id,
+            'type' => 'partner_transfer',
+            'status' => 'pending',
+            'notes' => 'Alih fungsi otomatis ke Peternak (15kg)',
+            'created_at' => now()->subHours(2),
+        ]);
+
+        $partnerProduct2 = Product::create([
+            'user_id' => $users[5]->id,
+            'title' => 'Sisa Sayur & Kulit Buah Katering (20kg)',
+            'description' => 'Sisa sayuran dan kulit buah kupasan katering. Cocok untuk bahan kompos.',
+            'photo' => 'dummy/placeholder.jpg',
+            'category' => 'mentah',
+            'condition' => 'layak_pakan_kompos',
+            'weight_grams' => 20000,
+            'quantity' => 20,
+            'unit' => 'kg',
+            'transaction_mode' => 'donate',
+            'desa' => $users[5]->desa,
+            'kecamatan' => $users[5]->kecamatan,
+            'pickup_type' => 'rumah',
+            'pickup_address' => $users[5]->address,
+            'pickup_notes' => 'Di dalam karung goni di teras samping.',
+            'status' => 'dialihkan_ke_mitra',
+            'timeout_at' => now()->subHours(1),
+        ]);
+
+        Transaction::create([
+            'product_id' => $partnerProduct2->id,
+            'buyer_id' => $partner2->id,
+            'seller_id' => $users[5]->id,
+            'partner_id' => $partner2->id,
+            'type' => 'partner_transfer',
+            'status' => 'pending',
+            'notes' => 'Alih fungsi otomatis ke Pengelola Kompos (20kg)',
+            'created_at' => now()->subHours(1),
+        ]);
+
+        // ============================================
+        // VERIFIKASI PENJUAL (ADMIN VERIFICATIONS)
+        // ============================================
+
+        \App\Models\SellerVerification::create([
+            'user_id' => $users[4]->id, // Warung Barokah
+            'document_type' => \App\Enums\DocumentType::NIB,
+            'document_photo' => 'dummy/nib_sample.jpg',
+            'production_photo' => 'dummy/dapur_sample.jpg',
+            'status' => \App\Enums\VerificationStatus::PENDING,
+            'admin_notes' => 'Pengajuan verifikasi dapur UMKM Warung Barokah.',
+        ]);
+
+        \App\Models\SellerVerification::create([
+            'user_id' => $verifiedSeller->id,
+            'document_type' => \App\Enums\DocumentType::PIRT,
+            'document_photo' => 'dummy/pirt_sample.jpg',
+            'production_photo' => 'dummy/dapur_sample.jpg',
+            'status' => \App\Enums\VerificationStatus::APPROVED,
+            'admin_notes' => 'Disetujui. Dokumen dan dapur higienis.',
+        ]);
+
+        // ============================================
+        // LAPORAN / DISPUTE (ADMIN REPORTS)
+        // ============================================
+
+        \App\Models\Report::create([
+            'reporter_id' => $users[1]->id,
+            'product_id' => $activeProductList[0]->id ?? $product->id,
+            'reason' => \App\Enums\ReportReason::TIDAK_SESUAI_FOTO,
+            'description' => 'Keterangan porsi dan foto di deskripsi agak berbeda dengan aslinya.',
+            'status' => \App\Enums\ReportStatus::PENDING,
+        ]);
 
         // ============================================
         // BARTER OFFERS
@@ -475,14 +604,14 @@ class DatabaseSeeder extends Seeder
 
         Notification::create([
             'user_id' => $partner1->id,
-            'title' => 'Produk dialihkan kepada Anda',
-            'message' => 'Produk "Sisa Nasi Warung" (8kg) telah dialihkan. Sisa kuota: 42kg.',
+            'title' => 'Tugas Penjemputan Baru',
+            'message' => 'Ada penugasan baru: "Sisa Olahan Dapur & Nasi Pagi" (15kg) di Dusun Krajan.',
             'type' => 'partner_transfer',
-            'is_read' => true,
+            'is_read' => false,
         ]);
 
         $this->command->info('Seeder selesai!');
-        $this->command->info('20 users, 14 produk aktif, 15 transaksi selesai, 3 barter offers');
+        $this->command->info('20 users, 16 produk, 17 transaksi, 3 barter offers, reviews & poin lengkap');
         $this->command->info('Login: admin@replate.com / user@replate.com / partner@replate.com / seller@replate.com');
         $this->command->info('Password semua: password');
     }

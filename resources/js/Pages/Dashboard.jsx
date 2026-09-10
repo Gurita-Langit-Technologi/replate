@@ -98,7 +98,7 @@ export default function Dashboard({ stats, recentProducts, recentTransactions, i
                 {/* Greeting */}
                 <div className="mb-6">
                     <h1 className="text-xl font-bold text-gray-900 tracking-tight">
-                        Halo, {auth.user.name}! 👋
+                        Halo, {auth.user.name}!
                     </h1>
                     <p className="text-sm text-gray-400 mt-0.5">
                         Selamat datang di Replate — mari kurangi food waste bersama.

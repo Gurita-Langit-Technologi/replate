@@ -77,7 +77,7 @@ export default function Dashboard({ stats, villageImpactMetrics, transactionsByT
                 </div>
 
                 {/* BUMDes Village Impact Section */}
-                <div className="bg-gradient-to-r from-emerald-900 to-teal-800 text-white rounded-2xl p-6 mb-8 shadow-lg">
+                <div className="bg-emerald-900 border border-emerald-800 text-white rounded-2xl p-6 mb-8 shadow-sm">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-3 bg-emerald-700/50 rounded-xl">
                             <Recycle size={28} className="text-emerald-300" />

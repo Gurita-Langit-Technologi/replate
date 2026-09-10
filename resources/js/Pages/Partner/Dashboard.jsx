@@ -161,8 +161,18 @@ export default function Dashboard({ pending, completed, totalWeight, pointHistor
                                                         <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md font-medium">
                                                             {product?.quantity} {product?.unit} {product?.weight_grams ? `(${product.weight_grams}g)` : ''}
                                                         </span>
-                                                        <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md font-medium capitalize">
-                                                            {product?.pickup_type === 'diantar' ? '🚚 Diantar Penjual' : '🛵 Diambil Mitra'}
+                                                        <span className={`text-xs px-2 py-0.5 rounded-md font-semibold flex items-center gap-1 ${
+                                                            product?.pickup_type === 'drop_point' || pickupAddress.includes('Pos Drop-Off')
+                                                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                                                : product?.pickup_type === 'diantar'
+                                                                ? 'bg-blue-50 text-blue-700'
+                                                                : 'bg-emerald-50 text-emerald-700'
+                                                        }`}>
+                                                            {product?.pickup_type === 'drop_point' || pickupAddress.includes('Pos Drop-Off')
+                                                                ? 'Ambil di Pos Drop-Off BUMDes'
+                                                                : product?.pickup_type === 'diantar'
+                                                                ? 'Diantar Penjual'
+                                                                : 'Diambil ke Rumah Warga'}
                                                         </span>
                                                     </div>
 
@@ -213,8 +223,9 @@ export default function Dashboard({ pending, completed, totalWeight, pointHistor
                                                         Desa {product?.desa}, Kec. {product?.kecamatan}
                                                     </p>
                                                     {product?.pickup_notes && (
-                                                        <div className="mt-1.5 p-1.5 bg-amber-50 rounded text-amber-900 text-[11px] border border-amber-200">
-                                                            📝 <strong>Catatan:</strong> {product.pickup_notes}
+                                                        <div className="mt-1.5 p-1.5 bg-amber-50 rounded text-amber-900 text-[11px] border border-amber-200 flex items-start gap-1">
+                                                            <Info size={13} className="text-amber-700 shrink-0 mt-0.5" />
+                                                            <span><strong>Catatan:</strong> {product.pickup_notes}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -287,8 +298,8 @@ export default function Dashboard({ pending, completed, totalWeight, pointHistor
                             {completed.map((t) => (
                                 <div key={t.id} className="py-3 flex items-center justify-between gap-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-lg bg-green-50 text-green-600 flex items-center justify-center flex-shrink-0 font-bold text-xs">
-                                            ✓
+                                        <div className="w-9 h-9 rounded-lg bg-green-50 text-green-600 flex items-center justify-center shrink-0">
+                                            <Check size={14} />
                                         </div>
                                         <div>
                                             <p className="text-sm font-semibold text-gray-900">{t.product?.title || 'Produk'}</p>

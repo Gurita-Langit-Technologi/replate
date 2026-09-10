@@ -105,7 +105,7 @@ class AdminController extends Controller
     public function verifications()
     {
         $verifications = SellerVerification::with('user')
-            ->orderByRaw("FIELD(status, ?, ?, ?)", [
+            ->orderByRaw("CASE status WHEN ? THEN 1 WHEN ? THEN 2 WHEN ? THEN 3 ELSE 4 END", [
                 VerificationStatus::PENDING->value,
                 VerificationStatus::APPROVED->value,
                 VerificationStatus::REJECTED->value,
@@ -170,7 +170,7 @@ class AdminController extends Controller
     public function reports()
     {
         $reports = Report::with(['product', 'reporter'])
-            ->orderByRaw("FIELD(status, ?, ?, ?)", [
+            ->orderByRaw("CASE status WHEN ? THEN 1 WHEN ? THEN 2 WHEN ? THEN 3 ELSE 4 END", [
                 ReportStatus::PENDING->value,
                 ReportStatus::REVIEWED->value,
                 ReportStatus::DISMISSED->value,
@@ -321,24 +321,38 @@ class AdminController extends Controller
      */
     public function transactions(Request $request)
     {
+        $period = $request->input('period', 'all');
+        if (!in_array($period, ['all', 'week', 'month', 'year'])) {
+            $period = 'all';
+        }
+
         $query = Transaction::with(['product', 'buyer', 'seller', 'partner'])
             ->orderBy('created_at', 'desc');
 
+        // Filter periode
+        if ($period === 'week') {
+            $query->whereBetween('transactions.created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+        } elseif ($period === 'month') {
+            $query->whereBetween('transactions.created_at', [now()->startOfMonth(), now()->endOfMonth()]);
+        } elseif ($period === 'year') {
+            $query->whereBetween('transactions.created_at', [now()->startOfYear(), now()->endOfYear()]);
+        }
+
         // Filter status
         if ($request->filled('status') && $request->status !== 'all') {
-            $query->where('status', $request->status);
+            $query->where('transactions.status', $request->status);
         }
 
         // Filter jenis
         if ($request->filled('type') && $request->type !== 'all') {
-            $query->where('type', $request->type);
+            $query->where('transactions.type', $request->type);
         }
 
         // Search
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('id', 'like', "%{$search}%")
+                $q->where('transactions.id', 'like', "%{$search}%")
                     ->orWhereHas('product', function ($pq) use ($search) {
                         $pq->where('title', 'like', "%{$search}%");
                     })
@@ -353,28 +367,47 @@ class AdminController extends Controller
 
         $transactions = $query->get();
 
-        // Metrik ringkasan untuk header dashboard transaksi
-        $totalTransactions = Transaction::count();
-        $activeTransactions = Transaction::whereIn('status', [TransactionStatus::PENDING, TransactionStatus::CONFIRMED])->count();
-        $completedTransactions = Transaction::where('status', TransactionStatus::COMPLETED)->count();
-        $disputeTransactions = Transaction::where('status', TransactionStatus::DISPUTE_SPOILED)->count();
-        $cancelledTransactions = Transaction::where('status', TransactionStatus::CANCELLED)->count();
+        // Metrik ringkasan untuk header dashboard transaksi (sesuai periode)
+        $metricBase = Transaction::query();
+        if ($period === 'week') {
+            $metricBase->whereBetween('transactions.created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+        } elseif ($period === 'month') {
+            $metricBase->whereBetween('transactions.created_at', [now()->startOfMonth(), now()->endOfMonth()]);
+        } elseif ($period === 'year') {
+            $metricBase->whereBetween('transactions.created_at', [now()->startOfYear(), now()->endOfYear()]);
+        }
 
-        $totalRevenueRp = Transaction::where('status', TransactionStatus::COMPLETED)
-            ->where('type', TransactionType::SALE)
-            ->sum('price');
+        $totalTransactions = (clone $metricBase)->count();
+        $activeTransactions = (clone $metricBase)->whereIn('transactions.status', [TransactionStatus::PENDING, TransactionStatus::CONFIRMED])->count();
+        $completedTransactions = (clone $metricBase)->where('transactions.status', TransactionStatus::COMPLETED)->count();
+        $disputeTransactions = (clone $metricBase)->where('transactions.status', TransactionStatus::DISPUTE_SPOILED)->count();
+        $cancelledTransactions = (clone $metricBase)->where('transactions.status', TransactionStatus::CANCELLED)->count();
 
-        $totalWeightSavedKg = round(Transaction::where('transactions.status', TransactionStatus::COMPLETED)
+        $totalRevenueRp = (clone $metricBase)->where('transactions.status', TransactionStatus::COMPLETED)
+            ->where('transactions.type', TransactionType::SALE)
+            ->sum('transactions.price');
+
+        $totalWeightSavedKg = round((clone $metricBase)->where('transactions.status', TransactionStatus::COMPLETED)
             ->join('products', 'transactions.product_id', '=', 'products.id')
             ->sum('products.weight_grams') / 1000, 1);
+
+        // Period counts untuk tab navigasi rentang waktu
+        $periodCounts = [
+            'all' => Transaction::count(),
+            'week' => Transaction::whereBetween('transactions.created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+            'month' => Transaction::whereBetween('transactions.created_at', [now()->startOfMonth(), now()->endOfMonth()])->count(),
+            'year' => Transaction::whereBetween('transactions.created_at', [now()->startOfYear(), now()->endOfYear()])->count(),
+        ];
 
         return Inertia::render('Admin/Transactions', [
             'transactions' => $transactions,
             'filters' => [
+                'period' => $period,
                 'status' => $request->status ?? 'all',
                 'type' => $request->type ?? 'all',
                 'search' => $request->search ?? '',
             ],
+            'periodCounts' => $periodCounts,
             'metrics' => [
                 'total' => $totalTransactions,
                 'active' => $activeTransactions,
@@ -388,51 +421,132 @@ class AdminController extends Controller
     }
 
     /**
+     * Format data profil user lengkap untuk admin redeem
+     */
+    private function formatUserData(User $user): array
+    {
+        $completedTxCount = Transaction::where(function ($q) use ($user) {
+                $q->where('seller_id', $user->id)
+                  ->orWhere('buyer_id', $user->id);
+            })
+            ->where('status', TransactionStatus::COMPLETED)
+            ->count();
+
+        $savedWeightGrams = Transaction::where('seller_id', $user->id)
+            ->where('transactions.status', TransactionStatus::COMPLETED)
+            ->join('products', 'transactions.product_id', '=', 'products.id')
+            ->sum('products.weight_grams');
+
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'whatsapp_number' => $user->whatsapp_number,
+            'role' => $user->role instanceof \BackedEnum ? $user->role->value : $user->role,
+            'desa' => $user->desa,
+            'kecamatan' => $user->kecamatan,
+            'address' => $user->address,
+            'points' => (int) $user->points,
+            'redeem_code' => $user->redeem_code,
+            'report_count' => (int) $user->report_count,
+            'is_blacklisted' => (bool) $user->is_blacklisted,
+            'joined_at' => $user->created_at ? $user->created_at->translatedFormat('d F Y') : '-',
+            'completed_tx_count' => $completedTxCount,
+            'saved_weight_kg' => round($savedWeightGrams / 1000, 1),
+        ];
+    }
+
+    /**
      * Halaman tukar poin
      */
-    public function redeemPage()
+    public function redeemPage(Request $request)
     {
+        $allUsers = User::orderBy('points', 'desc')
+            ->orderBy('name', 'asc')
+            ->get(['id', 'name', 'email', 'role', 'whatsapp_number', 'desa', 'kecamatan', 'address', 'points', 'redeem_code']);
+
         $recentRedemptions = PointHistory::where('type', 'redeemed')
             ->with('user')
             ->orderBy('created_at', 'desc')
-            ->take(15)
+            ->take(30)
             ->get();
 
+        $foundUser = null;
+        $userRedemptions = [];
+        $searchedCode = $request->query('code');
+
+        if ($searchedCode) {
+            $query = trim($searchedCode);
+            $user = User::where('redeem_code', strtoupper($query))
+                ->orWhere('email', $query)
+                ->orWhere('whatsapp_number', $query)
+                ->orWhere('name', 'like', "%{$query}%")
+                ->first();
+
+            if ($user) {
+                $foundUser = $this->formatUserData($user);
+                $userRedemptions = PointHistory::where('user_id', $user->id)
+                    ->where('type', 'redeemed')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            }
+        }
+
         return Inertia::render('Admin/Redeem', [
+            'foundUser' => $foundUser,
+            'userRedemptions' => $userRedemptions,
+            'searchedCode' => $searchedCode,
+            'allUsers' => $allUsers,
             'recentRedemptions' => $recentRedemptions,
+            'predefinedRewards' => PointController::getRewardsCatalog(),
         ]);
     }
 
     /**
-     * Cari user berdasarkan kode
+     * Cari user berdasarkan kode, nama, email, atau no WhatsApp
      */
     public function redeemSearch(Request $request)
     {
-        $request->validate(['code' => 'required|string']);
+        $code = $request->input('code') ?? $request->query('code');
 
-        $user = User::where('redeem_code', strtoupper($request->code))->first();
+        if (!$code || trim($code) === '') {
+            return redirect()->route('admin.redeem');
+        }
+
+        $query = trim($code);
+
+        $user = User::where('redeem_code', strtoupper($query))
+            ->orWhere('email', $query)
+            ->orWhere('whatsapp_number', $query)
+            ->orWhere('name', 'like', "%{$query}%")
+            ->first();
 
         if (!$user) {
-            return back()->with('error', 'Kode tidak ditemukan.');
+            return redirect()->route('admin.redeem')->with('error', "Warga dengan kode/identitas '{$query}' tidak ditemukan.");
         }
+
+        $allUsers = User::orderBy('points', 'desc')
+            ->orderBy('name', 'asc')
+            ->get(['id', 'name', 'email', 'role', 'whatsapp_number', 'desa', 'kecamatan', 'address', 'points', 'redeem_code']);
 
         $recentRedemptions = PointHistory::where('type', 'redeemed')
             ->with('user')
             ->orderBy('created_at', 'desc')
-            ->take(15)
+            ->take(30)
+            ->get();
+
+        $userRedemptions = PointHistory::where('user_id', $user->id)
+            ->where('type', 'redeemed')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return Inertia::render('Admin/Redeem', [
-            'foundUser' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'desa' => $user->desa,
-                'points' => $user->points,
-                'redeem_code' => $user->redeem_code,
-            ],
-            'searchedCode' => $request->code,
+            'foundUser' => $this->formatUserData($user),
+            'userRedemptions' => $userRedemptions,
+            'searchedCode' => $code,
+            'allUsers' => $allUsers,
             'recentRedemptions' => $recentRedemptions,
+            'predefinedRewards' => PointController::getRewardsCatalog(),
         ]);
     }
 

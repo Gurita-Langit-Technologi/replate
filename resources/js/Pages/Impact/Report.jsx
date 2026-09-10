@@ -106,7 +106,8 @@ export default function Report({ esg, globalImpact, currentPeriod = 'all' }) {
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-6 border-b-2 border-emerald-600">
                         <div>
                             <div className="flex items-center gap-2">
-                                <span className="text-xl font-black tracking-tight text-emerald-800">🌱 REPLATE</span>
+                                <Leaf size={22} className="text-emerald-700" />
+                                <span className="text-xl font-black tracking-tight text-emerald-800">REPLATE</span>
                                 <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md font-bold uppercase">
                                     ESG REPORT
                                 </span>

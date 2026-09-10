@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Sparkles, Download, Copy, Check, Share2, X, Trophy, Leaf, Flame, HeartHandshake } from 'lucide-react';
+import { Sparkles, Download, Copy, Check, Share2, X, Trophy, Leaf, Flame, HeartHandshake, Award, Coins, Scale } from 'lucide-react';
 
 export default function ShareableImpactCard({ user, userStats, badges = [], rank = '-', points = 0 }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -14,15 +14,15 @@ export default function ShareableImpactCard({ user, userStats, badges = [], rank
     const levelTitle = userStats?.level_title || 'Penyelamat Pangan Aktif';
 
     const handleCopyText = () => {
-        const text = `🌱 Kontribusi Dampak Lingkungan Saya di Replate!
-👤 Nama: ${user?.name || 'Warga Replate'}
-🏆 Peringkat Desa: #${rank} (${levelTitle})
-⚖️ Makanan Diselamatkan: ${weightKg} kg
-🌍 Reduksi Emisi CO₂: ${co2Kg} kg CO₂e
-🍲 Porsi Makan Terselamatkan: ~${meals} porsi
-⭐ RePoin: ${points} Poin
+        const text = `*KONTRIBUSI DAMPAK LINGKUNGAN REPLATE*
+Nama: ${user?.name || 'Warga Replate'}
+Peringkat Desa: #${rank} (${levelTitle})
+Makanan Diselamatkan: ${weightKg} kg
+Reduksi Emisi CO2: ${co2Kg} kg CO2e
+Porsi Makan Terselamatkan: ~${meals} porsi
+Saldo RePoin: ${points} Poin
 
-Mari bersama kurangi food waste & dukung circular economy desa bersama Replate! 💚`;
+Mari bersama kurangi food waste & dukung circular economy desa bersama Replate!`;
         navigator.clipboard.writeText(text);
         setCopied(true);
         setTimeout(() => setCopied(false), 2500);
@@ -39,38 +39,23 @@ Mari bersama kurangi food waste & dukung circular economy desa bersama Replate! 
         canvas.width = width;
         canvas.height = height;
 
-        // Background Gradient (Modern emerald/forest dark theme)
-        const bgGrad = ctx.createLinearGradient(0, 0, width, height);
-        bgGrad.addColorStop(0, '#064e3b'); // Dark emerald
-        bgGrad.addColorStop(0.5, '#042f2e'); // Deep teal
-        bgGrad.addColorStop(1, '#022c22'); // Near black green
-        ctx.fillStyle = bgGrad;
+        // Background Solid Professional Emerald Dark Theme
+        ctx.fillStyle = '#064e3b';
         ctx.fillRect(0, 0, width, height);
-
-        // Subtle decorative circles
-        ctx.fillStyle = 'rgba(16, 185, 129, 0.08)';
-        ctx.beginPath();
-        ctx.arc(100, 150, 200, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = 'rgba(52, 211, 153, 0.05)';
-        ctx.beginPath();
-        ctx.arc(700, 850, 250, 0, Math.PI * 2);
-        ctx.fill();
 
         // Header Logo / Branding
         ctx.fillStyle = '#34d399';
         ctx.font = 'bold 36px sans-serif';
-        ctx.fillText('🌱 REPLATE', 60, 90);
+        ctx.fillText('REPLATE', 60, 90);
 
         ctx.fillStyle = '#94a3b8';
         ctx.font = '18px sans-serif';
         ctx.fillText('Desa Sirkular & Penyelamatan Food Waste', 60, 125);
 
         // Card Container Inner
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
-        ctx.strokeStyle = 'rgba(52, 211, 153, 0.3)';
-        ctx.lineWidth = 2;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.roundRect(50, 160, 700, 750, 24);
         ctx.fill();
@@ -96,10 +81,10 @@ Mari bersama kurangi food waste & dukung circular economy desa bersama Replate! 
 
         ctx.fillStyle = '#34d399';
         ctx.font = '18px sans-serif';
-        ctx.fillText(`📍 ${user?.desa ? `Desa ${user.desa}` : 'Komunitas Desa'} • ${levelTitle}`, 185, 265);
+        ctx.fillText(`${user?.desa ? `Desa ${user.desa}` : 'Komunitas Desa'} • ${levelTitle}`, 185, 265);
 
         // Divider
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
         ctx.beginPath();
         ctx.moveTo(80, 310);
         ctx.lineTo(720, 310);
@@ -116,7 +101,7 @@ Mari bersama kurangi food waste & dukung circular economy desa bersama Replate! 
         ctx.fillText(`${weightKg} kg`, 105, 405);
         ctx.fillStyle = '#cbd5e1';
         ctx.font = '16px sans-serif';
-        ctx.fillText('⚖️ Makanan Diselamatkan', 105, 440);
+        ctx.fillText('Makanan Diselamatkan', 105, 440);
 
         // Stat 2: CO2 Reduction
         ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
@@ -128,7 +113,7 @@ Mari bersama kurangi food waste & dukung circular economy desa bersama Replate! 
         ctx.fillText(`${co2Kg} kg`, 445, 405);
         ctx.fillStyle = '#cbd5e1';
         ctx.font = '16px sans-serif';
-        ctx.fillText('🌍 Reduksi Emisi CO₂e', 445, 440);
+        ctx.fillText('Reduksi Emisi CO2e', 445, 440);
 
         // Stat 3: Meals Saved
         ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
@@ -140,7 +125,7 @@ Mari bersama kurangi food waste & dukung circular economy desa bersama Replate! 
         ctx.fillText(`~${meals}`, 105, 555);
         ctx.fillStyle = '#cbd5e1';
         ctx.font = '16px sans-serif';
-        ctx.fillText('🍲 Porsi Makan Tersalurkan', 105, 590);
+        ctx.fillText('Porsi Makan Tersalurkan', 105, 590);
 
         // Stat 4: RePoin
         ctx.fillStyle = 'rgba(59, 130, 246, 0.15)';
@@ -152,12 +137,12 @@ Mari bersama kurangi food waste & dukung circular economy desa bersama Replate! 
         ctx.fillText(`${points}`, 445, 555);
         ctx.fillStyle = '#cbd5e1';
         ctx.font = '16px sans-serif';
-        ctx.fillText('⭐ Saldo RePoin Warga', 445, 590);
+        ctx.fillText('Saldo RePoin Warga', 445, 590);
 
         // Badges Section
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 20px sans-serif';
-        ctx.fillText(`🏅 Lencana Terbuka (${unlockedBadges.length} Lencana)`, 80, 670);
+        ctx.fillText(`Lencana Terbuka (${unlockedBadges.length} Lencana)`, 80, 670);
 
         let badgeX = 80;
         unlockedBadges.slice(0, 5).forEach((b) => {
@@ -166,11 +151,12 @@ Mari bersama kurangi food waste & dukung circular economy desa bersama Replate! 
             ctx.roundRect(badgeX, 690, 110, 80, 12);
             ctx.fill();
 
-            ctx.font = '28px sans-serif';
-            ctx.fillText(b.icon || '🌱', badgeX + 15, 730);
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillText('Lencana', badgeX + 15, 730);
 
             ctx.fillStyle = '#e2e8f0';
-            ctx.font = '10px sans-serif';
+            ctx.font = '11px sans-serif';
             ctx.fillText((b.title || '').substring(0, 14), badgeX + 10, 755);
 
             badgeX += 125;
@@ -201,9 +187,9 @@ Mari bersama kurangi food waste & dukung circular economy desa bersama Replate! 
             <button
                 type="button"
                 onClick={() => setIsOpen(true)}
-                className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl shadow-sm transition active:scale-95"
+                className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-xl shadow-sm transition active:scale-95"
             >
-                <Sparkles size={14} className="text-emerald-200" />
+                <Sparkles size={14} className="text-green-200" />
                 Bagikan Kartu Dampak
             </button>
 
@@ -212,7 +198,7 @@ Mari bersama kurangi food waste & dukung circular economy desa bersama Replate! 
 
             {isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="relative w-full max-w-md bg-gradient-to-b from-gray-900 via-gray-900 to-emerald-950 text-white rounded-3xl p-6 shadow-2xl border border-emerald-500/20 overflow-hidden">
+                    <div className="relative w-full max-w-md bg-gray-900 text-white rounded-3xl p-6 shadow-2xl border border-gray-800 overflow-hidden">
                         {/* Close button */}
                         <button
                             onClick={() => setIsOpen(false)}
@@ -252,74 +238,67 @@ Mari bersama kurangi food waste & dukung circular economy desa bersama Replate! 
                                         Cegah Emisi
                                     </div>
                                     <div className="text-xl font-extrabold text-teal-300 mt-1">{co2Kg} kg</div>
-                                    <div className="text-[10px] text-gray-400">setara emisi CO₂e</div>
+                                    <div className="text-[10px] text-gray-400">setara emisi CO2e</div>
                                 </div>
 
                                 <div className="p-3 bg-white/5 border border-white/10 rounded-2xl">
                                     <div className="text-[10px] text-gray-400 flex items-center gap-1">
                                         <HeartHandshake size={11} className="text-amber-400" />
-                                        Porsi Makan
+                                        Porsi Makanan
                                     </div>
-                                    <div className="text-xl font-extrabold text-amber-300 mt-1">~{meals}</div>
+                                    <div className="text-xl font-extrabold text-amber-400 mt-1">~{meals}</div>
                                     <div className="text-[10px] text-gray-400">porsi tersalurkan</div>
                                 </div>
 
                                 <div className="p-3 bg-white/5 border border-white/10 rounded-2xl">
                                     <div className="text-[10px] text-gray-400 flex items-center gap-1">
-                                        <Trophy size={11} className="text-blue-400" />
-                                        RePoin Aktif
+                                        <Coins size={11} className="text-sky-400" />
+                                        Saldo Poin
                                     </div>
-                                    <div className="text-xl font-extrabold text-blue-300 mt-1">{points}</div>
-                                    <div className="text-[10px] text-gray-400">apresiasi warga</div>
+                                    <div className="text-xl font-extrabold text-sky-400 mt-1">{points}</div>
+                                    <div className="text-[10px] text-gray-400">RePoin aktif</div>
                                 </div>
                             </div>
 
-                            {/* Badge row preview */}
+                            {/* Unlocked Badges Mini Preview */}
                             {unlockedBadges.length > 0 && (
                                 <div className="pt-2 text-left">
-                                    <div className="text-[11px] font-semibold text-gray-300 mb-1.5">Lencana Diraih:</div>
-                                    <div className="flex flex-wrap gap-1.5">
+                                    <div className="text-[11px] font-semibold text-gray-400 mb-2 flex items-center justify-between">
+                                        <span>Lencana Diraih ({unlockedBadges.length})</span>
+                                        <span className="text-[10px] text-emerald-400 font-bold">Terverifikasi</span>
+                                    </div>
+                                    <div className="flex gap-2 overflow-x-auto pb-1">
                                         {unlockedBadges.map((b) => (
-                                            <span
+                                            <div
                                                 key={b.id}
-                                                className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] bg-white/10 rounded-lg text-emerald-200 border border-white/5"
+                                                className="px-2.5 py-1.5 bg-white/5 border border-white/10 rounded-xl text-center min-w-[70px] shrink-0"
                                             >
-                                                <span>{b.icon}</span>
-                                                <span>{b.title}</span>
-                                            </span>
+                                                <Award size={16} className="text-amber-400 mx-auto mb-0.5" />
+                                                <div className="text-[9px] text-gray-300 truncate max-w-[60px]">
+                                                    {b.title}
+                                                </div>
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Actions */}
-                            <div className="pt-4 flex flex-col sm:flex-row gap-2">
+                            {/* Action Buttons */}
+                            <div className="pt-4 flex gap-3">
                                 <button
-                                    type="button"
+                                    onClick={handleCopyText}
+                                    className="flex-1 inline-flex items-center justify-center gap-2 py-3 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-2xl border border-white/10 transition"
+                                >
+                                    {copied ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
+                                    {copied ? 'Tersalin!' : 'Salin Teks'}
+                                </button>
+                                <button
                                     onClick={handleDownloadImage}
                                     disabled={isDownloading}
-                                    className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl transition shadow-lg shadow-emerald-900/40 disabled:opacity-50"
+                                    className="flex-1 inline-flex items-center justify-center gap-2 py-3 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-2xl shadow-lg transition disabled:opacity-50"
                                 >
-                                    <Download size={14} />
-                                    {isDownloading ? 'Memproses...' : 'Unduh Kartu (PNG)'}
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={handleCopyText}
-                                    className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-semibold text-gray-200 bg-white/10 hover:bg-white/20 rounded-xl transition border border-white/10"
-                                >
-                                    {copied ? (
-                                        <>
-                                            <Check size={14} className="text-emerald-400" />
-                                            Tersalin!
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Copy size={14} />
-                                            Salin Teks Cerita
-                                        </>
-                                    )}
+                                    <Download size={16} />
+                                    {isDownloading ? 'Menyimpan...' : 'Unduh Gambar'}
                                 </button>
                             </div>
                         </div>
