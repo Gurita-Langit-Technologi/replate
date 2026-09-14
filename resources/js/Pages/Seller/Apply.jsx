@@ -56,8 +56,68 @@ export default function Apply({ existing }) {
                     </Link>
                     <h1 className="text-2xl font-bold text-gray-900">Pengajuan Verifikasi Penjual Olahan</h1>
                     <p className="text-sm text-gray-500 mt-0.5">
-                        Dapatkan lencana penjual resmi untuk menjual produk makanan olahan, kompos, dan hasil daur ulang UMKM.
+                        Dapatkan lencana penjual resmi BUMDes untuk menjual produk makanan olahan, siap santap, dan hasil olahan UMKM desa.
                     </p>
+                </div>
+
+                {/* Grid Manfaat & Keuntungan Menjadi Verified Seller */}
+                <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-100/50 rounded-2xl border border-emerald-200/80 p-5 space-y-3.5">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="p-2 bg-emerald-600 text-white rounded-xl shadow-xs">
+                                <ShieldCheck size={18} />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-bold text-emerald-950">Keuntungan Menjadi Penjual Terverifikasi</h3>
+                                <p className="text-[11px] text-emerald-800">Standar higienitas & perlindungan konsumen ekosistem pangan Replate</p>
+                            </div>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-emerald-200/80 text-emerald-900 rounded-md">
+                            Manfaat Resmi
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                        <div className="bg-white/80 backdrop-blur-xs p-3 rounded-xl border border-emerald-200/70 space-y-1">
+                            <p className="font-bold text-emerald-900 flex items-center gap-1.5">
+                                <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0" />
+                                Izin Unggah Kategori Olahan
+                            </p>
+                            <p className="text-emerald-800 text-[11px] leading-relaxed">
+                                Membuka akses penuh menjual makanan matang siap santap, katering, kue, frozen food, dan pupuk kompos olahan.
+                            </p>
+                        </div>
+
+                        <div className="bg-white/80 backdrop-blur-xs p-3 rounded-xl border border-emerald-200/70 space-y-1">
+                            <p className="font-bold text-emerald-900 flex items-center gap-1.5">
+                                <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0" />
+                                Lencana "Verified Seller" Resmi
+                            </p>
+                            <p className="text-emerald-800 text-[11px] leading-relaxed">
+                                Menampilkan centang terverifikasi pada kartu marketplace, halaman produk, dan profil penjual Anda.
+                            </p>
+                        </div>
+
+                        <div className="bg-white/80 backdrop-blur-xs p-3 rounded-xl border border-emerald-200/70 space-y-1">
+                            <p className="font-bold text-emerald-900 flex items-center gap-1.5">
+                                <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0" />
+                                Tingkat Kepercayaan Pembeli
+                            </p>
+                            <p className="text-emerald-800 text-[11px] leading-relaxed">
+                                Pembeli lebih yakin bertransaksi karena tempat produksi telah tervalidasi izin usaha PIRT / surat desa.
+                            </p>
+                        </div>
+
+                        <div className="bg-white/80 backdrop-blur-xs p-3 rounded-xl border border-emerald-200/70 space-y-1">
+                            <p className="font-bold text-emerald-900 flex items-center gap-1.5">
+                                <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0" />
+                                Perlindungan & Dukungan BUMDes
+                            </p>
+                            <p className="text-emerald-800 text-[11px] leading-relaxed">
+                                Terdata sebagai mitra binaan pangan desa, mendapatkan bantuan promosi, dan prioritas sirkularitas pakan/kompos.
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Status Pengajuan Sebelumnya */}

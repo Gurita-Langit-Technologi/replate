@@ -78,6 +78,7 @@ Route::middleware('auth')->group(function () {
 
     // Report
     Route::post('/products/{product}/report', [ReportController::class, 'store'])->name('reports.store');
+    Route::post('/users/{user}/report', [ReportController::class, 'storeUserReport'])->name('reports.user.store');
 
     // Pengajuan penjual olahan
     Route::get('/seller/apply', [SellerVerificationController::class, 'create'])->name('seller.apply');
@@ -105,6 +106,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::patch('/verifications/{verification}/reject', [AdminController::class, 'rejectVerification'])->name('verifications.reject');
     Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
     Route::patch('/reports/{report}/review', [AdminController::class, 'reviewReport'])->name('reports.review');
+    Route::patch('/reports/{report}/blacklist', [AdminController::class, 'blacklistReportUser'])->name('reports.blacklist');
     Route::patch('/reports/{report}/dismiss', [AdminController::class, 'dismissReport'])->name('reports.dismiss');
     Route::get('/partners', [AdminController::class, 'partners'])->name('partners');
     Route::post('/partners', [AdminController::class, 'storePartner'])->name('partners.store');

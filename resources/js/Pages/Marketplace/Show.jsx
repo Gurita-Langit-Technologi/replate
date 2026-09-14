@@ -21,7 +21,11 @@ import {
     Minus,
     AlertTriangle,
     FileText,
-    X,
+    Upload,
+    Camera,
+    CheckCircle2,
+    ShieldCheck,
+    AlertCircle,
 } from 'lucide-react';
 
 function Badge({ children, color = 'gray' }) {
@@ -104,19 +108,58 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
 
     const reportReasons = [
         { value: 'tidak_sesuai_foto', label: 'Tidak sesuai foto / informasi keliru' },
-        { value: 'kondisi_buruk', label: 'Kondisi lebih buruk dari deskripsi' },
-        { value: 'produk_tidak_layak', label: 'Produk busuk / tidak layak' },
-        { value: 'penipuan', label: 'Indikasi penipuan / spam' },
+        { value: 'kondisi_buruk', label: 'Kondisi lebih buruk / basi' },
+        { value: 'produk_tidak_layak', label: 'Produk tidak layak konsumsi' },
+        { value: 'penipuan', label: 'Indikasi penipuan / informasi palsu' },
+        { value: 'produk_dilarang', label: 'Produk dilarang / melanggar aturan desa' },
     ];
 
     const [reportModal, setReportModal] = useState({
         show: false,
         reason: 'tidak_sesuai_foto',
+        description: '',
+        evidence_photo: null,
+        evidence_preview: null,
+        submitting: false,
     });
 
+    function handleReportPhoto(e) {
+        const file = e.target.files[0];
+        if (file) {
+            setReportModal(prev => ({
+                ...prev,
+                evidence_photo: file,
+                evidence_preview: URL.createObjectURL(file),
+            }));
+        }
+    }
+
     function submitReport() {
-        router.post(`/products/${product.id}/report`, { reason: reportModal.reason }, {
-            onSuccess: () => setReportModal({ show: false, reason: 'tidak_sesuai_foto' }),
+        setReportModal(prev => ({ ...prev, submitting: true }));
+        const formData = new FormData();
+        formData.append('reason', reportModal.reason);
+        if (reportModal.description) {
+            formData.append('description', reportModal.description);
+        }
+        if (reportModal.evidence_photo) {
+            formData.append('evidence_photo', reportModal.evidence_photo);
+        }
+
+        router.post(`/products/${product.id}/report`, formData, {
+            forceFormData: true,
+            onSuccess: () => {
+                setReportModal({
+                    show: false,
+                    reason: 'tidak_sesuai_foto',
+                    description: '',
+                    evidence_photo: null,
+                    evidence_preview: null,
+                    submitting: false,
+                });
+            },
+            onFinish: () => {
+                setReportModal(prev => ({ ...prev, submitting: false }));
+            },
         });
     }
 
@@ -134,17 +177,21 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
             <Head title={product.title} />
 
             {/* Custom Report Modal */}
-            <Modal show={reportModal.show} onClose={() => setReportModal(prev => ({ ...prev, show: false }))} maxWidth="md">
+            <Modal show={reportModal.show} onClose={() => !reportModal.submitting && setReportModal(prev => ({ ...prev, show: false }))} maxWidth="md">
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2 text-red-600">
                             <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center">
                                 <Flag size={18} />
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900">Laporkan Produk</h3>
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900">Laporkan Produk</h3>
+                                <p className="text-xs text-gray-500">Bantu kami menjaga kelayakan pangan & keamanan komunitas</p>
+                            </div>
                         </div>
                         <button
                             type="button"
+                            disabled={reportModal.submitting}
                             onClick={() => setReportModal(prev => ({ ...prev, show: false }))}
                             className="text-gray-400 hover:text-gray-600 p-1"
                         >
@@ -152,50 +199,101 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
                         </button>
                     </div>
 
-                    <p className="text-xs text-gray-500 mb-4">
-                        Pilih alasan mengapa Anda ingin melaporkan produk <span className="font-semibold text-gray-700">"{product.title}"</span>:
-                    </p>
-
-                    <div className="space-y-2 mb-6">
-                        {reportReasons.map((r) => (
-                            <label
-                                key={r.value}
-                                className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition ${
-                                    reportModal.reason === r.value ? 'border-red-400 bg-red-50/50' : 'border-gray-100 hover:border-gray-200'
-                                }`}
-                            >
-                                <input
-                                    type="radio"
-                                    name="report_reason"
-                                    value={r.value}
-                                    checked={reportModal.reason === r.value}
-                                    onChange={(e) => setReportModal(prev => ({ ...prev, reason: e.target.value }))}
-                                    className="hidden"
-                                />
-                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                                    reportModal.reason === r.value ? 'border-red-500' : 'border-gray-300'
-                                }`}>
-                                    {reportModal.reason === r.value && <div className="w-2 h-2 rounded-full bg-red-500" />}
-                                </div>
-                                <span className="text-sm font-medium text-gray-800">{r.label}</span>
+                    <div className="space-y-4 mb-6">
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                                Alasan Pelaporan Produk *
                             </label>
-                        ))}
+                            <div className="space-y-1.5">
+                                {reportReasons.map((r) => (
+                                    <label
+                                        key={r.value}
+                                        className={`flex items-center gap-3 p-2.5 rounded-xl border-2 cursor-pointer transition text-xs ${
+                                            reportModal.reason === r.value ? 'border-red-500 bg-red-50/60 font-semibold text-red-950' : 'border-gray-100 hover:border-gray-200 text-gray-700'
+                                        }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="report_reason"
+                                            value={r.value}
+                                            checked={reportModal.reason === r.value}
+                                            onChange={(e) => setReportModal(prev => ({ ...prev, reason: e.target.value }))}
+                                            className="hidden"
+                                        />
+                                        <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                                            reportModal.reason === r.value ? 'border-red-600' : 'border-gray-300'
+                                        }`}>
+                                            {reportModal.reason === r.value && <div className="w-1.5 h-1.5 rounded-full bg-red-600" />}
+                                        </div>
+                                        <span>{r.label}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                Rincian / Kronologi Pelanggaran (Opsional)
+                            </label>
+                            <textarea
+                                value={reportModal.description}
+                                onChange={(e) => setReportModal(prev => ({ ...prev, description: e.target.value }))}
+                                placeholder="Jelaskan kendala produk secara jelas (misal: makanan bau asam, barang tidak sesuai foto, dll)..."
+                                rows={3}
+                                className="w-full text-xs border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                Unggah Bukti Foto (Opsional, JPG/PNG Maks 3MB)
+                            </label>
+                            {reportModal.evidence_preview ? (
+                                <div className="relative inline-block">
+                                    <img
+                                        src={reportModal.evidence_preview}
+                                        alt="Bukti Laporan"
+                                        className="w-24 h-24 object-cover rounded-xl border border-gray-200"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setReportModal(prev => ({ ...prev, evidence_photo: null, evidence_preview: null }))}
+                                        className="absolute -top-1.5 -right-1.5 p-1 bg-red-600 text-white rounded-full shadow-xs"
+                                    >
+                                        <X size={12} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-gray-300 hover:border-red-400 hover:bg-red-50/30 rounded-xl cursor-pointer transition text-xs text-gray-600">
+                                    <Camera size={16} className="text-gray-400" />
+                                    <span>Pilih foto bukti kondisi produk / kemasan</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleReportPhoto}
+                                        className="hidden"
+                                    />
+                                </label>
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
+                            disabled={reportModal.submitting}
                             onClick={() => setReportModal(prev => ({ ...prev, show: false }))}
-                            className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition"
+                            className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl transition"
                         >
                             Batal
                         </button>
                         <button
                             type="button"
+                            disabled={reportModal.submitting}
                             onClick={submitReport}
-                            className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition shadow-sm"
+                            className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl transition shadow-xs disabled:opacity-50"
                         >
-                            Kirim Laporan
+                            {reportModal.submitting ? 'Mengirim...' : 'Kirim Laporan'}
                         </button>
                     </div>
                 </div>
@@ -325,16 +423,36 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
 
                             {/* Seller info */}
                             {product.user && (
-                                <Link href={`/seller/${product.user.id}`} className="mt-4 p-4 bg-gray-50 rounded-xl flex items-center gap-3 hover:bg-gray-100 transition">
-                                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold text-sm flex-shrink-0">
-                                        <User size={18} className="text-gray-500" />
+                                <Link href={`/seller/${product.user.id}`} className="mt-4 p-4 bg-gray-50/80 border border-gray-100 rounded-xl flex items-center justify-between gap-3 hover:bg-gray-100/80 transition group">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm shrink-0">
+                                            {product.user.name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p className="text-[11px] text-gray-400">Penjual / Pemilik</p>
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                <p className="text-sm font-bold text-gray-900 group-hover:text-emerald-700 transition">{product.user.name}</p>
+                                                {product.user.role === 'verified_seller' && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md text-[10px] font-bold">
+                                                        <ShieldCheck size={11} className="text-emerald-600" />
+                                                        Verified Seller
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-xs text-gray-400">Penjual</p>
-                                        <p className="text-sm font-medium text-gray-900">{product.user.name}</p>
-                                    </div>
-                                    <span className="text-xs text-green-600">Lihat semua produk →</span>
+                                    <span className="text-xs text-emerald-600 font-semibold group-hover:translate-x-0.5 transition">Profil Penjual →</span>
                                 </Link>
+                            )}
+
+                            {/* Trust banner jika kategori olahan */}
+                            {product.category === 'olahan' && (
+                                <div className="mt-3 p-3 bg-emerald-50/60 border border-emerald-200/60 rounded-xl flex items-start gap-2.5 text-xs text-emerald-950">
+                                    <ShieldCheck size={16} className="text-emerald-600 mt-0.5 shrink-0" />
+                                    <div>
+                                        <span className="font-bold">Keamanan Pangan Olahan:</span> Produk ini diolah oleh penjual yang terdata dan terverifikasi izin higienitas PIRT / BUMDes setempat.
+                                    </div>
+                                </div>
                             )}
 
                             {/* Lokasi Pengambilan */}

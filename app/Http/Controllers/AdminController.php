@@ -165,11 +165,11 @@ class AdminController extends Controller
     }
 
     /**
-     * Daftar laporan produk
+     * Daftar laporan produk dan akun pengguna
      */
     public function reports()
     {
-        $reports = Report::with(['product', 'reporter'])
+        $reports = Report::with(['product.user', 'reporter', 'reportedUser'])
             ->orderByRaw("CASE status WHEN ? THEN 1 WHEN ? THEN 2 WHEN ? THEN 3 ELSE 4 END", [
                 ReportStatus::PENDING->value,
                 ReportStatus::REVIEWED->value,
@@ -184,52 +184,138 @@ class AdminController extends Controller
     }
 
     /**
-     * Review laporan — hapus produk + warning ke penjual
+     * Review laporan — beri sanksi warning / hapus produk
      */
-    public function reviewReport(Report $report)
+    public function reviewReport(Request $request, Report $report)
     {
-        $report->update(['status' => ReportStatus::REVIEWED]);
-        $product = $report->product;
-        $owner = User::find($product->user_id);
+        $adminNotes = $request->input('admin_notes', 'Tindakan moderasi telah diterapkan oleh Admin BUMDes.');
 
-        // Tambah report count
-        $owner->increment('report_count');
+        $report->update([
+            'status' => ReportStatus::REVIEWED,
+            'admin_notes' => $adminNotes,
+        ]);
 
-        // Blacklist kalau sudah 3x
-        if ($owner->report_count >= 3) {
-            $owner->update(['is_blacklisted' => true]);
+        $targetUser = $report->reportedUser ?? ($report->product ? $report->product->user : null);
+
+        if ($targetUser) {
+            $targetUser->increment('report_count');
+
+            if ($targetUser->report_count >= 3 && !$targetUser->is_blacklisted) {
+                $targetUser->update(['is_blacklisted' => true]);
+                Notification::create([
+                    'user_id' => $targetUser->id,
+                    'title' => 'Akun Dinonaktifkan (Blacklist)',
+                    'message' => 'Akun Anda telah dinonaktifkan otomatis karena akumulasi 3 pelanggaran terkonfirmasi.',
+                    'type' => NotificationType::REPORT,
+                    'related_id' => $report->id,
+                    'related_type' => Report::class,
+                ]);
+            } else {
+                Notification::create([
+                    'user_id' => $targetUser->id,
+                    'title' => 'Peringatan Pelanggaran Akun',
+                    'message' => "Anda menerima surat peringatan ({$targetUser->report_count}/3) atas pelanggaran: {$report->reason->label()}. Catatan: {$adminNotes}",
+                    'type' => NotificationType::REPORT,
+                    'related_id' => $report->id,
+                    'related_type' => Report::class,
+                ]);
+            }
+        }
+
+        // Jika laporan terkait produk, hapus produk dari marketplace
+        if ($report->product) {
+            $report->product->update(['status' => ProductStatus::SOLD]);
             Notification::create([
-                'user_id' => $owner->id,
-                'title' => 'Akun ditangguhkan',
-                'message' => 'Akun Anda ditangguhkan karena 3x laporan dikonfirmasi. Hubungi admin untuk banding.',
+                'user_id' => $report->product->user_id,
+                'title' => 'Produk Dinonaktifkan Admin',
+                'message' => "Produk \"{$report->product->title}\" dihapus dari marketplace karena melanggar ketentuan.",
                 'type' => NotificationType::REPORT,
                 'related_id' => $report->id,
                 'related_type' => Report::class,
             ]);
         }
 
-        // Hapus produk
-        $product->update(['status' => ProductStatus::SOLD]); // soft remove dari marketplace
-
+        // Beri tahu pelapor bahwa laporannya sudah ditindaklanjuti
         Notification::create([
-            'user_id' => $owner->id,
-            'title' => 'Produk dihapus oleh admin',
-            'message' => "Produk \"{$product->title}\" dihapus karena laporan dari pengguna lain.",
+            'user_id' => $report->reporter_id,
+            'title' => 'Laporan Anda Telah Ditindaklanjuti',
+            'message' => 'Terima kasih telah menjaga keamanan komunitas Replate. Laporan Anda telah diperiksa dan ditindaklanjuti.',
             'type' => NotificationType::REPORT,
             'related_id' => $report->id,
             'related_type' => Report::class,
         ]);
 
-        return back()->with('success', 'Laporan diproses, produk dihapus.');
+        return back()->with('success', 'Laporan berhasil ditindaklanjuti dan sanksi telah diberikan.');
     }
 
     /**
-     * Dismiss laporan
+     * Langsung blacklist pengguna dari laporan
      */
-    public function dismissReport(Report $report)
+    public function blacklistReportUser(Request $request, Report $report)
     {
-        $report->update(['status' => ReportStatus::DISMISSED]);
-        return back()->with('success', 'Laporan diabaikan.');
+        $adminNotes = $request->input('admin_notes', 'Akun diblokir langsung oleh Admin BUMDes karena pelanggaran berat.');
+
+        $report->update([
+            'status' => ReportStatus::REVIEWED,
+            'admin_notes' => $adminNotes,
+        ]);
+
+        $targetUser = $report->reportedUser ?? ($report->product ? $report->product->user : null);
+
+        if ($targetUser) {
+            $targetUser->update([
+                'is_blacklisted' => true,
+                'report_count' => max(3, $targetUser->report_count + 1),
+            ]);
+
+            Notification::create([
+                'user_id' => $targetUser->id,
+                'title' => 'Akun Diblokir Permanen',
+                'message' => "Akun Anda telah dinonaktifkan oleh Admin BUMDes karena pelanggaran berat. Catatan: {$adminNotes}",
+                'type' => NotificationType::REPORT,
+                'related_id' => $report->id,
+                'related_type' => Report::class,
+            ]);
+        }
+
+        if ($report->product) {
+            $report->product->update(['status' => ProductStatus::SOLD]);
+        }
+
+        Notification::create([
+            'user_id' => $report->reporter_id,
+            'title' => 'Laporan Selesai: Akun Telah Dinonaktifkan',
+            'message' => 'Laporan Anda telah diverifikasi dan tindakan tegas pemblokiran akun telah dilakukan.',
+            'type' => NotificationType::REPORT,
+            'related_id' => $report->id,
+            'related_type' => Report::class,
+        ]);
+
+        return back()->with('success', 'Pengguna berhasil diblokir / di-blacklist.');
+    }
+
+    /**
+     * Dismiss / Abaikan laporan
+     */
+    public function dismissReport(Request $request, Report $report)
+    {
+        $adminNotes = $request->input('admin_notes', 'Laporan diabaikan setelah ditinjau: bukti tidak cukup atau tidak ditemukan pelanggaran.');
+
+        $report->update([
+            'status' => ReportStatus::DISMISSED,
+            'admin_notes' => $adminNotes,
+        ]);
+
+        Notification::create([
+            'user_id' => $report->reporter_id,
+            'title' => 'Pembaruan Laporan',
+            'message' => "Laporan Anda telah ditinjau dan ditutup oleh Admin. Catatan: {$adminNotes}",
+            'type' => NotificationType::REPORT,
+            'related_id' => $report->id,
+            'related_type' => Report::class,
+        ]);
+
+        return back()->with('success', 'Laporan telah diabaikan/ditutup.');
     }
 
     /**

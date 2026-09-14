@@ -15,9 +15,12 @@ class Report extends Model
     protected $fillable = [
         'product_id',
         'reporter_id',
+        'reported_user_id',
         'reason',
         'description',
+        'evidence_photo',
         'status',
+        'admin_notes',
     ];
 
     protected function casts(): array
@@ -38,5 +41,10 @@ class Report extends Model
     public function reporter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reporter_id');
+    }
+
+    public function reportedUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reported_user_id');
     }
 }

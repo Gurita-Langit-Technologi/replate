@@ -14,6 +14,8 @@ import {
     Filter,
     ArrowUpDown,
     Tag,
+    CheckCircle2,
+    ShieldCheck,
 } from 'lucide-react';
 
 const CATEGORY_MAP = {
@@ -91,17 +93,29 @@ function ProductCard({ product }) {
                         {product.title}
                     </h3>
 
-                    {/* Location & Weight */}
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
-                        {product.desa && (
-                            <span className="flex items-center gap-1 truncate text-xs">
-                                <MapPin size={11} className="text-gray-400 flex-shrink-0" />
-                                {product.desa}
-                            </span>
-                        )}
-                        {product.weight_grams > 0 && (
-                            <span className="flex items-center gap-0.5 text-xs text-gray-400">
-                                • {(product.weight_grams / 1000).toFixed(1)} kg
+                    {/* Location, Weight & Verified Seller Badge */}
+                    <div className="flex items-center justify-between gap-1 text-xs text-gray-500 mt-2">
+                        <div className="flex items-center gap-1.5 truncate">
+                            {product.desa && (
+                                <span className="flex items-center gap-1 truncate text-xs">
+                                    <MapPin size={11} className="text-gray-400 flex-shrink-0" />
+                                    {product.desa}
+                                </span>
+                            )}
+                            {product.weight_grams > 0 && (
+                                <span className="flex items-center gap-0.5 text-xs text-gray-400">
+                                    • {(product.weight_grams / 1000).toFixed(1)} kg
+                                </span>
+                            )}
+                        </div>
+
+                        {product.user?.role === 'verified_seller' && (
+                            <span
+                                className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1.5 py-0.5 rounded shrink-0"
+                                title="Penjual Olahan Terverifikasi BUMDes / P-IRT"
+                            >
+                                <CheckCircle2 size={10} className="text-emerald-600" />
+                                Terverifikasi
                             </span>
                         )}
                     </div>
