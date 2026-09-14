@@ -94,9 +94,11 @@ class PointController extends Controller
         $leaderboard = $this->impactService->getLeaderboard(100);
         $userRank = collect($leaderboard)->firstWhere('id', $user->id)['rank'] ?? '-';
 
-        $allUsers = User::orderBy('points', 'desc')
-            ->orderBy('name', 'asc')
-            ->get(['id', 'name', 'email', 'role', 'points', 'redeem_code', 'desa', 'kecamatan', 'whatsapp_number']);
+        $allUsers = $user->isAdmin()
+            ? User::orderBy('points', 'desc')
+                ->orderBy('name', 'asc')
+                ->get(['id', 'name', 'email', 'role', 'points', 'redeem_code', 'desa', 'kecamatan', 'whatsapp_number'])
+            : [];
 
         return Inertia::render('Points/Index', [
             'points' => $user->points ?? 0,

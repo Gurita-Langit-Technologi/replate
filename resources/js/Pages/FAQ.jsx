@@ -27,108 +27,104 @@ function FAQItem({ question, answer }) {
 
 const faqData = [
     {
-        category: 'Umum',
+        category: 'Umum & Konsep',
         items: [
             {
                 question: 'Apa itu Replate?',
-                answer: 'Replate adalah platform digital berbasis circular economy yang menghubungkan penghasil food waste dengan pihak yang dapat memanfaatkannya — melalui jual-beli, barter, donasi, dan kemitraan. Tujuannya agar tidak ada makanan yang berakhir menjadi sampah.',
+                answer: 'Replate adalah platform digital sirkular pangan desa yang menghubungkan warga, warung, petani, dan UMKM penghasil surplus makanan dengan pihak yang membutuhkan — melalui jual-beli berdiskon, barter hasil bumi, donasi gratis, dan pengalihan ke mitra peternak & kompos.',
             },
             {
-                question: 'Siapa yang bisa menggunakan Replate?',
-                answer: 'Semua warga desa bisa menggunakan Replate: rumah tangga, warung/restoran, petani, toko roti, minimarket, katering, dan lainnya. Peternak, pengelola kompos, dan pembudidaya maggot juga bisa bergabung sebagai mitra pengolah.',
+                question: 'Siapa saja yang bisa menggunakan Replate?',
+                answer: 'Seluruh warga desa: rumah tangga, warung makan, petani, toko sembako, dan katering. Mitra pengolah seperti peternak sapi/kambing, pembudidaya maggot BSF, dan pengompos desa juga terintegrasi langsung.',
             },
             {
-                question: 'Apakah Replate gratis?',
-                answer: 'Ya, seluruh fitur Replate gratis untuk semua pengguna. Platform ini dirancang untuk dikelola oleh BUMDes sebagai bagian dari ekosistem ekonomi desa.',
+                question: 'Apakah aplikasi Replate memungut biaya?',
+                answer: 'Tidak, Replate 100% gratis digunakan oleh warga dan dikelola secara terdesentralisasi bersama BUMDes untuk ketahanan pangan desa.',
             },
             {
-                question: 'Apa itu BUMDes Hub / Drop Point?',
-                answer: 'Drop Point adalah titik kumpul fisik di kantor desa atau warung yang ditunjuk. Warga bisa menitipkan food waste di sana tanpa harus janjian langsung dengan pembeli. Penerima tinggal mengambilnya nanti.',
-            },
-        ],
-    },
-    {
-        category: 'Produk & Upload',
-        items: [
-            {
-                question: 'Produk apa saja yang bisa di-upload?',
-                answer: 'Ada 3 kategori: (1) Food waste mentah — nasi sisa, sayuran layu, roti mendekati expired, buah terlalu matang. (2) Food waste olahan — kompos, pupuk organik, selai, dried fruit (khusus penjual terverifikasi). (3) Hasil bumi — singkong, telur, sayuran segar yang berlebih (untuk barter).',
-            },
-            {
-                question: 'Apa saja tingkat kondisi produk?',
-                answer: 'Ada 3 tingkat: (1) Layak Konsumsi — masih bisa dimakan langsung. (2) Layak Olah Ulang — perlu diproses dulu (tumis, jus, selai). (3) Layak Pakan/Kompos — untuk pakan ternak, kompos, atau maggot. Tingkat kondisi ini menentukan durasi tayang dan jalur distribusi produk.',
-            },
-            {
-                question: 'Produk apa yang tidak boleh di-upload?',
-                answer: 'Produk yang berjamur parah, berlendir, berbau busuk menyengat, bercampur sampah non-organik, atau mengandung bahan berbahaya tidak diperbolehkan. Produk yang melanggar akan dihapus oleh admin.',
-            },
-            {
-                question: 'Bagaimana cara menjual produk olahan?',
-                answer: 'Anda perlu mengajukan verifikasi penjual olahan terlebih dahulu. Upload dokumen PIRT atau surat rekomendasi dari Kepala Desa/BUMDes beserta foto tempat produksi. Setelah disetujui admin, Anda bisa menjual produk olahan.',
+                question: 'Apa itu BUMDes Hub / Titik Serah Terima?',
+                answer: 'BUMDes Hub adalah posko fisik di balai desa / kantor BUMDes yang berfungsi sebagai lokasi serah terima pangan, pos penukaran RePoin sembako, dan pusat koordinasi logistik mitra desa.',
             },
         ],
     },
     {
-        category: 'Barter',
+        category: 'Jual-Beli & Pembelian Parsial',
         items: [
             {
-                question: 'Bagaimana cara barter di Replate?',
-                answer: 'Saat upload produk, pilih mode "Barter" atau "Jual & Barter", lalu tulis deskripsi barang yang Anda terima sebagai ganti. Pembeli yang tertarik bisa mengajukan tawaran barter melalui platform. Anda bisa menerima atau menolak tawaran tersebut.',
+                question: 'Bagaimana cara membeli produk di Replate?',
+                answer: 'Buka menu Marketplace, pilih produk yang Anda inginkan, tentukan jumlah kuantitas pembelian (jika stok lebih dari 1), lalu klik tombol "Beli". Pesanan akan masuk ke penjual untuk dikonfirmasi.',
             },
             {
-                question: 'Apakah barter bisa dicampur dengan uang?',
-                answer: 'Ya, negosiasi barter bersifat fleksibel. Anda bisa menyepakati campuran barang + uang melalui fitur chat. Semua kesepakatan berdasarkan negosiasi kedua pihak.',
+                question: 'Apakah saya bisa membeli sebagian jumlah produk saja (parsial)?',
+                answer: 'Ya! Untuk produk dengan stok lebih dari 1 (misal 5 kg beras atau 10 porsi roti), pembeli bebas memilih jumlah yang ingin dibeli dengan tombol (+) dan (-). Sisa stok akan tetap tayang di marketplace untuk pembeli lain.',
             },
             {
-                question: 'Apa yang terjadi kalau barter tidak deal?',
-                answer: 'Produk kembali tayang di marketplace dan timer timeout tetap berjalan (tidak di-reset). Anda bisa menerima tawaran barter dari orang lain.',
+                question: 'Bagaimana metode pembayaran dan pengambilan barang?',
+                answer: 'Pembayaran dilakukan secara langsung (COD tunai atau QRIS penjual) saat serah terima barang. Lokasi pengambilan dapat berupa COD di alamat penjual atau diantar penjual sesuai opsi penjemputan yang dicantumkan.',
+            },
+            {
+                question: 'Kapan transaksi dinyatakan selesai?',
+                answer: 'Setelah pembeli menerima makanan dan mengecek kondisinya, pembeli menekan tombol "Konfirmasi Terima Pesanan" di halaman detail transaksi. Sistem akan mencatat transaksi selesai dan memberikan RePoin ke penjual.',
             },
         ],
     },
     {
-        category: 'Timeout & Donasi',
+        category: 'Donasi & Barter',
         items: [
             {
-                question: 'Apa itu sistem timeout bertingkat?',
-                answer: 'Setiap produk punya batas waktu tayang. Tahap 1: mendekati batas waktu → harga turun otomatis 25%. Tahap 2: waktu habis → produk masuk jalur donasi. Tahap 3: 24 jam tidak ada yang klaim → produk dialihkan ke mitra pengolah (peternak/kompos/maggot). Tujuannya agar tidak ada food waste yang terbuang.',
+                question: 'Bagaimana cara mengklaim donasi makanan?',
+                answer: 'Produk berlabel donasi gratis dapat diklaim langsung di marketplace. Anda bisa menentukan berapa porsi/unit donasi yang diambil, lalu mengonfirmasi janji temu serah terima dengan pendonor.',
             },
             {
-                question: 'Berapa lama produk bisa tayang?',
-                answer: 'Tergantung kondisi: Layak Konsumsi = 48 jam, Layak Olah = 5 hari, Layak Pakan/Kompos = 7 hari, Produk Olahan = 30 hari.',
+                question: 'Bagaimana alur barter hasil bumi di Replate?',
+                answer: 'Pada produk berlabel "Barter" atau "Jual & Barter", klik tombol "Ajukan Barter", tentukan barang yang Anda tawarkan (misal: 2 sisir pisang ditukar 1 kg cabai). Penjual dapat menerima, menolak, atau bernegosiasi via fitur Chat.',
             },
             {
-                question: 'Apa yang terjadi saat ada negosiasi barter dan waktu hampir habis?',
-                answer: 'Timer otomatis di-pause selama maksimal 12 jam saat ada tawaran barter yang sedang dinegosiasi. Kalau 12 jam tidak ada kesepakatan, timer lanjut berjalan dan tawaran otomatis dibatalkan.',
+                question: 'Apa yang terjadi jika tawaran barter ditolak?',
+                answer: 'Jika tawaran barter ditolak, produk akan kembali aktif di marketplace sehingga pengguna lain dapat mengajukan penawaran baru.',
             },
         ],
     },
     {
-        category: 'RePoin',
+        category: 'Sistem RePoin & Penukaran Reward',
         items: [
             {
-                question: 'Apa itu RePoin?',
-                answer: 'RePoin adalah sistem poin reward untuk warga yang menyalurkan food waste melalui Replate. Poin dihitung berdasarkan berat barang dan kondisi kelayakan: Layak Konsumsi = 3 poin/kg, Layak Olah = 2 poin/kg, Layak Pakan/Kompos = 1 poin/kg.',
+                question: 'Apa itu RePoin dan bagaimana perhitungannya?',
+                answer: 'RePoin adalah poin apresiasi yang otomatis didapatkan penjual/pendonor setiap berhasil menyelamatkan makanan. Formula perolehan: Layak Konsumsi = 3 poin/kg, Bahan Olahan = 2 poin/kg, Pakan Ternak & Kompos = 1 poin/kg.',
             },
             {
-                question: 'Kapan RePoin masuk ke akun saya?',
-                answer: 'RePoin baru cair setelah penerima (pembeli, penerima donasi, atau mitra pengolah) mengkonfirmasi bahwa barang fisik sudah diterima. Ini untuk mencegah penyalahgunaan poin.',
+                question: 'Kapan saldo RePoin bertambah?',
+                answer: 'RePoin otomatis masuk ke saldo akun Anda sesaat setelah pihak penerima (pembeli/penerima donasi/mitra) menekan konfirmasi penerimaan barang fisik.',
             },
             {
-                question: 'RePoin bisa digunakan untuk apa?',
-                answer: 'RePoin dapat ditukarkan menjadi potongan harga sembako, pupuk organik, atau bibit tanaman di unit BUMDes. 1 RePoin setara dengan nilai 1 kg sampah organik yang tersalurkan.',
+                question: 'Bagaimana cara menukarkan RePoin?',
+                answer: 'Kunjungi halaman RePoin (/points) untuk melihat katalog reward (paket beras, minyak goreng, gula pasir, voucher diskon). Kunjungi BUMDes Hub dan tunjukkan Kode Unik Klaim QR Anda kepada petugas admin untuk mengambil barang.',
             },
         ],
     },
     {
-        category: 'Keamanan',
+        category: 'Timeout & Mitra Pengolah Desa',
         items: [
             {
-                question: 'Bagaimana jika produk tidak sesuai deskripsi?',
-                answer: 'Anda bisa melaporkan produk melalui tombol "Laporkan" di halaman detail produk. Admin akan meninjau laporan tersebut. Jika terbukti, produk akan dihapus dan penjual diberi peringatan. 3x peringatan dikonfirmasi → akun ditangguhkan.',
+                question: 'Apa itu alih fungsi otomatis berjenjang (3-Stage Timeout)?',
+                answer: 'Tahap 1 (75% durasi): Diskon harga otomatis 25% agar cepat terjual. Tahap 2 (100% durasi): Otomatis dialihkan ke jalur donasi gratis. Tahap 3 (24 jam pasca donasi): Otomatis dialihkan ke tugas penjemputan mitra peternak & kompos desa.',
             },
             {
-                question: 'Siapa yang bertanggung jawab atas kondisi produk?',
-                answer: 'Replate bertindak sebagai perantara, bukan penjamin kualitas. Tanggung jawab kondisi produk sepenuhnya ada pada penjual. Setiap upload disertai disclaimer yang harus disetujui.',
+                question: 'Siapa itu Mitra Pengolah dan apa tugasnya?',
+                answer: 'Mitra Pengolah adalah kelompok peternak, pembudidaya maggot, dan pengelola kompos organik desa yang bertugas mengambil sisa makanan yang tidak habis atau makanan basi untuk dimanfaatkan sebagai pakan dan pupuk.',
+            },
+        ],
+    },
+    {
+        category: 'Kualitas & Penanganan Sengketa (Dispute)',
+        items: [
+            {
+                question: 'Bagaimana jika makanan yang diterima ternyata basi / rusak?',
+                answer: 'Pembeli dapat menekan tombol "Laporkan Basi / Sengketa" di halaman detail transaksi sebelum menekan selesai. Status transaksi akan beralih menjadi sengketa, dan sisa bahan tersebut otomatis diarahkan ke pos mitra pengolah untuk dijadikan kompos tanpa terbuang ke TPA.',
+            },
+            {
+                question: 'Bagaimana cara menjadi Penjual Olahan Terverifikasi (UMKM)?',
+                answer: 'Warga yang ingin menjual produk olahan siap santap/kemasan dapat mengajukan verifikasi di menu "Daftar Penjual Olahan" dengan melampirkan foto tempat produksi dan izin PIRT/rekomendasi desa untuk diverifikasi oleh Admin BUMDes.',
             },
         ],
     },

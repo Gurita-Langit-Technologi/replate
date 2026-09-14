@@ -13,6 +13,7 @@ import {
     AlertTriangle,
     X,
     MapPin,
+    Info,
 } from 'lucide-react';
 
 const modeOptions = [

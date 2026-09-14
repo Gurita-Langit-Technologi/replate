@@ -89,9 +89,30 @@ export default function Transactions({ transactions = [], filters = {}, periodCo
         <AppLayout>
             <Head title="Monitoring Transaksi Desa — Admin BUMDes" />
 
-            <div className="max-w-7xl mx-auto space-y-6">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="max-w-7xl mx-auto space-y-6 print:m-0 print:p-0 print:max-w-none">
+                {/* Official BUMDes Print Header (Print Only) */}
+                <div className="hidden print:block pb-6 border-b-2 border-gray-900 mb-6">
+                    <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3.5">
+                            <img src="/image/logo(2).png" alt="Replate" className="w-auto h-12 rounded-lg object-contain" />
+                            <div>
+                                <h1 className="text-xl font-black text-emerald-950 uppercase tracking-tight">BADAN USAHA MILIK DESA (BUMDES)</h1>
+                                <p className="text-xs font-bold text-gray-700">LEMBAR REKAPITULASI AUDIT TRANSAKSI PANGAN SIRKULAR REPLATE</p>
+                                <p className="text-[11px] text-gray-500">Unit Pengelolaan Ketahanan Pangan & Pencegahan Food Waste Desa</p>
+                            </div>
+                        </div>
+                        <div className="text-right text-xs">
+                            <span className="inline-block px-2.5 py-1 bg-emerald-100 text-emerald-900 font-extrabold rounded border border-emerald-300">
+                                DOKUMEN AUDIT RESMI
+                            </span>
+                            <p className="text-gray-600 font-medium mt-1">Rentang: <strong>{periodLabels[periodFilter] || 'Semua Waktu'}</strong></p>
+                            <p className="text-[10px] text-gray-400">Dicetak: {new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' })}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Header (Screen Only) */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
                     <div>
                         <div className="flex items-center gap-2">
                             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
@@ -110,16 +131,16 @@ export default function Transactions({ transactions = [], filters = {}, periodCo
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => window.print()}
-                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl shadow-2xs transition"
+                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl shadow-sm transition active:scale-95"
                         >
-                            <Printer size={16} className="text-gray-500" />
-                            Cetak Rekap
+                            <Printer size={16} />
+                            Cetak Laporan Rekap
                         </button>
                     </div>
                 </div>
 
                 {/* Period Filter Card (Semua, Per Minggu, Per Bulan, Per Tahun) */}
-                <div className="bg-white p-4 rounded-2xl border border-gray-200">
+                <div className="bg-white p-4 rounded-2xl border border-gray-200 print:hidden">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                         <p className="text-xs font-bold text-gray-700 flex items-center gap-1.5 uppercase tracking-wide">
                             <Calendar size={14} className="text-green-600" />
@@ -227,7 +248,7 @@ export default function Transactions({ transactions = [], filters = {}, periodCo
                 </div>
 
                 {/* Filter & Search Bar */}
-                <div className="bg-white p-5 rounded-2xl border border-gray-200 space-y-4">
+                <div className="bg-white p-5 rounded-2xl border border-gray-200 space-y-4 print:hidden">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                         {/* Search Input */}
                         <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
@@ -326,21 +347,21 @@ export default function Transactions({ transactions = [], filters = {}, periodCo
                 </div>
 
                 {/* Table Data */}
-                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden print:border-none print:shadow-none">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
+                        <table className="w-full text-left border-collapse print:border print:border-gray-300">
                             <thead>
-                                <tr className="bg-gray-50 border-b border-gray-200 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                                    <th className="py-3.5 px-4">ID & Tanggal</th>
-                                    <th className="py-3.5 px-4">Produk Pangan</th>
-                                    <th className="py-3.5 px-4">Penjual / Pendonor</th>
-                                    <th className="py-3.5 px-4">Pembeli / Mitra</th>
-                                    <th className="py-3.5 px-4">Jalur & Nilai</th>
-                                    <th className="py-3.5 px-4">Status</th>
-                                    <th className="py-3.5 px-4 text-right">Aksi</th>
+                                <tr className="bg-gray-50 border-b border-gray-200 text-[11px] font-bold text-gray-500 uppercase tracking-wider print:bg-gray-100 print:text-gray-900 print:border-gray-300">
+                                    <th className="py-3.5 px-4 print:p-2.5 print:border print:border-gray-300">ID & Tanggal</th>
+                                    <th className="py-3.5 px-4 print:p-2.5 print:border print:border-gray-300">Produk Pangan</th>
+                                    <th className="py-3.5 px-4 print:p-2.5 print:border print:border-gray-300">Penjual / Pendonor</th>
+                                    <th className="py-3.5 px-4 print:p-2.5 print:border print:border-gray-300">Pembeli / Mitra</th>
+                                    <th className="py-3.5 px-4 print:p-2.5 print:border print:border-gray-300">Jalur & Nilai</th>
+                                    <th className="py-3.5 px-4 print:p-2.5 print:border print:border-gray-300">Status</th>
+                                    <th className="py-3.5 px-4 text-right print:hidden">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 text-xs text-gray-600">
+                            <tbody className="divide-y divide-gray-100 text-xs text-gray-600 print:divide-gray-300">
                                 {transactions && transactions.length > 0 ? (
                                     transactions.map((t) => {
                                         const status = statusConfig[t.status] || statusConfig.pending;
@@ -349,11 +370,11 @@ export default function Transactions({ transactions = [], filters = {}, periodCo
                                         const product = t.product;
 
                                         return (
-                                            <tr key={t.id} className="hover:bg-gray-50/70 transition">
+                                            <tr key={t.id} className="hover:bg-gray-50/70 transition print:break-inside-avoid">
                                                 {/* ID & Date */}
-                                                <td className="py-3.5 px-4">
+                                                <td className="py-3.5 px-4 print:p-2.5 print:border print:border-gray-300">
                                                     <span className="font-mono font-bold text-gray-900">#{t.id}</span>
-                                                    <p className="text-[11px] text-gray-400 mt-0.5">
+                                                    <p className="text-[11px] text-gray-400 mt-0.5 print:text-gray-600">
                                                         {new Date(t.created_at).toLocaleDateString('id-ID', {
                                                             day: 'numeric',
                                                             month: 'short',
@@ -365,9 +386,9 @@ export default function Transactions({ transactions = [], filters = {}, periodCo
                                                 </td>
 
                                                 {/* Product */}
-                                                <td className="py-3.5 px-4 max-w-xs">
+                                                <td className="py-3.5 px-4 max-w-xs print:p-2.5 print:border print:border-gray-300">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
+                                                        <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden shrink-0 border border-gray-200 print:hidden">
                                                             {product?.photo ? (
                                                                 <img
                                                                     src={`/storage/${product.photo}`}
@@ -388,8 +409,8 @@ export default function Transactions({ transactions = [], filters = {}, periodCo
                                                             <p className="font-semibold text-gray-900 truncate">
                                                                 {product?.title || 'Produk dihapus'}
                                                             </p>
-                                                            <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-0.5">
-                                                                <span className="font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded">
+                                                            <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-0.5 print:text-gray-600">
+                                                                <span className="font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded print:border-none print:p-0">
                                                                     {t.quantity || 1} {product?.unit || 'item'}
                                                                 </span>
                                                                 {product?.weight_grams && (
@@ -401,27 +422,27 @@ export default function Transactions({ transactions = [], filters = {}, periodCo
                                                 </td>
 
                                                 {/* Seller */}
-                                                <td className="py-3.5 px-4">
+                                                <td className="py-3.5 px-4 print:p-2.5 print:border print:border-gray-300">
                                                     <p className="font-medium text-gray-900">{t.seller?.name || '-'}</p>
-                                                    <p className="text-[11px] text-gray-400">{t.seller?.desa ? `Desa ${t.seller.desa}` : t.seller?.email}</p>
+                                                    <p className="text-[11px] text-gray-400 print:text-gray-600">{t.seller?.desa ? `Desa ${t.seller.desa}` : t.seller?.email}</p>
                                                 </td>
 
                                                 {/* Buyer / Partner */}
-                                                <td className="py-3.5 px-4">
+                                                <td className="py-3.5 px-4 print:p-2.5 print:border print:border-gray-300">
                                                     <p className="font-medium text-gray-900">
                                                         {t.type === 'partner_transfer'
                                                             ? (t.partner?.name || t.buyer?.name || 'Mitra Desa')
                                                             : (t.buyer?.name || '-')}
                                                     </p>
-                                                    <p className="text-[11px] text-gray-400">
+                                                    <p className="text-[11px] text-gray-400 print:text-gray-600">
                                                         {t.buyer?.desa ? `Desa ${t.buyer.desa}` : (t.buyer?.email || '-')}
                                                     </p>
                                                 </td>
 
                                                 {/* Type & Value */}
-                                                <td className="py-3.5 px-4">
-                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${type.color} mb-1`}>
-                                                        <TypeIcon size={12} />
+                                                <td className="py-3.5 px-4 print:p-2.5 print:border print:border-gray-300">
+                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${type.color} mb-1 print:border-none print:p-0`}>
+                                                        <TypeIcon size={12} className="print:hidden" />
                                                         {type.label}
                                                     </span>
                                                     {t.price ? (
@@ -434,15 +455,15 @@ export default function Transactions({ transactions = [], filters = {}, periodCo
                                                 </td>
 
                                                 {/* Status */}
-                                                <td className="py-3.5 px-4">
-                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${status.color}`}>
-                                                        <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                                                <td className="py-3.5 px-4 print:p-2.5 print:border print:border-gray-300">
+                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${status.color} print:border-none print:p-0`}>
+                                                        <span className={`w-1.5 h-1.5 rounded-full ${status.dot} print:hidden`} />
                                                         {status.label}
                                                     </span>
                                                 </td>
 
                                                 {/* Action */}
-                                                <td className="py-3.5 px-4 text-right">
+                                                <td className="py-3.5 px-4 text-right print:hidden">
                                                     <Link
                                                         href={`/transactions/${t.id}`}
                                                         className="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-gray-50 text-gray-700 hover:text-green-700 border border-gray-200 hover:border-green-300 text-xs font-semibold rounded-lg transition"
@@ -471,6 +492,48 @@ export default function Transactions({ transactions = [], filters = {}, periodCo
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                {/* Official BUMDes Audit Signatures (Print Only) */}
+                <div className="hidden print:block pt-8 mt-6 border-t-2 border-gray-900 text-xs text-gray-900 font-sans">
+                    <div className="grid grid-cols-3 gap-6 text-center">
+                        <div>
+                            <p className="font-semibold text-gray-600">Disiapkan Oleh:</p>
+                            <p className="text-[11px] text-gray-500">Petugas Administrasi BUMDes</p>
+                            <div className="h-20 flex items-center justify-center">
+                                <span className="text-[10px] font-mono text-gray-400">[Tanda Tangan & Cap]</span>
+                            </div>
+                            <p className="font-bold underline text-gray-900">Admin Operasional Desa</p>
+                            <p className="text-[10px] text-gray-500">Unit Sirkularitas Pangan</p>
+                        </div>
+
+                        <div>
+                            <p className="font-semibold text-gray-600">Diverifikasi Sistem:</p>
+                            <p className="text-[11px] text-gray-500">Audit Digital Replate</p>
+                            <div className="h-20 flex flex-col items-center justify-center">
+                                <span className="inline-block px-2 py-0.5 border border-emerald-600 text-emerald-800 font-mono font-bold text-[9px] rounded">
+                                    SYSTEM VERIFIED
+                                </span>
+                                <span className="text-[9px] font-mono text-gray-400 mt-1">LOG-ID: {Date.now().toString(36).toUpperCase()}</span>
+                            </div>
+                            <p className="font-bold text-emerald-900">Replate Engine Core</p>
+                            <p className="text-[10px] text-gray-500">Terdaftar Resmi BUMDes</p>
+                        </div>
+
+                        <div>
+                            <p className="font-semibold text-gray-600">Disahkan Oleh:</p>
+                            <p className="text-[11px] text-gray-500">Direktur / Kepala BUMDes</p>
+                            <div className="h-20 flex items-center justify-center">
+                                <span className="text-[10px] font-mono text-gray-400">[Tanda Tangan & Cap Basah]</span>
+                            </div>
+                            <p className="font-bold underline text-gray-900">Kepala Pengurus BUMDes</p>
+                            <p className="text-[10px] text-gray-500">NIP / SK Desa Terlampir</p>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 pt-4 border-t border-gray-300 text-center text-[10px] text-gray-500">
+                        Dokumen Rekapitulasi Audit Transaksi Pangan BUMDes ini sah sebagai lampiran pertanggungjawaban program ketahanan pangan & ESG desa. Dicetak melalui Replate Platform.
                     </div>
                 </div>
             </div>

@@ -335,44 +335,44 @@ export default function Welcome({ auth, impact }) {
                         <TargetCard icon={Store} title="Toko Kelontong" desc="Jual produk mendekati masa kedaluwarsa dengan diskon" />
                         <TargetCard icon={Sprout} title="Petani Lokal" desc="Tukar hasil panen melimpah dengan kebutuhan dapur tetangga" />
                         <TargetCard icon={Users} title="Peternak & Pembudidaya" desc="Dapatkan pasokan pakan ternak dan maggot tanpa biaya" />
-                        <TargetCard icon={Building} title="Pemerintah Desa & BUMDes" desc="Pantau transparansi dan capaian SDGs desa secara digital" />
+                        <TargetCard icon={Building} title="Pemerintah Desa & BUMDes" desc="Pantau transparansi sirkularitas dan data ketahanan pangan desa" />
                     </div>
                 </section>
 
-                {/* Kontribusi SDGs */}
+                {/* Dampak Nyata Komunitas */}
                 <section className="max-w-6xl mx-auto px-4 py-16">
                     <div className="bg-emerald-50/50 rounded-3xl border border-emerald-200/80 p-8 md:p-12">
                         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
                             <div>
                                 <span className="text-xs font-bold uppercase tracking-wider text-green-700 bg-green-100 px-3 py-1 rounded-full border border-green-200">
-                                    Sustainable Development Goals (SDGs)
+                                    Manfaat Nyata untuk Desa
                                 </span>
-                                <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mt-2">Dukungan Nyata untuk SDGs Desa</h2>
+                                <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mt-2">Dampak Nyata Ekonomi & Lingkungan</h2>
                             </div>
                             <Link href="/impact" className="btn-primary flex-shrink-0">
-                                <Leaf size={16} /> Lihat Analisis Lengkap SDGs
+                                <Leaf size={16} /> Lihat Analisis Lengkap Dampak
                             </Link>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div className="bg-white rounded-2xl p-4 border border-green-100 shadow-sm">
-                                <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded">SDG 2</span>
-                                <p className="font-bold text-gray-900 text-sm mt-2">Tanpa Kelaparan</p>
-                                <p className="text-xs text-gray-500 mt-1">Donasi makanan untuk ketahanan pangan keluarga rentan.</p>
+                            <div className="bg-white rounded-2xl p-5 border border-green-100 shadow-sm">
+                                <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-sm mb-2">🍽️</div>
+                                <p className="font-bold text-gray-900 text-sm">Ketahanan Pangan</p>
+                                <p className="text-xs text-gray-500 mt-1">Menyalurkan kelebihan makanan layak santap langsung ke warga yang membutuhkan.</p>
                             </div>
-                            <div className="bg-white rounded-2xl p-4 border border-green-100 shadow-sm">
-                                <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">SDG 11</span>
-                                <p className="font-bold text-gray-900 text-sm mt-2">Kota & Komunitas Berkelanjutan</p>
-                                <p className="text-xs text-gray-500 mt-1">Pengelolaan sampah organik berbasis gotong royong lokal.</p>
+                            <div className="bg-white rounded-2xl p-5 border border-green-100 shadow-sm">
+                                <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm mb-2">🌱</div>
+                                <p className="font-bold text-gray-900 text-sm">Pakan & Pupuk Alami</p>
+                                <p className="text-xs text-gray-500 mt-1">Sisa pangan diolah jadi pakan ternak gratis & kompos penyubur tanaman kebun.</p>
                             </div>
-                            <div className="bg-white rounded-2xl p-4 border border-green-100 shadow-sm">
-                                <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded">SDG 12</span>
-                                <p className="font-bold text-gray-900 text-sm mt-2">Konsumsi Bertanggung Jawab</p>
-                                <p className="text-xs text-gray-500 mt-1">Pencegahan food waste melalui model ekonomi sirkular.</p>
+                            <div className="bg-white rounded-2xl p-5 border border-green-100 shadow-sm">
+                                <div className="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center font-bold text-sm mb-2">♻️</div>
+                                <p className="font-bold text-gray-900 text-sm">Desa Bebas Sampah TPA</p>
+                                <p className="text-xs text-gray-500 mt-1">Mengurangi beban timbunan sampah organik di desa melalui sirkulasi mandiri.</p>
                             </div>
-                            <div className="bg-white rounded-2xl p-4 border border-green-100 shadow-sm">
-                                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">SDG 13</span>
-                                <p className="font-bold text-gray-900 text-sm mt-2">Penanganan Perubahan Iklim</p>
-                                <p className="text-xs text-gray-500 mt-1">Reduksi gas metana dari timbunan sampah organik di TPA.</p>
+                            <div className="bg-white rounded-2xl p-5 border border-green-100 shadow-sm">
+                                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm mb-2">🌍</div>
+                                <p className="font-bold text-gray-900 text-sm">Cegah Emisi Metana</p>
+                                <p className="text-xs text-gray-500 mt-1">Mencegah gas rumah kaca berbahaya dari pembusukan sampah di tempat pembuangan.</p>
                             </div>
                         </div>
                     </div>

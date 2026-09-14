@@ -43,21 +43,54 @@ class ImpactAnalyticsService
         $totalPartners = User::where('role', UserRole::PARTNER)->count();
         $totalProducts = Product::count();
 
-        // Distribusi per Kategori Pangan (Kg & Persentase)
-        $categoryStats = Transaction::where('transactions.status', TransactionStatus::COMPLETED)
+        // Distribusi per Kategori Pangan Lengkap (Kg & Persentase)
+        $completedTransactions = Transaction::where('transactions.status', TransactionStatus::COMPLETED)
             ->join('products', 'transactions.product_id', '=', 'products.id')
-            ->select('products.category', DB::raw('SUM(products.weight_grams) as total_weight'), DB::raw('COUNT(transactions.id) as total_tx'))
-            ->groupBy('products.category')
-            ->get()
-            ->mapWithKeys(function ($item) use ($totalWeightGrams) {
-                $weightKg = round($item->total_weight / 1000, 1);
-                $pct = $totalWeightGrams > 0 ? round(($item->total_weight / $totalWeightGrams) * 100, 1) : 0;
-                return [$item->category => [
+            ->select('products.category', 'products.condition', 'products.weight_grams', 'transactions.id')
+            ->get();
+
+        $categoryBuckets = [
+            'siap_santap' => ['name' => 'Makanan Siap Santap & Katering', 'weight_grams' => 0, 'tx_count' => 0],
+            'sayur_buah' => ['name' => 'Sayur, Buah & Hasil Kebun Segar', 'weight_grams' => 0, 'tx_count' => 0],
+            'bahan_pokok' => ['name' => 'Bahan Pangan Pokok & Mentah', 'weight_grams' => 0, 'tx_count' => 0],
+            'produk_olahan' => ['name' => 'Produk Olahan & Olah Ulang', 'weight_grams' => 0, 'tx_count' => 0],
+            'pakan_kompos' => ['name' => 'Pakan Ternak & Kompos Organik', 'weight_grams' => 0, 'tx_count' => 0],
+        ];
+
+        foreach ($completedTransactions as $tx) {
+            $cat = $tx->category instanceof \BackedEnum ? $tx->category->value : $tx->category;
+            $cond = $tx->condition instanceof \BackedEnum ? $tx->condition->value : $tx->condition;
+            $weight = (int) ($tx->weight_grams ?? 0);
+
+            if ($cond === 'layak_pakan_kompos') {
+                $bucketKey = 'pakan_kompos';
+            } elseif ($cat === 'olahan' && $cond === 'layak_konsumsi') {
+                $bucketKey = 'siap_santap';
+            } elseif ($cat === 'olahan') {
+                $bucketKey = 'produk_olahan';
+            } elseif ($cat === 'hasil_bumi') {
+                $bucketKey = 'sayur_buah';
+            } else {
+                $bucketKey = 'bahan_pokok';
+            }
+
+            $categoryBuckets[$bucketKey]['weight_grams'] += $weight;
+            $categoryBuckets[$bucketKey]['tx_count'] += 1;
+        }
+
+        $categoryStats = [];
+        foreach ($categoryBuckets as $key => $data) {
+            if ($data['tx_count'] > 0 || $totalWeightGrams == 0) {
+                $weightKg = round($data['weight_grams'] / 1000, 1);
+                $pct = $totalWeightGrams > 0 ? round(($data['weight_grams'] / $totalWeightGrams) * 100, 1) : 0;
+                $categoryStats[$key] = [
+                    'label' => $data['name'],
                     'weight_kg' => $weightKg,
                     'percentage' => $pct,
-                    'transactions' => $item->total_tx,
-                ]];
-            })->toArray();
+                    'transactions' => $data['tx_count'],
+                ];
+            }
+        }
 
         // Distribusi per Mode Transaksi (Jual, Barter, Donasi, Alih Fungsi)
         $modeStats = Transaction::where('status', TransactionStatus::COMPLETED)

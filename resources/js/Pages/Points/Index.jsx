@@ -241,17 +241,19 @@ export default function Index({
                         <Award size={15} />
                         Lencana ({totalUnlocked}/{totalBadges})
                     </button>
-                    <button
-                        onClick={() => setTab('directory')}
-                        className={`pb-3 px-3.5 text-xs font-semibold transition border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
-                            tab === 'directory'
-                                ? 'border-green-600 text-green-700'
-                                : 'border-transparent text-gray-500 hover:text-gray-900'
-                        }`}
-                    >
-                        <Users size={15} />
-                        Direktori Kode Warga ({allUsers.length})
-                    </button>
+                    {currentUser?.role === 'admin' && (
+                        <button
+                            onClick={() => setTab('directory')}
+                            className={`pb-3 px-3.5 text-xs font-semibold transition border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
+                                tab === 'directory'
+                                    ? 'border-green-600 text-green-700'
+                                    : 'border-transparent text-gray-500 hover:text-gray-900'
+                            }`}
+                        >
+                            <Users size={15} />
+                            Direktori Kode Warga ({allUsers.length})
+                        </button>
+                    )}
                     <button
                         onClick={() => setTab('circular')}
                         className={`pb-3 px-3.5 text-xs font-semibold transition border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
@@ -277,11 +279,8 @@ export default function Index({
                                             {currentUser.name?.charAt(0).toUpperCase() || 'U'}
                                         </div>
                                         <div className="space-y-1">
-                                            <div className="flex flex-wrap items-center gap-2">
+                                            <div>
                                                 <h2 className="text-lg font-bold tracking-tight">{currentUser.name}</h2>
-                                                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/30 border border-emerald-400/40 text-emerald-200">
-                                                    {ROLE_LABELS[currentUser.role] || currentUser.role}
-                                                </span>
                                             </div>
                                             <p className="text-xs text-emerald-100/80 flex items-center gap-1">
                                                 <Mail size={12} /> {currentUser.email}
@@ -526,8 +525,8 @@ export default function Index({
                     </div>
                 )}
 
-                {/* TAB 4: Direktori Kode Warga (NEW) */}
-                {tab === 'directory' && (
+                {/* TAB 4: Direktori Kode Warga (Admin Only) */}
+                {tab === 'directory' && currentUser?.role === 'admin' && (
                     <div className="space-y-4">
                         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-2xs space-y-4">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

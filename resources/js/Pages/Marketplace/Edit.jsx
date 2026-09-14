@@ -12,6 +12,7 @@ import {
     Heart,
     X,
     MapPin,
+    Info,
 } from 'lucide-react';
 
 const modeOptions = [

@@ -20,6 +20,7 @@ import {
     Plus,
     Minus,
     AlertTriangle,
+    FileText,
     X,
 } from 'lucide-react';
 

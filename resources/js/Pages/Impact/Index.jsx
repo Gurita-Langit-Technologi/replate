@@ -45,9 +45,25 @@ function ImpactContent({ impact, topContributors = [] }) {
     const villages = impact?.villages ?? [];
 
     const categoryNames = {
-        mentah: 'Bahan Mentah / Segar',
-        olahan: 'Makanan Olahan Siap Santap',
+        siap_santap: 'Makanan Siap Santap & Katering',
+        sayur_buah: 'Sayur, Buah & Hasil Kebun Segar',
+        bahan_pokok: 'Bahan Pangan Pokok & Mentah',
+        produk_olahan: 'Produk Olahan & Olah Ulang',
+        pakan_kompos: 'Pakan Ternak & Kompos Organik',
+        mentah: 'Bahan Pangan Mentah',
+        olahan: 'Makanan Olahan',
         hasil_bumi: 'Hasil Bumi & Pertanian',
+    };
+
+    const categoryColors = {
+        siap_santap: 'bg-red-500',
+        sayur_buah: 'bg-green-500',
+        bahan_pokok: 'bg-blue-500',
+        produk_olahan: 'bg-amber-500',
+        pakan_kompos: 'bg-emerald-600',
+        mentah: 'bg-green-600',
+        olahan: 'bg-amber-600',
+        hasil_bumi: 'bg-blue-600',
     };
 
     return (
@@ -127,7 +143,7 @@ function ImpactContent({ impact, topContributors = [] }) {
                                     </div>
                                     <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
                                         <div
-                                            className="h-full bg-green-600 rounded-full transition-all duration-300"
+                                            className={`h-full rounded-full transition-all duration-300 ${categoryColors[catKey] ?? 'bg-green-600'}`}
                                             style={{ width: `${Math.max(catData.percentage, 5)}%` }}
                                         />
                                     </div>
@@ -205,73 +221,73 @@ function ImpactContent({ impact, topContributors = [] }) {
                 )}
             </div>
 
-            {/* Matriks Capaian SDGs Desa */}
+            {/* Pilar Dampak Ekosistem Desa */}
             <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
                 <div className="mb-4">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-200">
-                        Target Global SDGs
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
+                        Manfaat Komunitas & Lingkungan
                     </span>
-                    <h2 className="text-base font-bold text-gray-900 mt-2">Penyelarasan dengan Sustainable Development Goals</h2>
+                    <h2 className="text-base font-bold text-gray-900 mt-2">Pilar Utama Dampak Sirkularitas Desa</h2>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-                    <div className="p-3.5 bg-gray-50 rounded-lg border border-gray-200/80 space-y-1">
-                        <div className="flex items-center gap-1.5 font-bold text-gray-900">
-                            <span className="px-1.5 py-0.2 bg-red-600 text-white rounded text-[10px]">SDG 2</span>
-                            <span>Tanpa Kelaparan</span>
+                    <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1.5">
+                        <div className="flex items-center gap-2 font-bold text-gray-900">
+                            <span className="w-6 h-6 rounded-lg bg-red-100 text-red-700 flex items-center justify-center text-xs">🍚</span>
+                            <span>Ketahanan Pangan Warga</span>
                         </div>
                         <p className="text-gray-500 text-[11px] leading-relaxed">
-                            Mendistribusikan kelebihan pangan layak santap untuk ketahanan pangan keluarga rentan.
+                            Mendistribusikan kelebihan makanan layak santap ke keluarga rentan melalui donasi dan harga diskon terjangkau.
                         </p>
                     </div>
 
-                    <div className="p-3.5 bg-gray-50 rounded-lg border border-gray-200/80 space-y-1">
-                        <div className="flex items-center gap-1.5 font-bold text-gray-900">
-                            <span className="px-1.5 py-0.2 bg-amber-600 text-white rounded text-[10px]">SDG 9</span>
-                            <span>Inovasi Digital</span>
+                    <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1.5">
+                        <div className="flex items-center gap-2 font-bold text-gray-900">
+                            <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xs">⚡</span>
+                            <span>Sistem Sirkular Cepat</span>
                         </div>
                         <p className="text-gray-500 text-[11px] leading-relaxed">
-                            Menerapkan teknologi timeout otomatis dan matching sirkular untuk efisiensi rantai pangan lokal.
+                            Menerapkan teknologi timeout otomatis berjenjang agar pangan terserap sebelum kualitasnya menurun.
                         </p>
                     </div>
 
-                    <div className="p-3.5 bg-gray-50 rounded-lg border border-gray-200/80 space-y-1">
-                        <div className="flex items-center gap-1.5 font-bold text-gray-900">
-                            <span className="px-1.5 py-0.2 bg-amber-700 text-white rounded text-[10px]">SDG 11</span>
-                            <span>Komunitas Berkelanjutan</span>
+                    <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1.5">
+                        <div className="flex items-center gap-2 font-bold text-gray-900">
+                            <span className="w-6 h-6 rounded-lg bg-green-100 text-green-700 flex items-center justify-center text-xs">🌾</span>
+                            <span>Pakan Ternak & Pupuk Organik</span>
                         </div>
                         <p className="text-gray-500 text-[11px] leading-relaxed">
-                            Membangun sistem pengelolaan sisa pangan terdesentralisasi berbasis BUMDes dan warga desa.
+                            Sisa pangan yang tidak habis dialihkan ke mitra peternak & pengomposan untuk mendukung pertanian desa.
                         </p>
                     </div>
 
-                    <div className="p-3.5 bg-gray-50 rounded-lg border border-gray-200/80 space-y-1">
-                        <div className="flex items-center gap-1.5 font-bold text-gray-900">
-                            <span className="px-1.5 py-0.2 bg-green-600 text-white rounded text-[10px]">SDG 12</span>
-                            <span>Konsumsi Bertanggung Jawab</span>
+                    <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1.5">
+                        <div className="flex items-center gap-2 font-bold text-gray-900">
+                            <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs">♻️</span>
+                            <span>Desa Bebas Beban TPA</span>
                         </div>
                         <p className="text-gray-500 text-[11px] leading-relaxed">
-                            Mencegah sisa pangan terbuang di hilir melalui konsep ekonomi sirkular zero food waste.
+                            Mengurangi volume sampah basah yang diangkut ke TPA melalui pemanfaatan langsung di tingkat RT/RW.
                         </p>
                     </div>
 
-                    <div className="p-3.5 bg-gray-50 rounded-lg border border-gray-200/80 space-y-1">
-                        <div className="flex items-center gap-1.5 font-bold text-gray-900">
-                            <span className="px-1.5 py-0.2 bg-emerald-700 text-white rounded text-[10px]">SDG 13</span>
-                            <span>Penanganan Iklim</span>
+                    <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1.5">
+                        <div className="flex items-center gap-2 font-bold text-gray-900">
+                            <span className="w-6 h-6 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center text-xs">🌍</span>
+                            <span>Pencegahan Emisi Karbon</span>
                         </div>
                         <p className="text-gray-500 text-[11px] leading-relaxed">
-                            Mengurangi emisi gas metana ($CH_4$) dan karbon ($CO_2$) akibat pembusukan sampah di TPA.
+                            Mengurangi pembentukan gas metana berbahaya dari tumpukan sampah makanan yang membusuk di alam terbuka.
                         </p>
                     </div>
 
-                    <div className="p-3.5 bg-gray-50 rounded-lg border border-gray-200/80 space-y-1">
-                        <div className="flex items-center gap-1.5 font-bold text-gray-900">
-                            <span className="px-1.5 py-0.2 bg-blue-700 text-white rounded text-[10px]">SDG 17</span>
-                            <span>Kemitraan Multistakeholder</span>
+                    <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1.5">
+                        <div className="flex items-center gap-2 font-bold text-gray-900">
+                            <span className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-xs">🤝</span>
+                            <span>Ekonomi Mandiri & Gotong Royong</span>
                         </div>
                         <p className="text-gray-500 text-[11px] leading-relaxed">
-                            Kolaborasi aktif antara pemerintah desa, pelaku usaha warung, peternak, dan pengelola kompos.
+                            Kolaborasi produktif antara warga, warung UMKM, kelompok peternak, dan pengelola BUMDes desa.
                         </p>
                     </div>
                 </div>
