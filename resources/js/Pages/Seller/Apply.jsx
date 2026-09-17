@@ -51,8 +51,8 @@ export default function Apply({ existing }) {
 
             <div className="max-w-2xl mx-auto space-y-6">
                 <div>
-                    <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 mb-3 transition">
-                        <ArrowLeft size={14} /> Kembali ke Dashboard
+                    <Link href="/profile" className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 mb-3 transition">
+                        <ArrowLeft size={14} /> Kembali ke Profil
                     </Link>
                     <h1 className="text-2xl font-bold text-gray-900">Pengajuan Verifikasi Penjual Olahan</h1>
                     <p className="text-sm text-gray-500 mt-0.5">

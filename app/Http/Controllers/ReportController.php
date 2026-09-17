@@ -43,13 +43,21 @@ class ReportController extends Controller
         $validated = $request->validate([
             'reason' => ['required', Rule::enum(ReportReason::class)],
             'description' => 'nullable|string|max:1000',
-            'evidence_photo' => 'nullable|image|max:3072',
+            'evidence_photos' => 'nullable|array|max:4',
+            'evidence_photos.*' => 'file|mimes:jpg,jpeg,png,webp,mp4,webm,mov|max:20480',
+            'evidence_photo' => 'nullable|file|mimes:jpg,jpeg,png,webp,mp4,webm,mov|max:20480',
         ]);
 
-        $photoPath = null;
-        if ($request->hasFile('evidence_photo')) {
-            $photoPath = $this->imageService->storeOptimized($request->file('evidence_photo'), 'reports');
+        $photoPaths = [];
+        if ($request->hasFile('evidence_photos')) {
+            foreach (array_slice($request->file('evidence_photos'), 0, 4) as $file) {
+                $photoPaths[] = $this->imageService->storeMedia($file, 'reports');
+            }
+        } elseif ($request->hasFile('evidence_photo')) {
+            $photoPaths[] = $this->imageService->storeMedia($request->file('evidence_photo'), 'reports');
         }
+
+        $photoPayload = count($photoPaths) > 0 ? (count($photoPaths) === 1 ? $photoPaths[0] : json_encode($photoPaths)) : null;
 
         $report = Report::create([
             'product_id' => $product->id,
@@ -57,7 +65,7 @@ class ReportController extends Controller
             'reported_user_id' => $product->user_id,
             'reason' => $validated['reason'],
             'description' => $validated['description'] ?? null,
-            'evidence_photo' => $photoPath,
+            'evidence_photo' => $photoPayload,
             'status' => ReportStatus::PENDING,
         ]);
 
@@ -67,8 +75,8 @@ class ReportController extends Controller
             'title' => 'Produk Anda Dilaporkan',
             'message' => "Produk \"{$product->title}\" dilaporkan dengan alasan: {$report->reason->label()}.",
             'type' => NotificationType::REPORT,
-            'related_id' => $product->id,
-            'related_type' => Product::class,
+            'related_id' => $report->id,
+            'related_type' => Report::class,
         ]);
 
         // Notifikasi ke seluruh Admin
@@ -85,6 +93,94 @@ class ReportController extends Controller
         }
 
         return back()->with('success', 'Laporan produk berhasil dikirim. Admin BUMDes akan segera meninjau.');
+    }
+
+    /**
+     * Tampilkan detail laporan pada path khusus (/reports/{report})
+     */
+    public function show(Request $request, Report $report)
+    {
+        $user = $request->user();
+        $report->load(['product.user', 'reporter', 'reportedUser']);
+
+        $targetUser = $report->reportedUser ?? ($report->product ? $report->product->user : null);
+
+        // Otorisasi: hanya terlapor, pelapor, atau admin yang boleh mengakses
+        $isReportedUser = $targetUser && $targetUser->id === $user->id;
+        $isReporter = $report->reporter_id === $user->id;
+        $isAdmin = $user->isAdmin();
+
+        if (!$isReportedUser && !$isReporter && !$isAdmin) {
+            abort(403, 'Anda tidak memiliki hak akses untuk melihat laporan ini.');
+        }
+
+        return \Inertia\Inertia::render('Report/Show', [
+            'report' => $report,
+            'isReportedUser' => $isReportedUser,
+            'isReporter' => $isReporter,
+            'isAdmin' => $isAdmin,
+        ]);
+    }
+
+    /**
+     * Pengajuan Banding dari Terlapor
+     */
+    public function submitAppeal(Request $request, Report $report)
+    {
+        $user = $request->user();
+        $targetUser = $report->reportedUser ?? ($report->product ? $report->product->user : null);
+
+        if (!$targetUser || $targetUser->id !== $user->id) {
+            return back()->with('error', 'Hanya pihak terlapor yang dapat mengajukan banding.');
+        }
+
+        if ($report->appeal_status === 'pending') {
+            return back()->with('error', 'Pengajuan banding Anda sedang dalam proses peninjauan oleh Admin BUMDes.');
+        }
+
+        if ($report->appeal_status === 'approved') {
+            return back()->with('error', 'Banding untuk laporan ini sudah diterima sebelumnya.');
+        }
+
+        $validated = $request->validate([
+            'appeal_notes' => 'required|string|max:2000',
+            'appeal_photos' => 'nullable|array|max:4',
+            'appeal_photos.*' => 'file|mimes:jpg,jpeg,png,webp,mp4,webm,mov|max:20480',
+            'appeal_photo' => 'nullable|file|mimes:jpg,jpeg,png,webp,mp4,webm,mov|max:20480',
+        ]);
+
+        $photoPaths = [];
+        if ($request->hasFile('appeal_photos')) {
+            foreach (array_slice($request->file('appeal_photos'), 0, 4) as $file) {
+                $photoPaths[] = $this->imageService->storeMedia($file, 'appeals');
+            }
+        } elseif ($request->hasFile('appeal_photo')) {
+            $photoPaths[] = $this->imageService->storeMedia($request->file('appeal_photo'), 'appeals');
+        }
+
+        $photoPayload = count($photoPaths) > 0 ? (count($photoPaths) === 1 ? $photoPaths[0] : json_encode($photoPaths)) : $report->appeal_photo;
+
+        $report->update([
+            'appeal_notes' => $validated['appeal_notes'],
+            'appeal_photo' => $photoPayload,
+            'appeal_status' => 'pending',
+            'appealed_at' => now(),
+        ]);
+
+        // Notifikasi ke seluruh Admin BUMDes
+        $admins = User::where('role', UserRole::ADMIN)->get();
+        foreach ($admins as $admin) {
+            Notification::create([
+                'user_id' => $admin->id,
+                'title' => 'Pengajuan Banding Laporan',
+                'message' => "{$user->name} mengajukan banding untuk laporan #{$report->id}.",
+                'type' => NotificationType::REPORT,
+                'related_id' => $report->id,
+                'related_type' => Report::class,
+            ]);
+        }
+
+        return back()->with('success', 'Pengajuan banding Anda berhasil dikirim dan akan segera ditinjau oleh Admin BUMDes.');
     }
 
     /**
@@ -115,13 +211,21 @@ class ReportController extends Controller
         $validated = $request->validate([
             'reason' => ['required', Rule::enum(ReportReason::class)],
             'description' => 'required|string|max:1000',
-            'evidence_photo' => 'nullable|image|max:3072',
+            'evidence_photos' => 'nullable|array|max:4',
+            'evidence_photos.*' => 'file|mimes:jpg,jpeg,png,webp,mp4,webm,mov|max:20480',
+            'evidence_photo' => 'nullable|file|mimes:jpg,jpeg,png,webp,mp4,webm,mov|max:20480',
         ]);
 
-        $photoPath = null;
-        if ($request->hasFile('evidence_photo')) {
-            $photoPath = $this->imageService->storeOptimized($request->file('evidence_photo'), 'reports');
+        $photoPaths = [];
+        if ($request->hasFile('evidence_photos')) {
+            foreach (array_slice($request->file('evidence_photos'), 0, 4) as $file) {
+                $photoPaths[] = $this->imageService->storeMedia($file, 'reports');
+            }
+        } elseif ($request->hasFile('evidence_photo')) {
+            $photoPaths[] = $this->imageService->storeMedia($request->file('evidence_photo'), 'reports');
         }
+
+        $photoPayload = count($photoPaths) > 0 ? (count($photoPaths) === 1 ? $photoPaths[0] : json_encode($photoPaths)) : null;
 
         $report = Report::create([
             'product_id' => null,
@@ -129,7 +233,7 @@ class ReportController extends Controller
             'reported_user_id' => $user->id,
             'reason' => $validated['reason'],
             'description' => $validated['description'],
-            'evidence_photo' => $photoPath,
+            'evidence_photo' => $photoPayload,
             'status' => ReportStatus::PENDING,
         ]);
 

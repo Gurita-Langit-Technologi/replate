@@ -170,7 +170,7 @@ class AdminController extends Controller
     public function reports()
     {
         $reports = Report::with(['product.user', 'reporter', 'reportedUser'])
-            ->orderByRaw("CASE status WHEN ? THEN 1 WHEN ? THEN 2 WHEN ? THEN 3 ELSE 4 END", [
+            ->orderByRaw("CASE WHEN appeal_status = 'pending' THEN 0 WHEN status = ? THEN 1 WHEN status = ? THEN 2 WHEN status = ? THEN 3 ELSE 4 END", [
                 ReportStatus::PENDING->value,
                 ReportStatus::REVIEWED->value,
                 ReportStatus::DISMISSED->value,
@@ -316,6 +316,76 @@ class AdminController extends Controller
         ]);
 
         return back()->with('success', 'Laporan telah diabaikan/ditutup.');
+    }
+
+    /**
+     * Terima Banding Penjual — pulihkan produk dan kurangi poin pelanggaran
+     */
+    public function approveAppeal(Request $request, Report $report)
+    {
+        $adminNotes = $request->input('admin_notes', 'Banding disetujui setelah ditinjau ulang oleh Admin BUMDes. Sanksi telah dicabut.');
+
+        $report->update([
+            'appeal_status' => 'approved',
+            'appeal_admin_notes' => $adminNotes,
+            'appeal_reviewed_at' => now(),
+            'status' => ReportStatus::DISMISSED,
+        ]);
+
+        $targetUser = $report->reportedUser ?? ($report->product ? $report->product->user : null);
+
+        if ($targetUser) {
+            $newReportCount = max(0, $targetUser->report_count - 1);
+            $targetUser->update([
+                'report_count' => $newReportCount,
+                'is_blacklisted' => $newReportCount >= 3 ? $targetUser->is_blacklisted : false,
+            ]);
+
+            Notification::create([
+                'user_id' => $targetUser->id,
+                'title' => 'Banding Laporan Disetujui',
+                'message' => "Pengajuan banding Anda untuk laporan #{$report->id} telah disetujui oleh Admin BUMDes. Catatan: {$adminNotes}",
+                'type' => NotificationType::REPORT,
+                'related_id' => $report->id,
+                'related_type' => Report::class,
+            ]);
+        }
+
+        // Jika ada produk terkait yang sempat dinonaktifkan, kembalikan statusnya ke active
+        if ($report->product && $report->product->status === ProductStatus::SOLD) {
+            $report->product->update(['status' => ProductStatus::ACTIVE]);
+        }
+
+        return back()->with('success', 'Banding berhasil disetujui. Produk dan reputasi akun telah dipulihkan.');
+    }
+
+    /**
+     * Tolak Banding Penjual — pertahankan sanksi
+     */
+    public function rejectAppeal(Request $request, Report $report)
+    {
+        $adminNotes = $request->input('admin_notes', 'Banding ditolak setelah peninjauan ulang: bukti sanggahan tidak mencukupi.');
+
+        $report->update([
+            'appeal_status' => 'rejected',
+            'appeal_admin_notes' => $adminNotes,
+            'appeal_reviewed_at' => now(),
+        ]);
+
+        $targetUser = $report->reportedUser ?? ($report->product ? $report->product->user : null);
+
+        if ($targetUser) {
+            Notification::create([
+                'user_id' => $targetUser->id,
+                'title' => 'Banding Laporan Ditolak',
+                'message' => "Pengajuan banding Anda untuk laporan #{$report->id} ditolak. Keputusan moderasi tetap berlaku. Catatan: {$adminNotes}",
+                'type' => NotificationType::REPORT,
+                'related_id' => $report->id,
+                'related_type' => Report::class,
+            ]);
+        }
+
+        return back()->with('success', 'Banding telah ditolak dan keputusan moderasi dipertahankan.');
     }
 
     /**

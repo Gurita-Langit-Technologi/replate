@@ -38,7 +38,6 @@ const NAV_ITEMS = {
         { label: 'RePoin & Lencana', href: '/points', icon: Coins },
         { label: 'Peringkat Warga', href: '/leaderboard', icon: Trophy },
         { label: 'Dampak Desa', href: '/impact', icon: Leaf },
-        { label: 'Verifikasi Penjual', href: '/seller/apply', icon: ShieldCheck },
     ],
     admin: [
         { label: 'Admin Panel', href: '/admin/dashboard', icon: Shield },

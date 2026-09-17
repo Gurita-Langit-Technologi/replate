@@ -61,4 +61,20 @@ class ImageService
         // Fallback default
         return $file->store($folder, 'public');
     }
+
+    /**
+     * Simpan media (gambar atau video) ke disk publik.
+     * Jika gambar, dilakukan kompresi/optimasi. Jika video, disimpan langsung.
+     */
+    public function storeMedia(UploadedFile $file, string $folder = 'reports', int $maxWidth = 1200, int $quality = 80): string
+    {
+        $mime = $file->getMimeType();
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        if (str_starts_with($mime, 'video/') || in_array($extension, ['mp4', 'webm', 'mov', 'ogg', 'mkv'])) {
+            return $file->store($folder, 'public');
+        }
+
+        return $this->storeOptimized($file, $folder, $maxWidth, $quality);
+    }
 }

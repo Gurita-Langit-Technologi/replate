@@ -8,37 +8,38 @@ import SellerVerificationSection from './Partials/SellerVerificationSection';
 export default function Edit({ mustVerifyEmail, status, verification }) {
     return (
         <AppLayout>
-            <Head title="Profil Pengguna" />
+            <Head title="Pengaturan Profil" />
 
-            <div className="max-w-2xl mx-auto">
-                <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Pengaturan Profil</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">Kelola identitas akun, status verifikasi penjual, dan keamanan password Anda.</p>
+            <div className="max-w-3xl mx-auto space-y-6">
+                <div>
+                    <h1 className="text-xl font-bold text-gray-900">Pengaturan Profil</h1>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                        Kelola identitas akun, status verifikasi penjual olahan, dan keamanan kata sandi Anda.
+                    </p>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-5">
                     {/* Status & Pengajuan Verifikasi Penjual */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-6">
+                    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-xs">
                         <SellerVerificationSection verification={verification} />
                     </div>
 
                     {/* Informasi Dasar Akun */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-6">
+                    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-xs">
                         <UpdateProfileInformationForm
                             mustVerifyEmail={mustVerifyEmail}
                             status={status}
-                            className="max-w-xl"
                         />
                     </div>
 
                     {/* Keamanan & Password */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <UpdatePasswordForm className="max-w-xl" />
+                    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-xs">
+                        <UpdatePasswordForm />
                     </div>
 
                     {/* Hapus Akun */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <DeleteUserForm className="max-w-xl" />
+                    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-xs">
+                        <DeleteUserForm />
                     </div>
                 </div>
             </div>

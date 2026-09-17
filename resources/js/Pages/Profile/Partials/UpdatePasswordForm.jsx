@@ -51,26 +51,22 @@ export default function UpdatePasswordForm({ className = '' }) {
 
     return (
         <section className={className}>
-            <header>
-                <h2 className="text-lg font-medium text-gray-900">
-                    Update Password
+            <header className="mb-4 pb-3 border-b border-gray-100">
+                <h2 className="text-base font-bold text-gray-900">
+                    Perbarui Kata Sandi
                 </h2>
-
-                <p className="mt-1 text-sm text-gray-600">
-                    Ensure your account is using a long, random password to stay
-                    secure.
+                <p className="text-xs text-gray-500 mt-0.5">
+                    Gunakan kata sandi yang kuat dan aman untuk melindungi akun Anda.
                 </p>
             </header>
 
-            <form onSubmit={updatePassword} className="mt-6 space-y-6">
+            <form onSubmit={updatePassword} className="space-y-4">
                 <div>
-                    <InputLabel
-                        htmlFor="current_password"
-                        value="Current Password"
-                    />
-
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Kata Sandi Saat Ini *
+                    </label>
                     <div className="relative">
-                        <TextInput
+                        <input
                             id="current_password"
                             ref={currentPasswordInput}
                             value={data.current_password}
@@ -78,7 +74,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                                 setData('current_password', e.target.value)
                             }
                             type={showCurrentPassword ? 'text' : 'password'}
-                            className="mt-1 block w-full pr-11"
+                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 pr-10 text-xs focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             autoComplete="current-password"
                         />
                         <button
@@ -86,29 +82,27 @@ export default function UpdatePasswordForm({ className = '' }) {
                             onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1 transition-colors"
                             title={showCurrentPassword ? 'Sembunyikan password' : 'Lihat password'}
-                            aria-label={showCurrentPassword ? 'Sembunyikan password' : 'Lihat password'}
                         >
-                            {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                     </div>
-
-                    <InputError
-                        message={errors.current_password}
-                        className="mt-2"
-                    />
+                    {errors.current_password && (
+                        <p className="text-red-600 text-xs mt-1">{errors.current_password}</p>
+                    )}
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="password" value="New Password" />
-
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Kata Sandi Baru *
+                    </label>
                     <div className="relative">
-                        <TextInput
+                        <input
                             id="password"
                             ref={passwordInput}
                             value={data.password}
                             onChange={(e) => setData('password', e.target.value)}
                             type={showPassword ? 'text' : 'password'}
-                            className="mt-1 block w-full pr-11"
+                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 pr-10 text-xs focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             autoComplete="new-password"
                         />
                         <button
@@ -116,30 +110,28 @@ export default function UpdatePasswordForm({ className = '' }) {
                             onClick={() => setShowPassword(!showPassword)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1 transition-colors"
                             title={showPassword ? 'Sembunyikan password' : 'Lihat password'}
-                            aria-label={showPassword ? 'Sembunyikan password' : 'Lihat password'}
                         >
-                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                     </div>
-
-                    <InputError message={errors.password} className="mt-2" />
+                    {errors.password && (
+                        <p className="text-red-600 text-xs mt-1">{errors.password}</p>
+                    )}
                 </div>
 
                 <div>
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Konfirmasi Kata Sandi Baru *
+                    </label>
                     <div className="relative">
-                        <TextInput
+                        <input
                             id="password_confirmation"
                             value={data.password_confirmation}
                             onChange={(e) =>
                                 setData('password_confirmation', e.target.value)
                             }
                             type={showPasswordConfirmation ? 'text' : 'password'}
-                            className="mt-1 block w-full pr-11"
+                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 pr-10 text-xs focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             autoComplete="new-password"
                         />
                         <button
@@ -147,21 +139,16 @@ export default function UpdatePasswordForm({ className = '' }) {
                             onClick={() => setShowPasswordConfirmation(!showPasswordConfirmation)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1 transition-colors"
                             title={showPasswordConfirmation ? 'Sembunyikan konfirmasi password' : 'Lihat konfirmasi password'}
-                            aria-label={showPasswordConfirmation ? 'Sembunyikan konfirmasi password' : 'Lihat konfirmasi password'}
                         >
-                            {showPasswordConfirmation ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            {showPasswordConfirmation ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                     </div>
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
+                    {errors.password_confirmation && (
+                        <p className="text-red-600 text-xs mt-1">{errors.password_confirmation}</p>
+                    )}
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
-
+                <div className="pt-2 flex items-center justify-between">
                     <Transition
                         show={recentlySuccessful}
                         enter="transition ease-in-out"
@@ -169,10 +156,18 @@ export default function UpdatePasswordForm({ className = '' }) {
                         leave="transition ease-in-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm text-gray-600">
-                            Saved.
+                        <p className="text-xs text-emerald-700 font-semibold">
+                            Kata sandi berhasil diperbarui.
                         </p>
                     </Transition>
+
+                    <button
+                        type="submit"
+                        disabled={processing}
+                        className="ml-auto px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-xs font-semibold rounded-lg transition disabled:opacity-50"
+                    >
+                        {processing ? 'Menyimpan...' : 'Perbarui Kata Sandi'}
+                    </button>
                 </div>
             </form>
         </section>

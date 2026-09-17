@@ -19,7 +19,7 @@ function timeAgo(dateString) {
     return `${Math.floor(seconds / 86400)} hari lalu`;
 }
 
-function getNotificationUrl(notif) {
+function getNotificationUrl(notif, user) {
     if (!notif.related_id) {
         if (notif.type === 'barter_offer') return '/barter';
         return null;
@@ -35,12 +35,17 @@ function getNotificationUrl(notif) {
         return `/products/${notif.related_id}`;
     }
     if (relType.includes('Report') || notif.type === 'report') {
-        return '/admin/reports';
+        if (user?.role === 'admin') {
+            return '/admin/reports';
+        }
+        return `/reports/${notif.related_id}`;
     }
     return null;
 }
 
-export default function Index({ notifications }) {
+export default function Index({ notifications, auth }) {
+    const user = auth?.user;
+
     return (
         <AppLayout>
             <Head title="Notifikasi" />
@@ -52,7 +57,7 @@ export default function Index({ notifications }) {
                         {notifications.map((notif) => {
                             const config = typeConfig[notif.type] || typeConfig.transaction;
                             const Icon = config.icon;
-                            const targetUrl = getNotificationUrl(notif);
+                            const targetUrl = getNotificationUrl(notif, user);
 
                             const ContentWrapper = targetUrl ? Link : 'div';
                             const wrapperProps = targetUrl

@@ -40,6 +40,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
+    // Pengajuan penjual olahan (diletakkan sebelum /seller/{user} agar tidak bentrok wildcard)
+    Route::get('/seller/apply', [SellerVerificationController::class, 'create'])->name('seller.apply');
+    Route::post('/seller/apply', [SellerVerificationController::class, 'store'])->name('seller.store');
+
     // Profil penjual
     Route::get('/seller/{user}', [ProductController::class, 'sellerProfile'])->name('seller.profile');
 
@@ -76,13 +80,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/barter/{offer}/accept', [BarterOfferController::class, 'accept'])->name('barter.accept');
     Route::patch('/barter/{offer}/reject', [BarterOfferController::class, 'reject'])->name('barter.reject');
 
-    // Report
+    // Report & Banding (Path Khusus)
     Route::post('/products/{product}/report', [ReportController::class, 'store'])->name('reports.store');
     Route::post('/users/{user}/report', [ReportController::class, 'storeUserReport'])->name('reports.user.store');
-
-    // Pengajuan penjual olahan
-    Route::get('/seller/apply', [SellerVerificationController::class, 'create'])->name('seller.apply');
-    Route::post('/seller/apply', [SellerVerificationController::class, 'store'])->name('seller.store');
+    Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+    Route::post('/reports/{report}/appeal', [ReportController::class, 'submitAppeal'])->name('reports.appeal');
     
     // Notifikasi
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
@@ -108,6 +110,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::patch('/reports/{report}/review', [AdminController::class, 'reviewReport'])->name('reports.review');
     Route::patch('/reports/{report}/blacklist', [AdminController::class, 'blacklistReportUser'])->name('reports.blacklist');
     Route::patch('/reports/{report}/dismiss', [AdminController::class, 'dismissReport'])->name('reports.dismiss');
+    Route::patch('/reports/{report}/appeal/approve', [AdminController::class, 'approveAppeal'])->name('reports.appeal.approve');
+    Route::patch('/reports/{report}/appeal/reject', [AdminController::class, 'rejectAppeal'])->name('reports.appeal.reject');
     Route::get('/partners', [AdminController::class, 'partners'])->name('partners');
     Route::post('/partners', [AdminController::class, 'storePartner'])->name('partners.store');
     Route::patch('/partners/{profile}/toggle', [AdminController::class, 'togglePartner'])->name('partners.toggle');
