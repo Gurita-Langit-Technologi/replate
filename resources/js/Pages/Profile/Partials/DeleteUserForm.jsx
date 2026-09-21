@@ -82,7 +82,7 @@ export default function DeleteUserForm({ className = '' }) {
                             onChange={(e) =>
                                 setData('password', e.target.value)
                             }
-                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600"
+                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-red-600 focus:ring-0"
                             placeholder="Kata sandi konfirmasi"
                         />
 

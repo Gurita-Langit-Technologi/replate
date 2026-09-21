@@ -25,13 +25,21 @@ export default function Create({ product }) {
                 </Link>
 
                 {/* Info produk yang mau dibarter */}
-                <div className="bg-purple-50/70 border border-purple-100 rounded-2xl p-5 mb-6 shadow-sm">
-                    <p className="text-xs font-semibold text-purple-600 uppercase tracking-wider mb-2">Produk yang Ingin Dibarter</p>
+                <div className="bg-purple-50 border border-purple-200 rounded-2xl p-5 mb-6 shadow-sm">
+                    <p className="text-xs font-bold text-purple-700 uppercase tracking-wider mb-2">Produk yang Ingin Dibarter</p>
                     <div className="flex gap-4 items-start">
                         {product.photo ? (
-                            <img src={`/storage/${product.photo}`} alt={product.title} className="w-20 h-20 rounded-xl object-cover border border-purple-200" />
+                            <img
+                                src={`/storage/${product.photo}`}
+                                alt={product.title}
+                                onError={(e) => {
+                                    e.currentTarget.onerror = null;
+                                    e.currentTarget.src = '/image/image default.jpg';
+                                }}
+                                className="w-20 h-20 rounded-xl object-cover border border-purple-200"
+                            />
                         ) : (
-                            <div className="w-20 h-20 rounded-xl bg-purple-100 flex items-center justify-center text-purple-400">
+                            <div className="w-20 h-20 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 border border-purple-200">
                                 <Package size={28} />
                             </div>
                         )}

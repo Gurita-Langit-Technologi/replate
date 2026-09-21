@@ -1,31 +1,25 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ShieldCheck } from 'lucide-react';
+import NavbarLayout from '@/Layouts/NavbarLayout';
 
 export default function Terms() {
     return (
-        <>
+        <NavbarLayout>
             <Head title="Syarat & Ketentuan — Replate" />
-            <div className="min-h-screen bg-white">
-                {/* Navbar */}
-                <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-gray-100">
-                    <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-2.5">
-                            <img src="/image/logo(2).png" alt="Replate" className="w-auto h-12 rounded-lg object-cover" />
-                        </Link>
-                        <div className="flex items-center gap-3">
-                            <Link href="/login" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">Masuk</Link>
-                            <Link href="/register" className="px-5 py-2 bg-green-600 text-white text-sm font-medium rounded-xl hover:bg-green-700">Daftar</Link>
-                        </div>
+
+            <div className="w-full max-w-4xl mx-auto space-y-8 py-2 sm:py-4">
+                <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 md:p-10 shadow-xs">
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-100 text-emerald-900 text-xs font-bold rounded-full mb-3.5 border border-emerald-300 shadow-xs">
+                        <ShieldCheck size={14} className="text-emerald-700" />
+                        Panduan & Regulasi Desa
                     </div>
-                </nav>
-
-                <div className="max-w-3xl mx-auto px-4 py-16">
-                    <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6">
-                        <ArrowLeft size={16} /> Kembali ke beranda
-                    </Link>
-
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Syarat & Ketentuan</h1>
-                    <p className="text-gray-500 mb-10">Terakhir diperbarui: Juli 2026</p>
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+                        Syarat & Ketentuan
+                    </h1>
+                    <p className="text-sm sm:text-base text-gray-600 mt-2 max-w-2xl leading-relaxed">
+                        Ketentuan pemanfaatan platform sirkular pangan Replate untuk warga, mitra pengolah, dan pengelola BUMDes.
+                    </p>
+                </div>
 
                     <div className="prose prose-sm prose-gray max-w-none space-y-8">
                         {/* 1 */}
@@ -152,12 +146,6 @@ export default function Terms() {
                         </section>
                     </div>
                 </div>
-
-                {/* Footer mini */}
-                <div className="border-t border-gray-100 py-6 text-center">
-                    <p className="text-xs text-gray-400">© 2026 Replate</p>
-                </div>
-            </div>
-        </>
+        </NavbarLayout>
     );
 }

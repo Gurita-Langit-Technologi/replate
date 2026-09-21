@@ -1,5 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import AppLayout from '@/Layouts/AppLayout';
+import NavbarLayout from '@/Layouts/NavbarLayout';
 import {
     Leaf,
     Scale,
@@ -17,24 +17,64 @@ import {
     ShieldCheck,
     Coins,
     FileText,
+    Sparkles,
+    ArrowRight,
+    Activity,
+    ChevronRight,
 } from 'lucide-react';
 
-function StatWidget({ title, value, unit, subtitle, icon: Icon }) {
+function StatWidget({ title, value, unit, subtitle, icon: Icon, theme = 'green' }) {
+    const themes = {
+        green: {
+            bg: 'bg-green-50',
+            border: 'border-green-200',
+            text: 'text-green-700',
+        },
+        emerald: {
+            bg: 'bg-emerald-50',
+            border: 'border-emerald-200',
+            text: 'text-emerald-700',
+        },
+        blue: {
+            bg: 'bg-blue-50',
+            border: 'border-blue-200',
+            text: 'text-blue-700',
+        },
+        purple: {
+            bg: 'bg-purple-50',
+            border: 'border-purple-200',
+            text: 'text-purple-700',
+        },
+    };
+    const t = themes[theme] || themes.green;
+
     return (
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">{title}</span>
-                <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-600">
-                    <Icon size={16} />
-                </div>
-            </div>
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-7 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
             <div>
-                <div className="flex items-baseline gap-1.5">
-                    <span className="text-3xl font-extrabold text-gray-900 tracking-tight">{value}</span>
-                    {unit && <span className="text-sm font-semibold text-gray-500">{unit}</span>}
+                <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-600">
+                        {title}
+                    </span>
+                    <div className={`w-11 h-11 rounded-xl ${t.bg} border ${t.border} flex items-center justify-center ${t.text} flex-shrink-0 shadow-xs`}>
+                        <Icon size={22} />
+                    </div>
                 </div>
-                {subtitle && <p className="text-xs text-gray-500 mt-1.5 font-medium">{subtitle}</p>}
+                <div className="flex items-baseline gap-1.5 flex-wrap">
+                    <span className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+                        {value}
+                    </span>
+                    {unit && (
+                        <span className="text-base sm:text-lg font-bold text-gray-500">
+                            {unit}
+                        </span>
+                    )}
+                </div>
             </div>
+            {subtitle && (
+                <p className="text-xs sm:text-sm text-gray-600 mt-3 pt-3 border-t border-gray-100 font-medium leading-relaxed">
+                    {subtitle}
+                </p>
+            )}
         </div>
     );
 }
@@ -57,8 +97,8 @@ function ImpactContent({ impact, topContributors = [] }) {
 
     const categoryColors = {
         siap_santap: 'bg-red-500',
-        sayur_buah: 'bg-green-500',
-        bahan_pokok: 'bg-blue-500',
+        sayur_buah: 'bg-green-600',
+        bahan_pokok: 'bg-blue-600',
         produk_olahan: 'bg-amber-500',
         pakan_kompos: 'bg-emerald-600',
         mentah: 'bg-green-600',
@@ -67,277 +107,327 @@ function ImpactContent({ impact, topContributors = [] }) {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-6">
+        <div className="w-full space-y-8 md:space-y-10 py-2 sm:py-4">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-200">
-                <div>
-                    <h1 className="text-xl font-bold text-gray-900">Transparansi & Dampak Lingkungan Desa</h1>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                        Agregasi data riil sirkulasi pangan, reduksi emisi gas rumah kaca, dan pemberdayaan ekonomi sirkular
-                    </p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Link
-                        href="/impact/report"
-                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-lg transition"
-                    >
-                        <FileText size={14} className="text-emerald-600" /> Dokumen Laporan ESG
-                    </Link>
-                    <Link
-                        href="/leaderboard"
-                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition"
-                    >
-                        <Trophy size={14} className="text-amber-500" /> Peringkat Warga
-                    </Link>
+            <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 md:p-10 shadow-xs">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div>
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-100 text-emerald-900 text-xs font-bold rounded-full mb-3.5 border border-emerald-300 shadow-xs">
+                            <Sparkles size={14} className="text-emerald-700" />
+                            Data Transparansi & Sirkularitas Desa
+                        </div>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+                            Transparansi & Dampak Lingkungan Desa
+                        </h1>
+                        <p className="text-sm sm:text-base text-gray-600 mt-2.5 max-w-3xl leading-relaxed">
+                            Agregasi data riil sirkulasi pangan, reduksi emisi gas rumah kaca, dan pemberdayaan ekonomi sirkular masyarakat desa secara transparan dan akuntabel.
+                        </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3 flex-shrink-0">
+                        <Link
+                            href="/impact/report"
+                            className="inline-flex items-center gap-2 px-5 py-3 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100 text-emerald-900 text-sm font-bold rounded-xl transition shadow-xs"
+                        >
+                            <FileText size={17} className="text-emerald-700" /> Dokumen Laporan ESG
+                        </Link>
+                        <Link
+                            href="/leaderboard"
+                            className="inline-flex items-center gap-2 px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-bold rounded-xl transition border border-gray-200 shadow-xs"
+                        >
+                            <Trophy size={17} className="text-amber-500" /> Peringkat Warga
+                        </Link>
+                    </div>
                 </div>
             </div>
 
             {/* 4 Key Performance Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <StatWidget
-                    title="Food Waste Dicegah"
-                    value={impact?.total_weight_kg ?? 0}
-                    unit="kg"
-                    subtitle={`≈ ${(impact?.total_meals_saved ?? 0).toLocaleString('id-ID')} porsi makanan diselamatkan`}
-                    icon={Scale}
-                />
-                <StatWidget
-                    title="Reduksi Emisi CO₂"
-                    value={impact?.total_co2_kg ?? 0}
-                    unit="kg CO₂e"
-                    subtitle="Standar perhitungan FAO (1 kg waste ≈ 2.5 kg CO₂)"
-                    icon={Leaf}
-                />
-                <StatWidget
-                    title="Sirkulasi Ekonomi"
-                    value={`Rp ${(impact?.total_economic_value ?? 0).toLocaleString('id-ID')}`}
-                    subtitle={`${impact?.total_completed_tx ?? 0} transaksi berhasil diselesaikan`}
-                    icon={TrendingUp}
-                />
-                <StatWidget
-                    title="Warga & Mitra Terlibat"
-                    value={(impact?.total_users ?? 0) + (impact?.total_partners ?? 0)}
-                    unit="Akun"
-                    subtitle={`${impact?.total_partners ?? 0} mitra peternak & pengolah kompos desa`}
-                    icon={Users}
-                />
+            <div>
+                <div className="mb-4">
+                    <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 tracking-tight">
+                        Indikator Kinerja Utama (KPI) Sirkularitas
+                    </h2>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                        Capaian kumulatif aksi penyelamatan bahan pangan di seluruh wilayah desa
+                    </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                    <StatWidget
+                        title="Food Waste Dicegah"
+                        value={impact?.total_weight_kg ?? 0}
+                        unit="kg"
+                        subtitle={`≈ ${(impact?.total_meals_saved ?? 0).toLocaleString('id-ID')} porsi makanan diselamatkan`}
+                        icon={Scale}
+                        theme="green"
+                    />
+                    <StatWidget
+                        title="Reduksi Emisi CO₂"
+                        value={impact?.total_co2_kg ?? 0}
+                        unit="kg CO₂e"
+                        subtitle="Standar perhitungan FAO (1 kg sisa ≈ 2.5 kg CO₂)"
+                        icon={Leaf}
+                        theme="emerald"
+                    />
+                    <StatWidget
+                        title="Sirkulasi Ekonomi"
+                        value={`Rp ${(impact?.total_economic_value ?? 0).toLocaleString('id-ID')}`}
+                        subtitle={`${impact?.total_completed_tx ?? 0} transaksi berhasil diselesaikan`}
+                        icon={TrendingUp}
+                        theme="blue"
+                    />
+                    <StatWidget
+                        title="Warga & Mitra Terlibat"
+                        value={(impact?.total_users ?? 0) + (impact?.total_partners ?? 0)}
+                        unit="Akun"
+                        subtitle={`${impact?.total_partners ?? 0} mitra peternak & pengolah kompos desa`}
+                        icon={Users}
+                        theme="purple"
+                    />
+                </div>
             </div>
 
             {/* 2-Column: Category Breakdown & 4 Modes */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Category Breakdown */}
-                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-                    <h2 className="text-sm font-bold text-gray-900 mb-1 flex items-center gap-2">
-                        <ShoppingBasket size={16} className="text-gray-600" />
-                        Penyelamatan per Kategori Bahan Pangan
-                    </h2>
-                    <p className="text-xs text-gray-400 mb-4">Proporsi jenis makanan yang berhasil diedarkan kembali</p>
+                <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-xs flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2.5 mb-1.5">
+                            <div className="w-9 h-9 rounded-lg bg-green-50 text-green-700 flex items-center justify-center border border-green-200">
+                                <ShoppingBasket size={18} />
+                            </div>
+                            <h2 className="text-base sm:text-lg font-extrabold text-gray-900">
+                                Penyelamatan per Kategori Bahan Pangan
+                            </h2>
+                        </div>
+                        <p className="text-xs sm:text-sm text-gray-600 mb-6">
+                            Proporsi jenis komoditas dan makanan yang berhasil diedarkan kembali
+                        </p>
 
-                    <div className="space-y-4">
-                        {Object.entries(categories).length > 0 ? (
-                            Object.entries(categories).map(([catKey, catData]) => (
-                                <div key={catKey}>
-                                    <div className="flex justify-between text-xs font-semibold mb-1">
-                                        <span className="text-gray-800">{categoryNames[catKey] ?? catKey}</span>
-                                        <span className="text-gray-900 font-bold">{catData.weight_kg} kg ({catData.percentage}%)</span>
+                        <div className="space-y-5">
+                            {Object.entries(categories).length > 0 ? (
+                                Object.entries(categories).map(([catKey, catData]) => (
+                                    <div key={catKey} className="space-y-1.5">
+                                        <div className="flex justify-between items-center text-xs sm:text-sm font-bold">
+                                            <span className="text-gray-800">{categoryNames[catKey] ?? catKey}</span>
+                                            <span className="text-gray-900 font-extrabold">{catData.weight_kg} kg <span className="text-gray-500 font-semibold">({catData.percentage}%)</span></span>
+                                        </div>
+                                        <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full transition-all duration-300 ${categoryColors[catKey] ?? 'bg-green-600'}`}
+                                                style={{ width: `${Math.max(catData.percentage, 5)}%` }}
+                                            />
+                                        </div>
+                                        <span className="text-xs text-gray-500 block font-medium">{catData.transactions} transaksi selesai</span>
                                     </div>
-                                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                                        <div
-                                            className={`h-full rounded-full transition-all duration-300 ${categoryColors[catKey] ?? 'bg-green-600'}`}
-                                            style={{ width: `${Math.max(catData.percentage, 5)}%` }}
-                                        />
-                                    </div>
-                                    <span className="text-[10px] text-gray-400 mt-0.5 block">{catData.transactions} transaksi selesai</span>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="text-xs text-gray-400 italic py-4 text-center">Data kategori akan terakumulasi otomatis.</p>
-                        )}
+                                ))
+                            ) : (
+                                <p className="text-sm text-gray-500 italic py-6 text-center">Data kategori akan terakumulasi otomatis seiring transaksi.</p>
+                            )}
+                        </div>
                     </div>
                 </div>
 
                 {/* 4 Circular Modes */}
-                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-                    <h2 className="text-sm font-bold text-gray-900 mb-1 flex items-center gap-2">
-                        <ArrowLeftRight size={16} className="text-gray-600" />
-                        Efektivitas 4 Jalur Penyerapan
-                    </h2>
-                    <p className="text-xs text-gray-400 mb-4">Jumlah transaksi berdasarkan metode sirkular</p>
+                <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-xs flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2.5 mb-1.5">
+                            <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-200">
+                                <ArrowLeftRight size={18} />
+                            </div>
+                            <h2 className="text-base sm:text-lg font-extrabold text-gray-900">
+                                Efektivitas 4 Jalur Penyerapan
+                            </h2>
+                        </div>
+                        <p className="text-xs sm:text-sm text-gray-600 mb-6">
+                            Jumlah transaksi terverifikasi berdasarkan metode pemanfaatan sirkular
+                        </p>
 
-                    <div className="grid grid-cols-2 gap-2.5 text-xs">
-                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200/80">
-                            <span className="text-gray-500 font-medium">Jual Beli Murah</span>
-                            <p className="text-xl font-bold text-gray-900 mt-1">{modes['sale']?.count ?? 0}</p>
-                            <span className="text-[10px] text-gray-400">Pangan diskon terjangkau</span>
-                        </div>
-                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200/80">
-                            <span className="text-gray-500 font-medium">Barter Pangan</span>
-                            <p className="text-xl font-bold text-gray-900 mt-1">{modes['barter']?.count ?? 0}</p>
-                            <span className="text-[10px] text-gray-400">Tukar hasil bumi lokal</span>
-                        </div>
-                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200/80">
-                            <span className="text-gray-500 font-medium">Donasi Sosial</span>
-                            <p className="text-xl font-bold text-gray-900 mt-1">{modes['donation']?.count ?? 0}</p>
-                            <span className="text-[10px] text-gray-400">Bantuan warga prasejahtera</span>
-                        </div>
-                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200/80">
-                            <span className="text-gray-500 font-medium">Alih Mitra Pengolah</span>
-                            <p className="text-xl font-bold text-gray-900 mt-1">{modes['partner_transfer']?.count ?? 0}</p>
-                            <span className="text-[10px] text-gray-400">Pakan ternak & kompos</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="p-4 sm:p-5 bg-green-50 rounded-2xl border border-green-200">
+                                <span className="text-xs font-bold text-green-800 uppercase tracking-wide">Jual Beli Murah</span>
+                                <p className="text-2xl sm:text-3xl font-extrabold text-green-900 mt-1.5 mb-1">{modes['sale']?.count ?? 0}</p>
+                                <span className="text-xs text-green-700 font-medium">Pangan diskon cepat terserap warga</span>
+                            </div>
+                            <div className="p-4 sm:p-5 bg-purple-50 rounded-2xl border border-purple-200">
+                                <span className="text-xs font-bold text-purple-800 uppercase tracking-wide">Barter Pangan</span>
+                                <p className="text-2xl sm:text-3xl font-extrabold text-purple-900 mt-1.5 mb-1">{modes['barter']?.count ?? 0}</p>
+                                <span className="text-xs text-purple-700 font-medium">Tukar hasil bumi tanpa uang tunai</span>
+                            </div>
+                            <div className="p-4 sm:p-5 bg-blue-50 rounded-2xl border border-blue-200">
+                                <span className="text-xs font-bold text-blue-800 uppercase tracking-wide">Donasi Sosial</span>
+                                <p className="text-2xl sm:text-3xl font-extrabold text-blue-900 mt-1.5 mb-1">{modes['donation']?.count ?? 0}</p>
+                                <span className="text-xs text-blue-700 font-medium">Bantuan untuk keluarga prasejahtera</span>
+                            </div>
+                            <div className="p-4 sm:p-5 bg-amber-50 rounded-2xl border border-amber-200">
+                                <span className="text-xs font-bold text-amber-800 uppercase tracking-wide">Alih Mitra Pengolah</span>
+                                <p className="text-2xl sm:text-3xl font-extrabold text-amber-900 mt-1.5 mb-1">{modes['partner_transfer']?.count ?? 0}</p>
+                                <span className="text-xs text-amber-700 font-medium">Pakan ternak & kompos ramah lingkungan</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Sebaran Data per Desa */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-                <h2 className="text-sm font-bold text-gray-900 mb-1 flex items-center gap-2">
-                    <Building size={16} className="text-gray-600" />
-                    Kontribusi Penyelamatan per Wilayah Desa
-                </h2>
-                <p className="text-xs text-gray-400 mb-4">Akumulasi kilogram makanan yang dicegah terbuang per desa</p>
+            <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 md:p-10 shadow-xs">
+                <div className="flex items-center gap-2.5 mb-1.5">
+                    <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200">
+                        <Building size={18} />
+                    </div>
+                    <h2 className="text-base sm:text-lg md:text-xl font-extrabold text-gray-900">
+                        Kontribusi Penyelamatan per Wilayah Desa
+                    </h2>
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600 mb-6">
+                    Akumulasi kilogram makanan yang berhasil dicegah terbuang berdasarkan wilayah administratif desa
+                </p>
 
                 {villages.length > 0 ? (
-                    <div className="divide-y divide-gray-100">
+                    <div className="divide-y divide-gray-100 border border-gray-100 rounded-2xl overflow-hidden">
                         {villages.map((v, idx) => (
-                            <div key={v.desa} className="py-2.5 flex items-center justify-between text-xs">
-                                <div className="flex items-center gap-3">
-                                    <span className="w-5 h-5 rounded bg-gray-100 text-gray-700 font-bold text-[11px] flex items-center justify-center">
+                            <div key={v.desa} className="p-4 sm:p-5 flex items-center justify-between hover:bg-gray-50 transition">
+                                <div className="flex items-center gap-3.5">
+                                    <span className="w-8 h-8 rounded-xl bg-green-100 text-green-800 font-bold text-xs sm:text-sm flex items-center justify-center border border-green-200">
                                         {idx + 1}
                                     </span>
                                     <div>
-                                        <p className="font-semibold text-gray-900">{v.desa}</p>
-                                        <p className="text-[10px] text-gray-400">{v.count} aktivitas transaksi</p>
+                                        <p className="font-bold text-gray-900 text-sm sm:text-base">{v.desa}</p>
+                                        <p className="text-xs text-gray-500 font-medium mt-0.5">{v.count} aktivitas transaksi berhasil</p>
                                     </div>
                                 </div>
-                                <span className="font-bold text-green-700 text-xs sm:text-sm">
+                                <span className="font-extrabold text-green-800 text-sm sm:text-base bg-green-50 px-3.5 py-1.5 rounded-xl border border-green-200">
                                     {v.weight_kg} kg
                                 </span>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <p className="text-xs text-gray-400 italic py-4 text-center">Belum ada data wilayah tersimpan.</p>
+                    <p className="text-sm text-gray-500 italic py-8 text-center bg-gray-50 rounded-2xl">Belum ada data wilayah tersimpan.</p>
                 )}
             </div>
 
             {/* Pilar Dampak Ekosistem Desa */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-                <div className="mb-4">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
+            <div className="bg-emerald-50 rounded-3xl border border-emerald-200 p-6 sm:p-8 md:p-10 shadow-xs">
+                <div className="mb-8">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-green-800 bg-green-100 px-3.5 py-1.5 rounded-full border border-green-300">
+                        <Leaf size={14} className="text-green-700" />
                         Manfaat Komunitas & Lingkungan
                     </span>
-                    <h2 className="text-base font-bold text-gray-900 mt-2">Pilar Utama Dampak Sirkularitas Desa</h2>
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 mt-3 tracking-tight">
+                        Pilar Utama Dampak Sirkularitas Desa
+                    </h2>
+                    <p className="text-sm sm:text-base text-gray-600 mt-2 max-w-2xl leading-relaxed">
+                        Enam pilar keberlanjutan yang menjadi landasan platform Replate dalam mewujudkan ketahanan pangan desa.
+                    </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-                    <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1.5">
-                        <div className="flex items-center gap-2 font-bold text-gray-900">
-                            <span className="w-6 h-6 rounded-lg bg-red-100 text-red-700 flex items-center justify-center text-xs">🍚</span>
-                            <span>Ketahanan Pangan Warga</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div className="p-6 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:shadow-md transition flex flex-col justify-between">
+                        <div>
+                            <div className="w-11 h-11 rounded-xl bg-red-100 text-red-700 flex items-center justify-center font-bold text-lg mb-4 border border-red-200">
+                                🍚
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-base mb-2">Ketahanan Pangan Warga</h3>
+                            <p className="text-sm text-gray-600 leading-relaxed">
+                                Mendistribusikan kelebihan makanan layak santap ke keluarga rentan melalui donasi dan harga diskon terjangkau.
+                            </p>
                         </div>
-                        <p className="text-gray-500 text-[11px] leading-relaxed">
-                            Mendistribusikan kelebihan makanan layak santap ke keluarga rentan melalui donasi dan harga diskon terjangkau.
-                        </p>
                     </div>
 
-                    <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1.5">
-                        <div className="flex items-center gap-2 font-bold text-gray-900">
-                            <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xs">⚡</span>
-                            <span>Sistem Sirkular Cepat</span>
+                    <div className="p-6 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:shadow-md transition flex flex-col justify-between">
+                        <div>
+                            <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-lg mb-4 border border-amber-200">
+                                ⚡
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-base mb-2">Sistem Sirkular Cepat</h3>
+                            <p className="text-sm text-gray-600 leading-relaxed">
+                                Menerapkan teknologi timeout otomatis berjenjang agar pangan terserap maksimal sebelum kualitasnya menurun.
+                            </p>
                         </div>
-                        <p className="text-gray-500 text-[11px] leading-relaxed">
-                            Menerapkan teknologi timeout otomatis berjenjang agar pangan terserap sebelum kualitasnya menurun.
-                        </p>
                     </div>
 
-                    <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1.5">
-                        <div className="flex items-center gap-2 font-bold text-gray-900">
-                            <span className="w-6 h-6 rounded-lg bg-green-100 text-green-700 flex items-center justify-center text-xs">🌾</span>
-                            <span>Pakan Ternak & Pupuk Organik</span>
+                    <div className="p-6 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:shadow-md transition flex flex-col justify-between">
+                        <div>
+                            <div className="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center font-bold text-lg mb-4 border border-green-200">
+                                🌾
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-base mb-2">Pakan Ternak & Pupuk Organik</h3>
+                            <p className="text-sm text-gray-600 leading-relaxed">
+                                Sisa pangan yang tidak habis dialihkan ke mitra peternak & pengomposan untuk menyuburkan pertanian desa.
+                            </p>
                         </div>
-                        <p className="text-gray-500 text-[11px] leading-relaxed">
-                            Sisa pangan yang tidak habis dialihkan ke mitra peternak & pengomposan untuk mendukung pertanian desa.
-                        </p>
                     </div>
 
-                    <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1.5">
-                        <div className="flex items-center gap-2 font-bold text-gray-900">
-                            <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs">♻️</span>
-                            <span>Desa Bebas Beban TPA</span>
+                    <div className="p-6 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:shadow-md transition flex flex-col justify-between">
+                        <div>
+                            <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg mb-4 border border-emerald-200">
+                                ♻️
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-base mb-2">Desa Bebas Beban TPA</h3>
+                            <p className="text-sm text-gray-600 leading-relaxed">
+                                Mengurangi volume sampah basah yang diangkut ke TPA melalui sirkulasi mandiri di tingkat RT dan RW.
+                            </p>
                         </div>
-                        <p className="text-gray-500 text-[11px] leading-relaxed">
-                            Mengurangi volume sampah basah yang diangkut ke TPA melalui pemanfaatan langsung di tingkat RT/RW.
-                        </p>
                     </div>
 
-                    <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1.5">
-                        <div className="flex items-center gap-2 font-bold text-gray-900">
-                            <span className="w-6 h-6 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center text-xs">🌍</span>
-                            <span>Pencegahan Emisi Karbon</span>
+                    <div className="p-6 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:shadow-md transition flex flex-col justify-between">
+                        <div>
+                            <div className="w-11 h-11 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-lg mb-4 border border-teal-200">
+                                🌍
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-base mb-2">Pencegahan Emisi Karbon</h3>
+                            <p className="text-sm text-gray-600 leading-relaxed">
+                                Mencegah terbentuknya gas metana berbahaya dari tumpukan sampah sisa makanan yang membusuk di alam terbuka.
+                            </p>
                         </div>
-                        <p className="text-gray-500 text-[11px] leading-relaxed">
-                            Mengurangi pembentukan gas metana berbahaya dari tumpukan sampah makanan yang membusuk di alam terbuka.
-                        </p>
                     </div>
 
-                    <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1.5">
-                        <div className="flex items-center gap-2 font-bold text-gray-900">
-                            <span className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-xs">🤝</span>
-                            <span>Ekonomi Mandiri & Gotong Royong</span>
+                    <div className="p-6 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:shadow-md transition flex flex-col justify-between">
+                        <div>
+                            <div className="w-11 h-11 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg mb-4 border border-blue-200">
+                                🤝
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-base mb-2">Ekonomi Mandiri & Gotong Royong</h3>
+                            <p className="text-sm text-gray-600 leading-relaxed">
+                                Kolaborasi produktif antara warga, warung UMKM, kelompok tani, peternak lokal, dan pengelola BUMDes.
+                            </p>
                         </div>
-                        <p className="text-gray-500 text-[11px] leading-relaxed">
-                            Kolaborasi produktif antara warga, warung UMKM, kelompok peternak, dan pengelola BUMDes desa.
-                        </p>
                     </div>
+                </div>
+            </div>
+
+            {/* Bottom Action Card */}
+            <div className="bg-emerald-900 border border-emerald-800 rounded-3xl p-8 sm:p-12 text-center text-white relative overflow-hidden shadow-lg">
+                <h2 className="text-2xl sm:text-3xl font-extrabold mb-3 tracking-tight">
+                    Mari Berkolaborasi Mewujudkan Desa Nol Sampah Pangan
+                </h2>
+                <p className="text-green-100 max-w-xl mx-auto text-sm sm:text-base mb-8 leading-relaxed">
+                    Setiap transaksi dan partisipasi Anda tercatat secara transparan untuk masa depan lingkungan desa yang lebih asri.
+                </p>
+                <div className="flex flex-wrap gap-4 justify-center">
+                    <Link
+                        href="/marketplace"
+                        className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white text-green-900 font-bold rounded-xl hover:bg-green-50 transition shadow-md text-sm sm:text-base"
+                    >
+                        Jelajahi Marketplace
+                        <ArrowRight size={18} />
+                    </Link>
+                    <Link
+                        href="/impact/report"
+                        className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-emerald-800 text-white font-bold rounded-xl hover:bg-emerald-700 transition border border-emerald-700 text-sm sm:text-base"
+                    >
+                        <FileText size={18} /> Unduh Laporan ESG
+                    </Link>
                 </div>
             </div>
         </div>
     );
 }
 
-export default function Index({ impact, topContributors }) {
-    const { auth } = usePage().props;
-
-    if (auth?.user) {
-        return (
-            <AppLayout>
-                <Head title="Transparansi & Dampak Lingkungan — Replate" />
-                <ImpactContent impact={impact} topContributors={topContributors} />
-            </AppLayout>
-        );
-    }
-
+export default function Impact({ impact, topContributors = [] }) {
     return (
-        <>
+        <NavbarLayout>
             <Head title="Transparansi & Dampak Lingkungan — Replate" />
-            <div className="min-h-screen bg-gray-50">
-                <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
-                    <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-2">
-                            <img src="/image/logo(2).png" alt="Replate" className="w-auto h-9 object-cover" />
-                        </Link>
-                        <div className="flex items-center gap-4 text-xs font-semibold">
-                            <Link href="/" className="text-gray-600 hover:text-gray-900 flex items-center gap-1">
-                                <ArrowLeft size={14} /> Beranda
-                            </Link>
-                            <Link href="/leaderboard" className="text-gray-600 hover:text-green-600">
-                                Peringkat Warga
-                            </Link>
-                            <Link href="/marketplace" className="text-gray-600 hover:text-green-600">
-                                Marketplace
-                            </Link>
-                            <Link href="/register" className="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
-                                Gabung Sekarang
-                            </Link>
-                        </div>
-                    </div>
-                </nav>
-
-                <main className="px-4 py-6">
-                    <ImpactContent impact={impact} topContributors={topContributors} />
-                </main>
-            </div>
-        </>
+            <ImpactContent impact={impact} topContributors={topContributors} />
+        </NavbarLayout>
     );
 }

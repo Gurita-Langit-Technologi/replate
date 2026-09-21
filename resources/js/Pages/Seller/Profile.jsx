@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import AppLayout from '@/Layouts/AppLayout';
+import NavbarLayout from '@/Layouts/NavbarLayout';
 import Modal from '@/Components/Modal';
 import { formatTimeLeftShort } from '@/Utils/time';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -81,7 +81,7 @@ export default function Profile({ seller, products, stats }) {
     }
 
     return (
-        <AppLayout>
+        <NavbarLayout title={`Profil Penjual — ${seller.name}`}>
             <Head title={`Profil Penjual — ${seller.name}`} />
 
             {/* Modal Laporkan Pengguna / Akun */}
@@ -291,9 +291,17 @@ export default function Profile({ seller, products, stats }) {
                                     >
                                         <div className="aspect-[4/3] bg-gray-100">
                                             {product.photo ? (
-                                                <img src={`/storage/${product.photo}`} alt="" className="w-full h-full object-cover" />
+                                                <img
+                                                    src={`/storage/${product.photo}`}
+                                                    alt={product.title || ''}
+                                                    onError={(e) => {
+                                                        e.currentTarget.onerror = null;
+                                                        e.currentTarget.src = '/image/image default.jpg';
+                                                    }}
+                                                    className="w-full h-full object-cover"
+                                                />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
                                                     <Package size={28} />
                                                 </div>
                                             )}
@@ -331,6 +339,6 @@ export default function Profile({ seller, products, stats }) {
                     )}
                 </div>
             </div>
-        </AppLayout>
+        </NavbarLayout>
     );
 }

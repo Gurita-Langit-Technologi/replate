@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
-import { ChevronDown, ArrowLeft } from 'lucide-react';
+import { ChevronDown, ArrowLeft, HelpCircle } from 'lucide-react';
+import NavbarLayout from '@/Layouts/NavbarLayout';
 
 function FAQItem({ question, answer }) {
     const [open, setOpen] = useState(false);
@@ -10,7 +11,7 @@ function FAQItem({ question, answer }) {
                 onClick={() => setOpen(!open)}
                 className="w-full flex items-center justify-between py-5 text-left"
             >
-                <span className="text-sm font-medium text-gray-900 pr-4">{question}</span>
+                <span className="text-sm sm:text-base font-bold text-gray-900 pr-4">{question}</span>
                 <ChevronDown
                     size={18}
                     className={`text-gray-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
@@ -18,7 +19,7 @@ function FAQItem({ question, answer }) {
             </button>
             {open && (
                 <div className="pb-5 -mt-2">
-                    <p className="text-sm text-gray-500 leading-relaxed">{answer}</p>
+                    <p className="text-sm text-gray-600 leading-relaxed">{answer}</p>
                 </div>
             )}
         </div>
@@ -132,34 +133,30 @@ const faqData = [
 
 export default function FAQ() {
     return (
-        <>
-            <Head title="FAQ — Replate" />
-            <div className="min-h-screen bg-white">
-                {/* Navbar */}
-                <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-gray-100">
-                    <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-2.5">
-                            <img src="/image/logo(2).png" alt="Replate" className="w-auto h-12 rounded-lg object-cover" />
-                        </Link>
-                        <div className="flex items-center gap-3">
-                            <Link href="/login" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">Masuk</Link>
-                            <Link href="/register" className="px-5 py-2 bg-green-600 text-white text-sm font-medium rounded-xl hover:bg-green-700">Daftar</Link>
-                        </div>
+        <NavbarLayout>
+            <Head title="FAQ & Pusat Bantuan — Replate" />
+
+            <div className="w-full max-w-4xl mx-auto space-y-8 py-2 sm:py-4">
+                <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 md:p-10 shadow-xs">
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-100 text-emerald-900 text-xs font-bold rounded-full mb-3.5 border border-emerald-300 shadow-xs">
+                        <HelpCircle size={14} className="text-emerald-700" />
+                        Pusat Bantuan Desa
                     </div>
-                </nav>
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+                        Pertanyaan yang Sering Diajukan
+                    </h1>
+                    <p className="text-sm sm:text-base text-gray-600 mt-2 max-w-2xl leading-relaxed">
+                        Temukan informasi lengkap seputar mekanisme sirkular pangan, batas waktu aman, transaksi, hingga peran BUMDes di Replate.
+                    </p>
+                </div>
 
-                <div className="max-w-3xl mx-auto px-4 py-16">
-                    <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6">
-                        <ArrowLeft size={16} /> Kembali ke beranda
-                    </Link>
-
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Pertanyaan yang Sering Diajukan</h1>
-                    <p className="text-gray-500 mb-10">Temukan jawaban tentang cara kerja Replate</p>
-
+                <div className="space-y-6">
                     {faqData.map((section) => (
-                        <div key={section.category} className="mb-8">
-                            <h2 className="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">{section.category}</h2>
-                            <div className="bg-white rounded-xl border border-gray-100 px-5">
+                        <div key={section.category} className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-xs">
+                            <h2 className="text-base font-extrabold text-emerald-800 uppercase tracking-wider mb-4 pb-2 border-b border-gray-100">
+                                {section.category}
+                            </h2>
+                            <div className="divide-y divide-gray-100">
                                 {section.items.map((item, i) => (
                                     <FAQItem key={i} question={item.question} answer={item.answer} />
                                 ))}
@@ -167,12 +164,7 @@ export default function FAQ() {
                         </div>
                     ))}
                 </div>
-
-                {/* Footer mini */}
-                <div className="border-t border-gray-100 py-6 text-center">
-                    <p className="text-xs text-gray-400">© 2026 Replate</p>
-                </div>
             </div>
-        </>
+        </NavbarLayout>
     );
 }

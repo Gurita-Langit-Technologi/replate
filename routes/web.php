@@ -23,6 +23,9 @@ Route::get('/', function (ImpactAnalyticsService $impactService) {
     ]);
 })->name('home');
 
+Route::get('/marketplace', [ProductController::class, 'index'])->name('marketplace');
+Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+Route::get('/seller/{user}', [ProductController::class, 'sellerProfile'])->name('seller.profile');
 Route::get('/impact', [ImpactController::class, 'index'])->name('impact');
 Route::get('/impact/report', [ImpactController::class, 'report'])->name('impact.report');
 Route::get('/leaderboard', [ImpactController::class, 'leaderboard'])->name('leaderboard');
@@ -40,18 +43,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
-    // Pengajuan penjual olahan (diletakkan sebelum /seller/{user} agar tidak bentrok wildcard)
+    // Pengajuan penjual olahan
     Route::get('/seller/apply', [SellerVerificationController::class, 'create'])->name('seller.apply');
     Route::post('/seller/apply', [SellerVerificationController::class, 'store'])->name('seller.store');
 
-    // Profil penjual
-    Route::get('/seller/{user}', [ProductController::class, 'sellerProfile'])->name('seller.profile');
-
-    // Marketplace
-    Route::get('/marketplace', [ProductController::class, 'index'])->name('marketplace');
+    // Marketplace (Aksi Pengguna Login)
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
-    Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 
     // Produk Saya
     Route::get('/my-products', [ProductController::class, 'myProducts'])->name('products.mine');

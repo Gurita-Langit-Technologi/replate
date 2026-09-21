@@ -13,7 +13,6 @@ export default function SellerVerificationSection({ verification, className = ''
     const { auth } = usePage().props;
     const user = auth?.user;
     const isVerified = user?.role === 'verified_seller';
-    const isAdmin = user?.role === 'admin';
 
     return (
         <section className={className}>
@@ -32,26 +31,20 @@ export default function SellerVerificationSection({ verification, className = ''
                     </div>
                 </div>
 
-                {isVerified ? (
+                {isVerified && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-xs font-semibold">
                         <CheckCircle2 size={13} className="text-emerald-600" />
                         Terverifikasi
                     </span>
-                ) : isAdmin ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 border border-gray-200 rounded-md text-xs font-semibold">
-                        Administrator
-                    </span>
-                ) : null}
+                )}
             </div>
 
             <div className="mt-4">
-                {/* 1. KONDISI SUDAH TERVERIFIKASI ATAU ADMIN */}
-                {isVerified || isAdmin ? (
+                {/* 1. KONDISI SUDAH TERVERIFIKASI */}
+                {isVerified ? (
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 text-xs space-y-2.5">
                         <p className="text-gray-700 leading-relaxed">
-                            {isAdmin
-                                ? 'Akun Administrator BUMDes memiliki akses penuh untuk mengelola seluruh produk, verifikasi, dan transaksi di desa.'
-                                : 'Akun Anda telah divalidasi oleh pengelola desa. Anda memiliki izin penuh untuk menjual aneka makanan olahan, siap santap, dan produk UMKM.'}
+                            Akun Anda telah divalidasi oleh pengelola desa. Anda memiliki izin penuh untuk menjual aneka makanan olahan, siap santap, dan produk UMKM.
                         </p>
                         <div className="flex flex-wrap gap-2 text-[11px] font-medium text-emerald-800">
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 rounded border border-emerald-200/80">

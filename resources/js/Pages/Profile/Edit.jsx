@@ -1,11 +1,15 @@
 import AppLayout from '@/Layouts/AppLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import SellerVerificationSection from './Partials/SellerVerificationSection';
 
 export default function Edit({ mustVerifyEmail, status, verification }) {
+    const { auth } = usePage().props;
+    const user = auth?.user;
+    const isAdmin = user?.role === 'admin';
+
     return (
         <AppLayout>
             <Head title="Pengaturan Profil" />
@@ -14,15 +18,19 @@ export default function Edit({ mustVerifyEmail, status, verification }) {
                 <div>
                     <h1 className="text-xl font-bold text-gray-900">Pengaturan Profil</h1>
                     <p className="text-xs text-gray-500 mt-0.5">
-                        Kelola identitas akun, status verifikasi penjual olahan, dan keamanan kata sandi Anda.
+                        {isAdmin
+                            ? 'Kelola identitas akun administrator dan keamanan kata sandi Anda.'
+                            : 'Kelola identitas akun, status verifikasi penjual olahan, dan keamanan kata sandi Anda.'}
                     </p>
                 </div>
 
                 <div className="space-y-5">
-                    {/* Status & Pengajuan Verifikasi Penjual */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-xs">
-                        <SellerVerificationSection verification={verification} />
-                    </div>
+                    {/* Status & Pengajuan Verifikasi Penjual (Hanya untuk Warga / Penjual) */}
+                    {!isAdmin && (
+                        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-xs">
+                            <SellerVerificationSection verification={verification} />
+                        </div>
+                    )}
 
                     {/* Informasi Dasar Akun */}
                     <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-xs">

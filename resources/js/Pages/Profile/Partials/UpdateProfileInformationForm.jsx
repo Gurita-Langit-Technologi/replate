@@ -31,7 +31,7 @@ export default function UpdateProfileInformationForm({ mustVerifyEmail, status, 
                         type="text"
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:ring-0"
                     />
                     {errors.name && <p className="text-red-600 text-xs mt-1">{errors.name}</p>}
                 </div>
@@ -42,7 +42,7 @@ export default function UpdateProfileInformationForm({ mustVerifyEmail, status, 
                         type="email"
                         value={data.email}
                         onChange={(e) => setData('email', e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:ring-0"
                     />
                     {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
                 </div>
@@ -53,7 +53,7 @@ export default function UpdateProfileInformationForm({ mustVerifyEmail, status, 
                         type="text"
                         value={data.whatsapp_number}
                         onChange={(e) => setData('whatsapp_number', e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:ring-0"
                         placeholder="628123456789"
                     />
                     {errors.whatsapp_number && <p className="text-red-600 text-xs mt-1">{errors.whatsapp_number}</p>}
@@ -66,7 +66,7 @@ export default function UpdateProfileInformationForm({ mustVerifyEmail, status, 
                             type="text"
                             value={data.desa}
                             onChange={(e) => setData('desa', e.target.value)}
-                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:ring-0"
                             placeholder="Sumbermulyo"
                         />
                         {errors.desa && <p className="text-red-600 text-xs mt-1">{errors.desa}</p>}
@@ -77,7 +77,7 @@ export default function UpdateProfileInformationForm({ mustVerifyEmail, status, 
                             type="text"
                             value={data.kecamatan}
                             onChange={(e) => setData('kecamatan', e.target.value)}
-                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:ring-0"
                             placeholder="Bambanglipuro"
                         />
                         {errors.kecamatan && <p className="text-red-600 text-xs mt-1">{errors.kecamatan}</p>}
@@ -89,7 +89,7 @@ export default function UpdateProfileInformationForm({ mustVerifyEmail, status, 
                     <textarea
                         value={data.address}
                         onChange={(e) => setData('address', e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:ring-0"
                         rows={2}
                         placeholder="Dusun Krajan RT 03/RW 01, rumah cat biru"
                     />

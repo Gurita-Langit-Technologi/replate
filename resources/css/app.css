@@ -110,3 +110,46 @@
     @apply bg-white rounded-2xl border border-gray-100
            hover:shadow-md hover:border-gray-200 transition-all;
 }
+
+/* ============================================================
+   PRINT STYLES — Standar Cetak Dokumen Resmi BUMDes / Replate
+   ============================================================ */
+@media print {
+    @page {
+        size: auto;
+        margin: 10mm 12mm 10mm 12mm;
+    }
+
+    /* Hilangkan total seluruh komponen dashboard saat cetak */
+    aside,
+    header,
+    nav,
+    button:not(.allow-print),
+    .print\:hidden,
+    [class*="print:hidden"] {
+        display: none !important;
+    }
+
+    body,
+    #app,
+    main {
+        background-color: #ffffff !important;
+        color: #111827 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        box-shadow: none !important;
+    }
+
+    /* Cetak warna grafis secara presisi */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Hindari potongan halaman pada tabel dan tanda tangan */
+    tr, .print-avoid-break {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+}

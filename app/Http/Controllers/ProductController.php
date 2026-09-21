@@ -303,6 +303,8 @@ class ProductController extends Controller
                 Storage::disk('public')->delete($product->photo);
             }
             $validated['photo'] = $this->imageService->storeOptimized($request->file('photo'), 'products');
+        } else {
+            unset($validated['photo']);
         }
 
         $product->update($validated);

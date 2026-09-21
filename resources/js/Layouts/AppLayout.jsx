@@ -28,6 +28,13 @@ import {
 import Toast from '@/Components/Toast';
 
 const NAV_ITEMS = {
+    guest: [
+        { label: 'Beranda', href: '/', icon: LayoutDashboard },
+        { label: 'Marketplace', href: '/marketplace', icon: ShoppingBasket },
+        { label: 'Peringkat Warga', href: '/leaderboard', icon: Trophy },
+        { label: 'Dampak Desa', href: '/impact', icon: Leaf },
+        { label: 'Laporan ESG', href: '/impact/report', icon: Receipt },
+    ],
     user: [
         { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
         { label: 'Marketplace', href: '/marketplace', icon: ShoppingBasket },
@@ -41,8 +48,9 @@ const NAV_ITEMS = {
     ],
     admin: [
         { label: 'Admin Panel', href: '/admin/dashboard', icon: Shield },
+        { label: 'Marketplace', href: '/marketplace', icon: ShoppingBasket },
         { label: 'Semua Transaksi', href: '/admin/transactions', icon: Receipt },
-        { label: 'Verifikasi', href: '/admin/verifications', icon: Shield },
+        { label: 'Verifikasi', href: '/admin/verifications', icon: ShieldCheck },
         { label: 'Laporan', href: '/admin/reports', icon: Shield },
         { label: 'Partner', href: '/admin/partners', icon: Handshake },
         { label: 'Pengguna', href: '/admin/users', icon: Users },
@@ -50,6 +58,7 @@ const NAV_ITEMS = {
     ],
     partner: [
         { label: 'Tugas Penjemputan', href: '/partner/dashboard', icon: Truck },
+        { label: 'Marketplace', href: '/marketplace', icon: ShoppingBasket },
         { label: 'Riwayat Penerimaan', href: '/partner/history', icon: History },
     ],
 };
@@ -120,11 +129,12 @@ export default function AppLayout({ children }) {
         setUnreadCount(0);
     }
 
-    const user = auth.user;
-    const role = user.role;
+    const user = auth?.user ?? null;
+    const role = user?.role ?? 'guest';
 
     let navItems = NAV_ITEMS.user;
-    if (role === 'admin') navItems = NAV_ITEMS.admin;
+    if (!user) navItems = NAV_ITEMS.guest;
+    else if (role === 'admin') navItems = NAV_ITEMS.admin;
     else if (role === 'partner') navItems = NAV_ITEMS.partner;
 
     function isActive(href) {
@@ -137,6 +147,7 @@ export default function AppLayout({ children }) {
         verified_seller: 'bg-violet-100 text-violet-700',
         partner:         'bg-sky-100    text-sky-700',
         admin:           'bg-red-100    text-red-700',
+        guest:           'bg-gray-100   text-gray-700',
     };
 
     const roleLabels = {
@@ -144,6 +155,7 @@ export default function AppLayout({ children }) {
         verified_seller: 'Penjual Olahan',
         partner: 'Partner',
         admin: 'Admin',
+        guest: 'Tamu',
     };
 
     const sidebarWidth = collapsed ? 'w-[72px]' : 'w-64';
@@ -162,7 +174,7 @@ export default function AppLayout({ children }) {
             <aside
                 className={`
                     fixed top-0 left-0 z-50 h-full bg-white border-r border-gray-200
-                    flex flex-col transition-all duration-200 ease-in-out
+                    flex flex-col transition-all duration-200 ease-in-out print:hidden
                     ${sidebarWidth}
                     ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
                     lg:translate-x-0
@@ -179,31 +191,59 @@ export default function AppLayout({ children }) {
                 </div>
 
                 {/* User info */}
-                {!collapsed ? (
-                    <div className="px-5 py-4 border-b border-gray-100 flex-shrink-0">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold text-sm flex-shrink-0">
-                                {user.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-                                <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded font-medium mt-0.5 ${roleColors[role]}`}>
-                                    {roleLabels[role]}
-                                </span>
-                                {user.points > 0 && (
-                                    <span className="inline-block text-[10px] px-1.5 py-0.5 rounded font-medium mt-0.5 bg-amber-100 text-amber-700 ml-1">
-                                        {user.points} RePoin
+                {user ? (
+                    !collapsed ? (
+                        <div className="px-5 py-4 border-b border-gray-100 flex-shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold text-sm flex-shrink-0">
+                                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+                                    <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded font-medium mt-0.5 ${roleColors[role]}`}>
+                                        {roleLabels[role]}
                                     </span>
-                                )}
+                                    {user.points > 0 && (
+                                        <span className="inline-block text-[10px] px-1.5 py-0.5 rounded font-medium mt-0.5 bg-amber-100 text-amber-700 ml-1">
+                                            {user.points} RePoin
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ) : (
-                    <div className="py-3 border-b border-gray-100 flex justify-center flex-shrink-0">
-                        <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold text-sm">
-                            {user.name.charAt(0).toUpperCase()}
+                    ) : (
+                        <div className="py-3 border-b border-gray-100 flex justify-center flex-shrink-0">
+                            <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold text-sm">
+                                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                            </div>
                         </div>
-                    </div>
+                    )
+                ) : (
+                    !collapsed ? (
+                        <div className="p-4 border-b border-gray-100 flex flex-col gap-2 flex-shrink-0">
+                            <p className="text-xs text-gray-500 font-medium">Selamat datang di Replate</p>
+                            <div className="flex items-center gap-2">
+                                <Link
+                                    href="/login"
+                                    className="flex-1 text-center py-2 text-xs font-semibold text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition"
+                                >
+                                    Masuk
+                                </Link>
+                                <Link
+                                    href="/register"
+                                    className="flex-1 text-center py-2 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition"
+                                >
+                                    Daftar
+                                </Link>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="py-3 border-b border-gray-100 flex justify-center flex-shrink-0">
+                            <Link href="/login" title="Masuk" className="text-green-600 hover:text-green-700">
+                                <User size={20} />
+                            </Link>
+                        </div>
+                    )
                 )}
 
                 {/* Navigation */}
@@ -237,27 +277,42 @@ export default function AppLayout({ children }) {
                     <div className="mt-6">
                         {!collapsed && <p className="px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Akun</p>}
                         <div className="space-y-0.5">
-                            <Link
-                                href="/profile"
-                                title={collapsed ? 'Profil' : undefined}
-                                className={`flex items-center gap-3 rounded-xl text-sm font-medium transition
-                                    ${collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'}
-                                    ${currentPath === '/profile' ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
-                            >
-                                <User size={18} className={`flex-shrink-0 ${currentPath === '/profile' ? 'text-green-600' : 'text-gray-400'}`} />
-                                {!collapsed && 'Profil'}
-                            </Link>
-                            <Link
-                                href="/logout"
-                                method="post"
-                                as="button"
-                                title={collapsed ? 'Keluar' : undefined}
-                                className={`w-full flex items-center gap-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition
-                                    ${collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'}`}
-                            >
-                                <LogOut size={18} className="text-gray-400 flex-shrink-0" />
-                                {!collapsed && 'Keluar'}
-                            </Link>
+                            {user ? (
+                                <>
+                                    <Link
+                                        href="/profile"
+                                        title={collapsed ? 'Profil' : undefined}
+                                        className={`flex items-center gap-3 rounded-xl text-sm font-medium transition
+                                            ${collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'}
+                                            ${currentPath === '/profile' ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
+                                    >
+                                        <User size={18} className={`flex-shrink-0 ${currentPath === '/profile' ? 'text-green-600' : 'text-gray-400'}`} />
+                                        {!collapsed && 'Profil'}
+                                    </Link>
+                                    <Link
+                                        href="/logout"
+                                        method="post"
+                                        as="button"
+                                        title={collapsed ? 'Keluar' : undefined}
+                                        className={`w-full flex items-center gap-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition
+                                            ${collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'}`}
+                                    >
+                                        <LogOut size={18} className="text-gray-400 flex-shrink-0" />
+                                        {!collapsed && 'Keluar'}
+                                    </Link>
+                                </>
+                            ) : (
+                                <Link
+                                    href="/login"
+                                    title={collapsed ? 'Masuk' : undefined}
+                                    className={`flex items-center gap-3 rounded-xl text-sm font-medium transition
+                                        ${collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'}
+                                        text-gray-500 hover:bg-gray-50 hover:text-gray-900`}
+                                >
+                                    <User size={18} className="text-gray-400 flex-shrink-0" />
+                                    {!collapsed && 'Masuk Akun'}
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </nav>
@@ -274,9 +329,9 @@ export default function AppLayout({ children }) {
             </aside>
 
             {/* Main content */}
-            <div className={`${mainPadding} transition-all duration-200`}>
+            <div className={`${mainPadding} transition-all duration-200 print:!p-0 print:!m-0 print:!pl-0`}>
                 {/* Top bar */}
-                <header className="sticky top-0 z-30 h-16 bg-white/80 backdrop-blur border-b border-gray-200 flex items-center px-4 lg:px-6">
+                <header className="sticky top-0 z-30 h-16 bg-white/80 backdrop-blur border-b border-gray-200 flex items-center px-4 lg:px-6 print:hidden">
                     <button
                         onClick={() => setSidebarOpen(true)}
                         className="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-700"
@@ -286,32 +341,51 @@ export default function AppLayout({ children }) {
 
                     <div className="flex-1" />
 
-                    {role !== 'admin' && role !== 'partner' && (
-                        <Link
-                            href="/products/create"
-                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition mr-3"
-                        >
-                            <Package size={16} />
-                            Upload Produk
-                        </Link>
-                    )}
-
-                    <Link
-                            href="/notifications"
-                            onClick={handleNotificationClick}
-                            className="relative p-2 text-gray-400 hover:text-gray-600"
-                        >
-                            <Bell size={20} />
-                            {unreadCount > 0 && (
-                                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                                    {unreadCount > 9 ? '9+' : unreadCount}
-                                </span>
+                    {user ? (
+                        <>
+                            {role !== 'admin' && role !== 'partner' && (
+                                <Link
+                                    href="/products/create"
+                                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition mr-3"
+                                >
+                                    <Package size={16} />
+                                    Upload Produk
+                                </Link>
                             )}
-                        </Link>
+
+                            <Link
+                                href="/notifications"
+                                onClick={handleNotificationClick}
+                                className="relative p-2 text-gray-400 hover:text-gray-600"
+                            >
+                                <Bell size={20} />
+                                {unreadCount > 0 && (
+                                    <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </span>
+                                )}
+                            </Link>
+                        </>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <Link
+                                href="/login"
+                                className="px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:text-green-700 transition"
+                            >
+                                Masuk
+                            </Link>
+                            <Link
+                                href="/register"
+                                className="px-3.5 py-1.5 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition"
+                            >
+                                Daftar
+                            </Link>
+                        </div>
+                    )}
                 </header>
                 {/* Toast Notifikasi Real-time */}
             {toasts.length > 0 && (
-                <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 max-w-sm">
+                <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 max-w-sm print:hidden">
                     {toasts.map((toast) => (
                         <div
                             key={toast.id}
@@ -337,7 +411,7 @@ export default function AppLayout({ children }) {
             )}
 
                 {/* Page content */}
-                <main className="p-4 lg:p-6">
+                <main className="p-4 lg:p-6 print:!p-0 print:!m-0">
                     {children}
                 </main>
             </div>

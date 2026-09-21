@@ -49,17 +49,27 @@ function IncomingCard({ offer, onAccept, onReject }) {
                 <p className="text-xs text-purple-500 font-medium mb-0.5">Untuk produk Anda:</p>
                 <div className="flex items-center justify-between">
                     <p className="text-sm font-semibold text-gray-900">{offer.product?.title}</p>
-                    <span className="text-xs font-semibold text-purple-700 bg-purple-100/70 px-2 py-0.5 rounded">
+                    <span className="text-xs font-semibold text-purple-800 bg-purple-100 px-2.5 py-0.5 rounded-lg border border-purple-200">
                         Minta: {offer.quantity || 1} {offer.product?.unit || 'satuan'}
                     </span>
                 </div>
             </div>
 
             <div className="p-3 bg-gray-50 rounded-lg mb-3">
-                <p className="text-xs text-gray-400 font-medium mb-0.5">Tawaran barter:</p>
-                <p className="text-sm text-gray-700">{offer.offer_description}</p>
+                <p className="text-xs text-gray-500 font-medium mb-0.5">Tawaran barter:</p>
+                <p className="text-sm text-gray-800">{offer.offer_description}</p>
             </div>
-            {offer.offer_photo && <img src={`/storage/${offer.offer_photo}`} alt="Foto tawaran" className="w-full h-40 object-cover rounded-lg mb-3" />}
+            {offer.offer_photo && (
+                <img
+                    src={`/storage/${offer.offer_photo}`}
+                    alt="Foto tawaran"
+                    onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/image/image default.jpg';
+                    }}
+                    className="w-full h-40 object-cover rounded-xl mb-3 border border-gray-200"
+                />
+            )}
             {offer.status === 'pending' && (
                 <div className="flex gap-2">
                     <button onClick={() => onAccept(offer)} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-green-600 text-white text-sm font-medium rounded-xl hover:bg-green-700 transition">
@@ -77,28 +87,38 @@ function IncomingCard({ offer, onAccept, onReject }) {
 function OutgoingCard({ offer }) {
     const status = statusConfig[offer.status];
     return (
-        <div className={`bg-white rounded-xl border border-gray-100 p-4 ${offer.status === 'rejected' ? 'opacity-60' : ''}`}>
+        <div className={`bg-white rounded-xl border p-4 ${offer.status === 'rejected' ? 'bg-gray-50/50 border-gray-200' : 'border-gray-200'}`}>
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full flex-shrink-0 ${status.dot}`} />
-                    <p className="text-xs text-gray-400">{timeAgo(offer.created_at)}</p>
+                    <p className="text-xs text-gray-500">{timeAgo(offer.created_at)}</p>
                 </div>
-                <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${status.color}`}>{status.label}</span>
+                <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${status.color}`}>{status.label}</span>
             </div>
             <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg mb-3">
                 <div className="flex items-center gap-2 min-w-0">
                     <Package size={14} className="text-gray-400 flex-shrink-0" />
-                    <p className="text-xs text-gray-500 truncate">Untuk: <Link href={`/products/${offer.product?.id}`} className="font-medium text-gray-900 hover:text-green-600">{offer.product?.title}</Link> <span className="text-gray-400">milik {offer.product?.user?.name}</span></p>
+                    <p className="text-xs text-gray-600 truncate">Untuk: <Link href={`/products/${offer.product?.id}`} className="font-semibold text-gray-900 hover:text-green-600">{offer.product?.title}</Link> <span className="text-gray-500">milik {offer.product?.user?.name}</span></p>
                 </div>
-                <span className="text-xs font-semibold text-purple-700 bg-purple-100/70 px-2 py-0.5 rounded flex-shrink-0 ml-2">
+                <span className="text-xs font-semibold text-purple-800 bg-purple-100 px-2.5 py-0.5 rounded-lg border border-purple-200 flex-shrink-0 ml-2">
                     {offer.quantity || 1} {offer.product?.unit || 'satuan'}
                 </span>
             </div>
             <div className="p-3 bg-purple-50 border border-purple-100 rounded-lg">
-                <p className="text-xs text-purple-500 mb-1 font-medium">Tawaran Anda:</p>
-                <p className="text-sm text-purple-700">{offer.offer_description}</p>
+                <p className="text-xs text-purple-700 mb-1 font-semibold">Tawaran Anda:</p>
+                <p className="text-sm text-purple-900">{offer.offer_description}</p>
             </div>
-            {offer.offer_photo && <img src={`/storage/${offer.offer_photo}`} alt="Foto tawaran" className="w-full h-32 object-cover rounded-lg mt-3" />}
+            {offer.offer_photo && (
+                <img
+                    src={`/storage/${offer.offer_photo}`}
+                    alt="Foto tawaran"
+                    onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/image/image default.jpg';
+                    }}
+                    className="w-full h-32 object-cover rounded-xl mt-3 border border-gray-200"
+                />
+            )}
         </div>
     );
 }

@@ -73,4 +73,50 @@ class ProductTest extends TestCase
             'kecamatan' => 'Dago',
         ]);
     }
+
+    public function test_user_can_update_product_without_changing_photo(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create([
+            'desa' => 'Coblong',
+            'kecamatan' => 'Dago',
+        ]);
+
+        $product = Product::factory()->create([
+            'user_id' => $user->id,
+            'title' => 'Sayuran Segar',
+            'photo' => 'products/sample.jpg',
+            'price' => 5000,
+            'quantity' => 2,
+            'unit' => 'kg',
+            'condition' => ProductCondition::LAYAK_KONSUMSI,
+            'category' => ProductCategory::MENTAH,
+            'transaction_mode' => TransactionMode::SELL,
+        ]);
+
+        $response = $this->actingAs($user)->put("/products/{$product->id}", [
+            'title' => 'Sayuran Segar Diupdate',
+            'description' => 'Deskripsi baru',
+            'category' => ProductCategory::MENTAH->value,
+            'condition' => ProductCondition::LAYAK_KONSUMSI->value,
+            'weight_grams' => 2000,
+            'quantity' => 3,
+            'unit' => 'kg',
+            'transaction_mode' => TransactionMode::SELL->value,
+            'price' => 7000,
+            'pickup_type' => PickupType::RUMAH->value,
+        ]);
+
+        $response->assertRedirect(route('products.mine'));
+        $response->assertSessionHas('success', 'Produk berhasil diperbarui!');
+
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'title' => 'Sayuran Segar Diupdate',
+            'photo' => 'products/sample.jpg', // Photo remains intact
+            'price' => 7000,
+            'quantity' => 3,
+        ]);
+    }
 }

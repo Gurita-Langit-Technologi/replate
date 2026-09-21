@@ -52,10 +52,26 @@ export default function Verifications({ verifications }) {
 
                                 <div className="flex gap-3 mb-3">
                                     {v.document_photo && (
-                                        <img src={`/storage/${v.document_photo}`} alt="Dokumen" className="w-32 h-32 object-cover rounded border" />
+                                        <img
+                                            src={`/storage/${v.document_photo}`}
+                                            alt="Dokumen"
+                                            onError={(e) => {
+                                                e.currentTarget.onerror = null;
+                                                e.currentTarget.src = '/image/image default.jpg';
+                                            }}
+                                            className="w-32 h-32 object-cover rounded-xl border border-gray-200"
+                                        />
                                     )}
                                     {v.production_photo && (
-                                        <img src={`/storage/${v.production_photo}`} alt="Tempat produksi" className="w-32 h-32 object-cover rounded border" />
+                                        <img
+                                            src={`/storage/${v.production_photo}`}
+                                            alt="Tempat produksi"
+                                            onError={(e) => {
+                                                e.currentTarget.onerror = null;
+                                                e.currentTarget.src = '/image/image default.jpg';
+                                            }}
+                                            className="w-32 h-32 object-cover rounded-xl border border-gray-200"
+                                        />
                                     )}
                                 </div>
 

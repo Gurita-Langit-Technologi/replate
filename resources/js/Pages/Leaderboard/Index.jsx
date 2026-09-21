@@ -1,5 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import AppLayout from '@/Layouts/AppLayout';
+import NavbarLayout from '@/Layouts/NavbarLayout';
 import {
     Trophy,
     Medal,
@@ -11,62 +11,173 @@ import {
     Users,
     ChevronRight,
     Sparkles,
+    Crown,
+    Star,
+    ArrowRight,
 } from 'lucide-react';
 
 function LeaderboardContent({ leaderboard = [], impactSummary, currentUserRank }) {
+    const topThree = leaderboard.slice(0, 3);
+
     return (
-        <div className="max-w-4xl mx-auto space-y-5">
+        <div className="w-full space-y-8 md:space-y-10 py-2 sm:py-4">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-200">
-                <div>
-                    <h1 className="text-xl font-bold text-gray-900">Peringkat Warga Penyelamat Pangan</h1>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                        Daftar warga dan pegiat desa dengan kontribusi tertinggi dalam mencegah food waste
-                    </p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-md font-medium">
-                        Total {leaderboard.length} Warga Terdaftar
-                    </span>
+            <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 md:p-10 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div>
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-amber-100 text-amber-900 text-xs font-bold rounded-full mb-3.5 border border-amber-300 shadow-xs">
+                            <Trophy size={14} className="text-amber-700" />
+                            Pahlawan Pangan & Komunitas Desa
+                        </div>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+                            Papan Peringkat Warga
+                        </h1>
+                        <p className="text-sm sm:text-base text-gray-600 mt-2 max-w-2xl leading-relaxed">
+                            Apresiasi untuk warga dan mitra desa dengan kontribusi tertinggi dalam menyelamatkan pangan dan mewujudkan ketahanan pangan lokal.
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                        <span className="text-xs sm:text-sm text-gray-800 bg-gray-100 px-4 py-2.5 rounded-xl font-bold border border-gray-200">
+                            Total {leaderboard.length} Warga Terdaftar
+                        </span>
+                    </div>
                 </div>
             </div>
 
             {/* Current User Position Card (if logged in) */}
             {currentUserRank && (
-                <div className="bg-white rounded-xl border border-green-200 p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-green-50 border border-green-200 flex items-center justify-center font-bold text-green-700 text-sm">
+                <div className="bg-emerald-50 rounded-3xl border border-emerald-200 p-6 sm:p-7 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-extrabold text-lg sm:text-xl shadow-xs flex-shrink-0">
                             #{currentUserRank.rank}
                         </div>
                         <div>
-                            <span className="text-[11px] text-gray-400 font-medium">Posisi Anda di Desa</span>
-                            <p className="text-sm font-bold text-gray-900">{currentUserRank.stats.level_title}</p>
+                            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
+                                Posisi Anda di Desa
+                            </span>
+                            <p className="text-base sm:text-lg font-extrabold text-gray-900 mt-0.5">
+                                {currentUserRank.stats.level_title}
+                            </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-6 text-xs text-gray-600">
+                    <div className="flex flex-wrap items-center gap-6 text-sm text-gray-700">
                         <div>
-                            <span className="text-gray-400 block text-[10px]">Terselamatkan</span>
-                            <span className="font-bold text-gray-900">{currentUserRank.stats.weight_saved_kg} kg</span>
+                            <span className="text-xs text-gray-500 font-semibold block">Terselamatkan</span>
+                            <span className="text-base sm:text-lg font-extrabold text-green-800">
+                                {currentUserRank.stats.weight_saved_kg} kg
+                            </span>
                         </div>
                         <div>
-                            <span className="text-gray-400 block text-[10px]">Lencana</span>
-                            <span className="font-bold text-gray-900">{currentUserRank.total_badges} Terbuka</span>
+                            <span className="text-xs text-gray-500 font-semibold block">Lencana</span>
+                            <span className="text-base sm:text-lg font-extrabold text-amber-800">
+                                {currentUserRank.total_badges} Terbuka
+                            </span>
                         </div>
                         <Link
                             href="/points"
-                            className="px-3 py-1.5 bg-green-600 text-white rounded-md text-xs font-semibold hover:bg-green-700 transition"
+                            className="px-5 py-2.5 bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-emerald-800 transition shadow-xs"
                         >
-                            Lihat Poin Saya
+                            Lihat RePoin Saya
                         </Link>
                     </div>
                 </div>
             )}
 
+            {/* Top 3 Podium Showcase (if available) */}
+            {topThree.length >= 3 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    {/* Rank 2 - Silver */}
+                    <div className="order-2 md:order-1 bg-white rounded-3xl border border-gray-200 p-6 shadow-xs flex flex-col items-center text-center justify-between hover:shadow-md transition">
+                        <div className="w-full">
+                            <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-800 bg-slate-100 px-3 py-1 rounded-full border border-slate-300 mb-3">
+                                🥈 Peringkat 2
+                            </span>
+                            <div className="w-16 h-16 rounded-2xl bg-slate-100 text-slate-700 border-2 border-slate-300 flex items-center justify-center font-extrabold text-2xl mx-auto my-3 shadow-xs">
+                                {topThree[1]?.name?.charAt(0).toUpperCase()}
+                            </div>
+                            <h3 className="font-extrabold text-gray-900 text-base sm:text-lg truncate">
+                                {topThree[1]?.name}
+                            </h3>
+                            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{topThree[1]?.desa}</p>
+                        </div>
+                        <div className="w-full mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 gap-2 text-center">
+                            <div>
+                                <span className="text-[11px] text-gray-500 font-semibold block">Penyelamatan</span>
+                                <span className="text-sm sm:text-base font-extrabold text-green-700">{topThree[1]?.weight_saved_kg} kg</span>
+                            </div>
+                            <div>
+                                <span className="text-[11px] text-gray-500 font-semibold block">RePoin</span>
+                                <span className="text-sm sm:text-base font-extrabold text-amber-700">{topThree[1]?.points} pts</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Rank 1 - Gold (Elevated) */}
+                    <div className="order-1 md:order-2 bg-gradient-to-b from-amber-50 to-white rounded-3xl border-2 border-amber-300 p-6 sm:p-7 shadow-md flex flex-col items-center text-center justify-between scale-100 md:scale-105 z-10 hover:shadow-lg transition">
+                        <div className="w-full">
+                            <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-amber-900 bg-amber-200 px-3.5 py-1.5 rounded-full border border-amber-400 mb-3 shadow-xs">
+                                <Crown size={14} className="text-amber-800" /> Juara 1 Desa
+                            </span>
+                            <div className="w-20 h-20 rounded-2xl bg-amber-100 text-amber-800 border-2 border-amber-400 flex items-center justify-center font-extrabold text-3xl mx-auto my-3 shadow-xs">
+                                {topThree[0]?.name?.charAt(0).toUpperCase()}
+                            </div>
+                            <h3 className="font-extrabold text-gray-900 text-lg sm:text-xl truncate">
+                                {topThree[0]?.name}
+                            </h3>
+                            <p className="text-xs sm:text-sm text-gray-600 mt-0.5 font-medium">{topThree[0]?.desa} · <span className="text-amber-700 font-bold">{topThree[0]?.level_title}</span></p>
+                        </div>
+                        <div className="w-full mt-4 pt-4 border-t border-amber-100 grid grid-cols-2 gap-2 text-center bg-white/80 p-2.5 rounded-2xl">
+                            <div>
+                                <span className="text-xs text-gray-600 font-bold block">Penyelamatan</span>
+                                <span className="text-base sm:text-lg font-black text-green-800">{topThree[0]?.weight_saved_kg} kg</span>
+                            </div>
+                            <div>
+                                <span className="text-xs text-gray-600 font-bold block">RePoin</span>
+                                <span className="text-base sm:text-lg font-black text-amber-800">{topThree[0]?.points} pts</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Rank 3 - Bronze */}
+                    <div className="order-3 md:order-3 bg-white rounded-3xl border border-gray-200 p-6 shadow-xs flex flex-col items-center text-center justify-between hover:shadow-md transition">
+                        <div className="w-full">
+                            <span className="inline-flex items-center gap-1 text-xs font-bold text-orange-900 bg-orange-100 px-3 py-1 rounded-full border border-orange-300 mb-3">
+                                🥉 Peringkat 3
+                            </span>
+                            <div className="w-16 h-16 rounded-2xl bg-orange-100 text-orange-800 border-2 border-orange-300 flex items-center justify-center font-extrabold text-2xl mx-auto my-3 shadow-xs">
+                                {topThree[2]?.name?.charAt(0).toUpperCase()}
+                            </div>
+                            <h3 className="font-extrabold text-gray-900 text-base sm:text-lg truncate">
+                                {topThree[2]?.name}
+                            </h3>
+                            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{topThree[2]?.desa}</p>
+                        </div>
+                        <div className="w-full mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 gap-2 text-center">
+                            <div>
+                                <span className="text-[11px] text-gray-500 font-semibold block">Penyelamatan</span>
+                                <span className="text-sm sm:text-base font-extrabold text-green-700">{topThree[2]?.weight_saved_kg} kg</span>
+                            </div>
+                            <div>
+                                <span className="text-[11px] text-gray-500 font-semibold block">RePoin</span>
+                                <span className="text-sm sm:text-base font-extrabold text-amber-700">{topThree[2]?.points} pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Main Leaderboard Table Card */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                    <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Peringkat Komunitas Desa</span>
-                    <span className="text-xs text-gray-400">Diperbarui otomatis secara real-time</span>
+            <div className="bg-white rounded-3xl border border-gray-200 shadow-xs overflow-hidden">
+                <div className="px-6 py-4 sm:py-5 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+                    <div>
+                        <h2 className="text-sm sm:text-base font-extrabold uppercase tracking-wider text-gray-800">
+                            Daftar Peringkat Lengkap
+                        </h2>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Diperbarui secara otomatis berdasarkan aktivitas sirkularitas</p>
+                    </div>
+                    <span className="text-xs sm:text-sm font-bold text-green-800 bg-green-100 px-3 py-1 rounded-full border border-green-300 hidden sm:inline-block">
+                        Real-time Live
+                    </span>
                 </div>
 
                 {leaderboard.length > 0 ? (
@@ -76,58 +187,64 @@ function LeaderboardContent({ leaderboard = [], impactSummary, currentUserRank }
                             const isTop2 = user.rank === 2;
                             const isTop3 = user.rank === 3;
 
-                            let rankBadgeClass = 'bg-gray-100 text-gray-700';
-                            if (isTop1) rankBadgeClass = 'bg-amber-100 text-amber-800 font-bold border border-amber-300';
-                            if (isTop2) rankBadgeClass = 'bg-slate-200 text-slate-800 font-bold border border-slate-300';
-                            if (isTop3) rankBadgeClass = 'bg-orange-100 text-orange-800 font-bold border border-orange-300';
+                            let rankBadgeClass = 'bg-gray-100 text-gray-800 border border-gray-200';
+                            if (isTop1) rankBadgeClass = 'bg-amber-200 text-amber-900 font-black border border-amber-400';
+                            if (isTop2) rankBadgeClass = 'bg-slate-200 text-slate-900 font-black border border-slate-300';
+                            if (isTop3) rankBadgeClass = 'bg-orange-200 text-orange-900 font-black border border-orange-300';
 
                             return (
                                 <div
                                     key={user.id}
-                                    className={`px-5 py-3.5 flex items-center justify-between transition ${
-                                        isTop1 ? 'bg-amber-50/30' : 'hover:bg-gray-50/70'
+                                    className={`px-6 py-4 sm:py-5 flex items-center justify-between transition ${
+                                        isTop1 ? 'bg-amber-50/50' : 'hover:bg-gray-50'
                                     }`}
                                 >
                                     {/* Left: Rank & User Info */}
-                                    <div className="flex items-center gap-3.5 min-w-0">
-                                        <div className={`w-7 h-7 rounded-md flex items-center justify-center text-xs flex-shrink-0 ${rankBadgeClass}`}>
+                                    <div className="flex items-center gap-4 min-w-0">
+                                        <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-sm sm:text-base flex-shrink-0 font-bold ${rankBadgeClass}`}>
                                             {user.rank}
                                         </div>
 
-                                        <div className="w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center font-bold text-gray-600 text-xs flex-shrink-0">
+                                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gray-100 border border-gray-300 flex items-center justify-center font-extrabold text-gray-700 text-sm sm:text-base flex-shrink-0">
                                             {user.name?.charAt(0).toUpperCase() || '?'}
                                         </div>
 
                                         <div className="min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">{user.name}</p>
+                                                <p className="text-sm sm:text-base font-bold text-gray-900 truncate">
+                                                    {user.name}
+                                                </p>
                                                 {isTop1 && (
-                                                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
-                                                        Juara 1
+                                                    <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 hidden sm:inline-block">
+                                                        Top 1
                                                     </span>
                                                 )}
                                             </div>
-                                            <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                                                <span>{user.desa}</span>
+                                            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 mt-0.5">
+                                                <span className="font-semibold text-gray-700">{user.desa}</span>
                                                 <span>•</span>
-                                                <span className="text-gray-400">{user.level_title}</span>
+                                                <span className="text-gray-500">{user.level_title}</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Right: Metrics */}
-                                    <div className="flex items-center gap-6 text-right flex-shrink-0">
-                                        <div className="hidden sm:block">
-                                            <span className="text-[10px] text-gray-400 block">Transaksi</span>
-                                            <span className="text-xs font-medium text-gray-700">{user.completed_tx}</span>
+                                    <div className="flex items-center gap-4 sm:gap-6 text-right flex-shrink-0">
+                                        <div className="hidden md:block">
+                                            <span className="text-xs text-gray-500 font-semibold block">Transaksi</span>
+                                            <span className="text-sm sm:text-base font-bold text-gray-800">{user.completed_tx}</span>
                                         </div>
                                         <div>
-                                            <span className="text-[10px] text-gray-400 block">Diselamatkan</span>
-                                            <span className="text-xs sm:text-sm font-bold text-green-700">{user.weight_saved_kg} kg</span>
+                                            <span className="text-xs text-gray-500 font-semibold block">Diselamatkan</span>
+                                            <span className="text-sm sm:text-base font-extrabold text-green-800 bg-green-50 px-2.5 sm:px-3 py-1 rounded-xl border border-green-200">
+                                                {user.weight_saved_kg} kg
+                                            </span>
                                         </div>
                                         <div>
-                                            <span className="text-[10px] text-gray-400 block">RePoin</span>
-                                            <span className="text-xs sm:text-sm font-bold text-amber-600">{user.points}</span>
+                                            <span className="text-xs text-gray-500 font-semibold block">RePoin</span>
+                                            <span className="text-sm sm:text-base font-extrabold text-amber-800 bg-amber-50 px-2.5 sm:px-3 py-1 rounded-xl border border-amber-200">
+                                                {user.points}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -135,22 +252,25 @@ function LeaderboardContent({ leaderboard = [], impactSummary, currentUserRank }
                         })}
                     </div>
                 ) : (
-                    <div className="p-8 text-center text-xs text-gray-400">
+                    <div className="p-12 text-center text-sm text-gray-500">
                         Belum ada data peringkat tersimpan.
                     </div>
                 )}
             </div>
 
             {/* Bottom info banner */}
-            <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 text-xs text-gray-600 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="bg-gray-50 rounded-3xl border border-gray-200 p-6 sm:p-8 text-sm text-gray-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
                 <div>
-                    <p className="font-semibold text-gray-800">Bagaimana skor peringkat dihitung?</p>
-                    <p className="text-gray-500 text-[11px] mt-0.5">
-                        Peringkat dihitung berdasarkan akumulasi kilogram food waste yang berhasil diselamatkan melalui transaksi jual beli, barter, dan donasi.
+                    <h3 className="font-extrabold text-base sm:text-lg text-gray-900">Bagaimana skor peringkat dihitung?</h3>
+                    <p className="text-gray-600 text-xs sm:text-sm mt-1 leading-relaxed max-w-2xl">
+                        Peringkat dihitung berdasarkan akumulasi kilogram food waste yang berhasil diselamatkan melalui transaksi jual beli murah, barter hasil bumi, dan donasi sosial.
                     </p>
                 </div>
-                <Link href="/marketplace" className="text-green-700 hover:text-green-800 font-semibold whitespace-nowrap flex items-center gap-1">
-                    Mulai Berkontribusi →
+                <Link
+                    href="/marketplace"
+                    className="inline-flex items-center gap-2 px-5 py-3 bg-green-600 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-green-700 transition shadow-xs whitespace-nowrap flex-shrink-0"
+                >
+                    Mulai Berkontribusi <ArrowRight size={16} />
                 </Link>
             </div>
         </div>
@@ -158,52 +278,15 @@ function LeaderboardContent({ leaderboard = [], impactSummary, currentUserRank }
 }
 
 export default function Index({ leaderboard, impactSummary, currentUserRank }) {
-    const { auth } = usePage().props;
-
-    if (auth?.user) {
-        return (
-            <AppLayout>
-                <Head title="Peringkat Warga — Replate" />
-                <LeaderboardContent
-                    leaderboard={leaderboard}
-                    impactSummary={impactSummary}
-                    currentUserRank={currentUserRank}
-                />
-            </AppLayout>
-        );
-    }
-
     return (
-        <>
+        <NavbarLayout>
             <Head title="Peringkat Warga — Replate" />
-            <div className="min-h-screen bg-gray-50">
-                <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
-                    <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-2">
-                            <img src="/image/logo(2).png" alt="Replate" className="w-auto h-9 object-cover" />
-                        </Link>
-                        <div className="flex items-center gap-4 text-xs font-semibold">
-                            <Link href="/" className="text-gray-600 hover:text-gray-900 flex items-center gap-1">
-                                <ArrowLeft size={14} /> Beranda
-                            </Link>
-                            <Link href="/impact" className="text-gray-600 hover:text-green-600">
-                                Dampak Desa
-                            </Link>
-                            <Link href="/register" className="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
-                                Daftar Akun
-                            </Link>
-                        </div>
-                    </div>
-                </nav>
-
-                <main className="px-4 py-6">
-                    <LeaderboardContent
-                        leaderboard={leaderboard}
-                        impactSummary={impactSummary}
-                        currentUserRank={currentUserRank}
-                    />
-                </main>
-            </div>
-        </>
+            <LeaderboardContent
+                leaderboard={leaderboard}
+                impactSummary={impactSummary}
+                currentUserRank={currentUserRank}
+            />
+        </NavbarLayout>
     );
 }
+

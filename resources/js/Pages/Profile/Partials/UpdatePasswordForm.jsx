@@ -74,7 +74,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                                 setData('current_password', e.target.value)
                             }
                             type={showCurrentPassword ? 'text' : 'password'}
-                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 pr-10 text-xs focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 pr-10 text-xs focus:outline-none focus:border-emerald-600 focus:ring-0"
                             autoComplete="current-password"
                         />
                         <button
@@ -102,7 +102,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                             value={data.password}
                             onChange={(e) => setData('password', e.target.value)}
                             type={showPassword ? 'text' : 'password'}
-                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 pr-10 text-xs focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 pr-10 text-xs focus:outline-none focus:border-emerald-600 focus:ring-0"
                             autoComplete="new-password"
                         />
                         <button
@@ -131,7 +131,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                                 setData('password_confirmation', e.target.value)
                             }
                             type={showPasswordConfirmation ? 'text' : 'password'}
-                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 pr-10 text-xs focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                            className="w-full border border-gray-300 rounded-lg px-3.5 py-2 pr-10 text-xs focus:outline-none focus:border-emerald-600 focus:ring-0"
                             autoComplete="new-password"
                         />
                         <button
