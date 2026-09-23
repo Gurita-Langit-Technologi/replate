@@ -26,24 +26,16 @@ import {
 function StatWidget({ title, value, unit, subtitle, icon: Icon, theme = 'green' }) {
     const themes = {
         green: {
-            bg: 'bg-green-50',
-            border: 'border-green-200',
-            text: 'text-green-700',
+            text: 'text-green-600',
         },
         emerald: {
-            bg: 'bg-emerald-50',
-            border: 'border-emerald-200',
-            text: 'text-emerald-700',
+            text: 'text-emerald-600',
         },
         blue: {
-            bg: 'bg-blue-50',
-            border: 'border-blue-200',
-            text: 'text-blue-700',
+            text: 'text-blue-600',
         },
         purple: {
-            bg: 'bg-purple-50',
-            border: 'border-purple-200',
-            text: 'text-purple-700',
+            text: 'text-purple-600',
         },
     };
     const t = themes[theme] || themes.green;
@@ -55,9 +47,7 @@ function StatWidget({ title, value, unit, subtitle, icon: Icon, theme = 'green' 
                     <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-600">
                         {title}
                     </span>
-                    <div className={`w-11 h-11 rounded-xl ${t.bg} border ${t.border} flex items-center justify-center ${t.text} flex-shrink-0 shadow-xs`}>
-                        <Icon size={22} />
-                    </div>
+                    <Icon size={24} className={`${t.text} flex-shrink-0`} />
                 </div>
                 <div className="flex items-baseline gap-1.5 flex-wrap">
                     <span className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
@@ -112,10 +102,6 @@ function ImpactContent({ impact, topContributors = [] }) {
             <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 md:p-10 shadow-xs">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     <div>
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-100 text-emerald-900 text-xs font-bold rounded-full mb-3.5 border border-emerald-300 shadow-xs">
-                            <Sparkles size={14} className="text-emerald-700" />
-                            Data Transparansi & Sirkularitas Desa
-                        </div>
                         <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
                             Transparansi & Dampak Lingkungan Desa
                         </h1>
@@ -191,9 +177,7 @@ function ImpactContent({ impact, topContributors = [] }) {
                 <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-xs flex flex-col justify-between">
                     <div>
                         <div className="flex items-center gap-2.5 mb-1.5">
-                            <div className="w-9 h-9 rounded-lg bg-green-50 text-green-700 flex items-center justify-center border border-green-200">
-                                <ShoppingBasket size={18} />
-                            </div>
+                            <ShoppingBasket size={22} className="text-green-600 flex-shrink-0" />
                             <h2 className="text-base sm:text-lg font-extrabold text-gray-900">
                                 Penyelamatan per Kategori Bahan Pangan
                             </h2>
@@ -230,9 +214,7 @@ function ImpactContent({ impact, topContributors = [] }) {
                 <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-xs flex flex-col justify-between">
                     <div>
                         <div className="flex items-center gap-2.5 mb-1.5">
-                            <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-200">
-                                <ArrowLeftRight size={18} />
-                            </div>
+                            <ArrowLeftRight size={22} className="text-blue-600 flex-shrink-0" />
                             <h2 className="text-base sm:text-lg font-extrabold text-gray-900">
                                 Efektivitas 4 Jalur Penyerapan
                             </h2>
@@ -270,9 +252,7 @@ function ImpactContent({ impact, topContributors = [] }) {
             {/* Sebaran Data per Desa */}
             <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 md:p-10 shadow-xs">
                 <div className="flex items-center gap-2.5 mb-1.5">
-                    <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200">
-                        <Building size={18} />
-                    </div>
+                    <Building size={22} className="text-emerald-600 flex-shrink-0" />
                     <h2 className="text-base sm:text-lg md:text-xl font-extrabold text-gray-900">
                         Kontribusi Penyelamatan per Wilayah Desa
                     </h2>
@@ -308,11 +288,7 @@ function ImpactContent({ impact, topContributors = [] }) {
             {/* Pilar Dampak Ekosistem Desa */}
             <div className="bg-emerald-50 rounded-3xl border border-emerald-200 p-6 sm:p-8 md:p-10 shadow-xs">
                 <div className="mb-8">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-green-800 bg-green-100 px-3.5 py-1.5 rounded-full border border-green-300">
-                        <Leaf size={14} className="text-green-700" />
-                        Manfaat Komunitas & Lingkungan
-                    </span>
-                    <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 mt-3 tracking-tight">
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
                         Pilar Utama Dampak Sirkularitas Desa
                     </h2>
                     <p className="text-sm sm:text-base text-gray-600 mt-2 max-w-2xl leading-relaxed">
@@ -323,9 +299,9 @@ function ImpactContent({ impact, topContributors = [] }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     <div className="p-6 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:shadow-md transition flex flex-col justify-between">
                         <div>
-                            <div className="w-11 h-11 rounded-xl bg-red-100 text-red-700 flex items-center justify-center font-bold text-lg mb-4 border border-red-200">
+                            <span className="text-3xl mb-3 block select-none">
                                 🍚
-                            </div>
+                            </span>
                             <h3 className="font-bold text-gray-900 text-base mb-2">Ketahanan Pangan Warga</h3>
                             <p className="text-sm text-gray-600 leading-relaxed">
                                 Mendistribusikan kelebihan makanan layak santap ke keluarga rentan melalui donasi dan harga diskon terjangkau.
@@ -335,9 +311,9 @@ function ImpactContent({ impact, topContributors = [] }) {
 
                     <div className="p-6 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:shadow-md transition flex flex-col justify-between">
                         <div>
-                            <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-lg mb-4 border border-amber-200">
+                            <span className="text-3xl mb-3 block select-none">
                                 ⚡
-                            </div>
+                            </span>
                             <h3 className="font-bold text-gray-900 text-base mb-2">Sistem Sirkular Cepat</h3>
                             <p className="text-sm text-gray-600 leading-relaxed">
                                 Menerapkan teknologi timeout otomatis berjenjang agar pangan terserap maksimal sebelum kualitasnya menurun.
@@ -347,9 +323,9 @@ function ImpactContent({ impact, topContributors = [] }) {
 
                     <div className="p-6 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:shadow-md transition flex flex-col justify-between">
                         <div>
-                            <div className="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center font-bold text-lg mb-4 border border-green-200">
+                            <span className="text-3xl mb-3 block select-none">
                                 🌾
-                            </div>
+                            </span>
                             <h3 className="font-bold text-gray-900 text-base mb-2">Pakan Ternak & Pupuk Organik</h3>
                             <p className="text-sm text-gray-600 leading-relaxed">
                                 Sisa pangan yang tidak habis dialihkan ke mitra peternak & pengomposan untuk menyuburkan pertanian desa.
@@ -359,9 +335,9 @@ function ImpactContent({ impact, topContributors = [] }) {
 
                     <div className="p-6 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:shadow-md transition flex flex-col justify-between">
                         <div>
-                            <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg mb-4 border border-emerald-200">
+                            <span className="text-3xl mb-3 block select-none">
                                 ♻️
-                            </div>
+                            </span>
                             <h3 className="font-bold text-gray-900 text-base mb-2">Desa Bebas Beban TPA</h3>
                             <p className="text-sm text-gray-600 leading-relaxed">
                                 Mengurangi volume sampah basah yang diangkut ke TPA melalui sirkulasi mandiri di tingkat RT dan RW.
@@ -371,9 +347,9 @@ function ImpactContent({ impact, topContributors = [] }) {
 
                     <div className="p-6 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:shadow-md transition flex flex-col justify-between">
                         <div>
-                            <div className="w-11 h-11 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-lg mb-4 border border-teal-200">
+                            <span className="text-3xl mb-3 block select-none">
                                 🌍
-                            </div>
+                            </span>
                             <h3 className="font-bold text-gray-900 text-base mb-2">Pencegahan Emisi Karbon</h3>
                             <p className="text-sm text-gray-600 leading-relaxed">
                                 Mencegah terbentuknya gas metana berbahaya dari tumpukan sampah sisa makanan yang membusuk di alam terbuka.
@@ -383,9 +359,9 @@ function ImpactContent({ impact, topContributors = [] }) {
 
                     <div className="p-6 bg-white rounded-2xl border border-emerald-100 shadow-xs hover:shadow-md transition flex flex-col justify-between">
                         <div>
-                            <div className="w-11 h-11 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg mb-4 border border-blue-200">
+                            <span className="text-3xl mb-3 block select-none">
                                 🤝
-                            </div>
+                            </span>
                             <h3 className="font-bold text-gray-900 text-base mb-2">Ekonomi Mandiri & Gotong Royong</h3>
                             <p className="text-sm text-gray-600 leading-relaxed">
                                 Kolaborasi produktif antara warga, warung UMKM, kelompok tani, peternak lokal, dan pengelola BUMDes.

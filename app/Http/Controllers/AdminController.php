@@ -102,19 +102,39 @@ class AdminController extends Controller
     /**
      * Daftar pengajuan verifikasi penjual olahan
      */
-    public function verifications()
+    public function verifications(Request $request)
     {
-        $verifications = SellerVerification::with('user')
+        $statusFilter = $request->input('status', 'pending');
+        $allowedStatuses = ['pending', 'approved', 'rejected', 'all'];
+        if (!in_array($statusFilter, $allowedStatuses)) {
+            $statusFilter = 'pending';
+        }
+
+        $query = SellerVerification::with('user')
             ->orderByRaw("CASE status WHEN ? THEN 1 WHEN ? THEN 2 WHEN ? THEN 3 ELSE 4 END", [
                 VerificationStatus::PENDING->value,
                 VerificationStatus::APPROVED->value,
                 VerificationStatus::REJECTED->value,
             ])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->orderBy('created_at', 'desc');
+
+        if ($statusFilter !== 'all') {
+            $query->where('status', $statusFilter);
+        }
+
+        $verifications = $query->get();
+
+        $statusCounts = [
+            'all'      => SellerVerification::count(),
+            'pending'  => SellerVerification::where('status', VerificationStatus::PENDING)->count(),
+            'approved' => SellerVerification::where('status', VerificationStatus::APPROVED)->count(),
+            'rejected' => SellerVerification::where('status', VerificationStatus::REJECTED)->count(),
+        ];
 
         return Inertia::render('Admin/Verifications', [
             'verifications' => $verifications,
+            'statusCounts'  => $statusCounts,
+            'filters'       => ['status' => $statusFilter],
         ]);
     }
 
@@ -450,14 +470,55 @@ class AdminController extends Controller
     /**
      * Manajemen pengguna
      */
-    public function users()
+    public function users(Request $request)
     {
-        $users = User::where('role', '!=', UserRole::ADMIN)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $role      = $request->input('role');
+        $status    = $request->input('status');
+        $sort      = $request->input('sort', 'created_at');
+        $direction = $request->input('direction', 'desc');
+        $search    = $request->input('search');
+
+        // Whitelist sortable columns
+        $allowedSorts = ['name', 'created_at', 'report_count', 'points'];
+        if (!in_array($sort, $allowedSorts)) {
+            $sort = 'created_at';
+        }
+
+        $query = User::where('role', '!=', UserRole::ADMIN);
+
+        if ($role && in_array($role, ['user', 'verified_seller', 'partner'])) {
+            $query->where('role', $role);
+        }
+
+        if ($status === 'active') {
+            $query->where('is_blacklisted', false);
+        } elseif ($status === 'suspended') {
+            $query->where('is_blacklisted', true);
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $query->orderBy($sort, $direction === 'asc' ? 'asc' : 'desc');
+
+        $users = $query->get();
+
+        // Role counts for tabs
+        $roleCounts = [
+            'all'             => User::where('role', '!=', UserRole::ADMIN)->count(),
+            'user'            => User::where('role', 'user')->count(),
+            'verified_seller' => User::where('role', 'verified_seller')->count(),
+            'partner'         => User::where('role', 'partner')->count(),
+        ];
 
         return Inertia::render('Admin/Users', [
-            'users' => $users,
+            'users'      => $users,
+            'filters'    => $request->only(['role', 'status', 'sort', 'direction', 'search']),
+            'roleCounts' => $roleCounts,
         ]);
     }
 

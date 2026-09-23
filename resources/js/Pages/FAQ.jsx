@@ -127,6 +127,90 @@ const faqData = [
                 question: 'Bagaimana cara menjadi Penjual Olahan Terverifikasi (UMKM)?',
                 answer: 'Warga yang ingin menjual produk olahan siap santap/kemasan dapat mengajukan verifikasi di menu "Daftar Penjual Olahan" dengan melampirkan foto tempat produksi dan izin PIRT/rekomendasi desa untuk diverifikasi oleh Admin BUMDes.',
             },
+            {
+                question: 'Siapa yang bertanggung jawab atas kualitas makanan yang dijual?',
+                answer: 'Penjual sepenuhnya bertanggung jawab atas keakuratan deskripsi produk dan kondisi pangan yang ditawarkan. Replate menyediakan mekanisme pelaporan sengketa sebagai jaring pengaman, namun tidak berperan sebagai perantara keuangan maupun penjamin kualitas pihak ketiga.',
+            },
+        ],
+    },
+    {
+        category: 'Menjadi Mitra Pengolah',
+        items: [
+            {
+                question: 'Siapa saja yang bisa mendaftar sebagai Mitra Pengolah di Replate?',
+                answer: 'Ada tiga jenis mitra yang bisa bergabung: (1) Peternak — pemilik kandang sapi, kambing, ayam, atau bebek yang membutuhkan suplai pakan rutin; (2) Pembudidaya Maggot BSF — yang memanfaatkan sisa organik untuk pakan larva; (3) Pengelola Kompos Desa — kelompok tani atau individu yang mengolah limbah organik menjadi pupuk kompos.',
+            },
+            {
+                question: 'Bagaimana cara mendaftar sebagai Mitra Pengolah?',
+                answer: 'Pendaftaran dilakukan langsung melalui Admin BUMDes desa Anda. Datang ke kantor BUMDes atau hubungi admin via nomor resmi desa, lalu sampaikan jenis usaha pengolahan, kapasitas penerimaan per minggu (dalam kg), dan alamat lokasi pengambilan. Admin akan mendaftarkan akun partner Anda ke sistem Replate.',
+            },
+            {
+                question: 'Apa saja kewajiban dan tugas Mitra Pengolah?',
+                answer: 'Mitra wajib: (1) Merespons dan mengambil sisa pangan yang dialihkan sistem dalam waktu 24 jam; (2) Memastikan kendaraan pengambilan layak dan higienis; (3) Melaporkan jumlah penerimaan aktual (kg) ke sistem setelah pengambilan selesai sebagai bukti daur ulang. Mitra yang tidak responsif selama 3 kali berturut-turut dapat dinonaktifkan oleh admin.',
+            },
+            {
+                question: 'Apakah Mitra Pengolah mendapat kompensasi atau keuntungan?',
+                answer: 'Mitra mendapatkan: (1) Suplai bahan pakan/kompos organik secara gratis atau dengan harga sangat terjangkau; (2) Akses ke dashboard khusus untuk melihat jadwal penjemputan dan riwayat penerimaan; (3) Sertifikat kontribusi lingkungan dari BUMDes sebagai bukti partisipasi program sirkular desa yang dapat digunakan untuk pengajuan CSR atau hibah desa.',
+            },
+            {
+                question: 'Berapa kapasitas minimum penerimaan untuk bisa menjadi Mitra?',
+                answer: 'Tidak ada batas minimum yang ketat. Mitra dengan kapasitas kecil pun bisa bergabung (misalnya pembudidaya maggot skala rumahan yang sanggup menerima 5 kg/minggu). Yang terpenting adalah komitmen untuk hadir dan mengambil sisa pangan sesuai jadwal yang disepakati bersama admin BUMDes.',
+            },
+        ],
+    },
+    {
+        category: 'Akun & Keamanan Data',
+        items: [
+            {
+                question: 'Data apa saja yang dikumpulkan Replate dari pengguna?',
+                answer: 'Replate hanya mengumpulkan data yang diperlukan untuk operasional platform: nama, nomor telepon/email, desa asal, dan riwayat transaksi anonim. Data tidak dijual kepada pihak ketiga manapun dan dikelola sepenuhnya oleh BUMDes setempat sesuai prinsip kedaulatan data desa.',
+            },
+            {
+                question: 'Bagaimana cara mengubah kata sandi atau email akun saya?',
+                answer: 'Masuk ke menu Profil → Pengaturan Akun → pilih "Ubah Email" atau "Ubah Kata Sandi". Anda akan menerima kode verifikasi OTP ke nomor telepon atau email terdaftar untuk mengonfirmasi perubahan.',
+            },
+            {
+                question: 'Apa yang terjadi jika akun saya tidak aktif dalam waktu lama?',
+                answer: 'Akun yang tidak aktif lebih dari 12 bulan akan diarsipkan secara otomatis. Saldo RePoin Anda tetap tersimpan dan dapat diaktifkan kembali dengan login. Listing produk aktif akan dinonaktifkan sementara selama periode tidak aktif.',
+            },
+            {
+                question: 'Apakah saya bisa menghapus akun dan data saya secara permanen?',
+                answer: 'Ya. Anda dapat mengajukan penghapusan akun melalui menu Profil → Pengaturan → "Hapus Akun". Admin BUMDes akan memproses permintaan dalam 7 hari kerja. Riwayat transaksi yang telah selesai disimpan dalam laporan agregat anonim desa sesuai kebijakan tata kelola BUMDes.',
+            },
+        ],
+    },
+    {
+        category: 'Notifikasi & Chat',
+        items: [
+            {
+                question: 'Bagaimana cara berkomunikasi dengan penjual atau pembeli?',
+                answer: 'Setiap listing produk memiliki tombol "Chat" untuk memulai percakapan langsung dengan penjual. Riwayat chat tersimpan di menu Pesan dan dapat diakses kapan saja. Chat hanya dapat dimulai setelah produk masih aktif/tersedia.',
+            },
+            {
+                question: 'Notifikasi apa saja yang akan saya terima dari Replate?',
+                answer: 'Anda akan mendapat notifikasi untuk: (1) pesanan masuk/dikonfirmasi, (2) diskon otomatis tahap 1 produk Anda, (3) produk yang hampir kedaluwarsa, (4) RePoin yang baru masuk, (5) pengumuman program desa dari admin BUMDes.',
+            },
+            {
+                question: 'Apakah notifikasi bisa dimatikan untuk kategori tertentu?',
+                answer: 'Ya. Buka Profil → Pengaturan Notifikasi, lalu pilih kategori notifikasi mana yang ingin dinyalakan atau dimatikan secara individual. Notifikasi darurat dari admin BUMDes tidak dapat dimatikan demi kepentingan keselamatan warga.',
+            },
+        ],
+    },
+    {
+        category: 'Akses & Konektivitas',
+        items: [
+            {
+                question: 'Apakah Replate bisa diakses tanpa koneksi internet?',
+                answer: 'Replate adalah aplikasi berbasis web yang membutuhkan koneksi internet untuk transaksi real-time. Namun, halaman katalog produk yang pernah dibuka akan tersimpan sementara di cache browser sehingga bisa dilihat secara offline dalam kondisi terbatas.',
+            },
+            {
+                question: 'Apakah Replate tersedia sebagai aplikasi mobile (Android/iOS)?',
+                answer: 'Saat ini Replate diakses melalui browser di smartphone maupun komputer. Versi Progressive Web App (PWA) memungkinkan Anda "menginstal" Replate di layar utama smartphone seperti aplikasi native tanpa perlu mengunduh dari toko aplikasi.',
+            },
+            {
+                question: 'Browser apa yang direkomendasikan untuk menggunakan Replate?',
+                answer: 'Replate berjalan optimal di Google Chrome, Mozilla Firefox, Microsoft Edge, dan Safari versi terbaru. Untuk pengalaman terbaik di perangkat mobile, gunakan Chrome for Android atau Safari for iOS.',
+            },
         ],
     },
 ];
@@ -138,10 +222,6 @@ export default function FAQ() {
 
             <div className="w-full max-w-4xl mx-auto space-y-8 py-2 sm:py-4">
                 <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 md:p-10 shadow-xs">
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-100 text-emerald-900 text-xs font-bold rounded-full mb-3.5 border border-emerald-300 shadow-xs">
-                        <HelpCircle size={14} className="text-emerald-700" />
-                        Pusat Bantuan Desa
-                    </div>
                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
                         Pertanyaan yang Sering Diajukan
                     </h1>

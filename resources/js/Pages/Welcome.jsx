@@ -34,18 +34,18 @@ import {
 
 function FeatureCard({ icon: Icon, title, description, color }) {
     const colors = {
-        green: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
-        violet: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
-        sky: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-        amber: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+        green: { text: 'text-green-600' },
+        violet: { text: 'text-purple-600' },
+        sky: { text: 'text-blue-600' },
+        amber: { text: 'text-amber-600' },
     };
     const c = colors[color] || colors.green;
 
     return (
         <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-7 hover:shadow-lg hover:border-gray-300 transition-all flex flex-col justify-between">
             <div>
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 border ${c.bg} ${c.text} ${c.border}`}>
-                    <Icon size={24} />
+                <div className="mb-4">
+                    <Icon size={28} className={c.text} />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2.5">{title}</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
@@ -70,10 +70,8 @@ function StepCard({ number, title, description }) {
 
 function TargetCard({ icon: Icon, title, desc }) {
     return (
-        <div className="flex items-start gap-4 p-5 bg-white rounded-2xl border border-gray-200 hover:border-green-300 hover:shadow-md transition-all">
-            <div className="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center text-green-700 flex-shrink-0 border border-green-200 mt-0.5">
-                <Icon size={22} />
-            </div>
+        <div className="flex items-start gap-3.5 p-5 bg-white rounded-2xl border border-gray-200 hover:border-green-300 hover:shadow-md transition-all">
+            <Icon size={24} className="text-green-600 flex-shrink-0 mt-0.5" />
             <div>
                 <p className="text-base font-bold text-gray-900">{title}</p>
                 <p className="text-sm text-gray-600 mt-1 leading-relaxed">{desc}</p>

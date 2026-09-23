@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import NavbarLayout from '@/Layouts/NavbarLayout';
+import AppLayout from '@/Layouts/AppLayout';
 import ConfirmModal from '@/Components/ConfirmModal';
 import Modal from '@/Components/Modal';
 import ProductImage from '@/Components/ui/ProductImage';
@@ -174,8 +175,10 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
         onConfirm: () => {},
     });
 
+    const Layout = auth?.user ? AppLayout : NavbarLayout;
+
     return (
-        <NavbarLayout title={product.title}>
+        <Layout title={product.title}>
             <Head title={`${product.title} — Marketplace Replate`} />
 
             {/* Custom Report Modal */}
@@ -719,19 +722,7 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
                                 </div>
                             )}
 
-                            {isSpecialRole && (
-                                <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2 shadow-xs">
-                                    <div className="flex items-center gap-2.5 text-emerald-950 font-bold text-xs sm:text-sm">
-                                        <ShieldCheck size={18} className="text-emerald-700 shrink-0" />
-                                        {auth?.user?.role === 'admin' ? 'Mode Pengawas BUMDes (Read-Only)' : 'Mode Mitra Desa (Pemantauan)'}
-                                    </div>
-                                    <p className="text-xs sm:text-sm text-gray-700 leading-relaxed font-medium">
-                                        {auth?.user?.role === 'admin'
-                                            ? 'Anda sedang meninjau kelayakan, deskripsi, dan stok produk sebagai pengawas. Tombol transaksi (beli, barter, donasi) dinonaktifkan untuk akun administrator.'
-                                            : 'Anda sedang meninjau rincian produk sebagai mitra penjemputan desa.'}
-                                    </p>
-                                </div>
-                            )}
+
 
                             {isOwner && (
                                 <div className="flex gap-3 pt-2">
@@ -762,6 +753,6 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
                     </div>
                 </div>
             </div>
-        </NavbarLayout>
+        </Layout>
     );
 }

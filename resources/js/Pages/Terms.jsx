@@ -9,10 +9,6 @@ export default function Terms() {
 
             <div className="w-full max-w-4xl mx-auto space-y-8 py-2 sm:py-4">
                 <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 md:p-10 shadow-xs">
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-100 text-emerald-900 text-xs font-bold rounded-full mb-3.5 border border-emerald-300 shadow-xs">
-                        <ShieldCheck size={14} className="text-emerald-700" />
-                        Panduan & Regulasi Desa
-                    </div>
                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
                         Syarat & Ketentuan
                     </h1>

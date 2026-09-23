@@ -1,4 +1,5 @@
 import NavbarLayout from '@/Layouts/NavbarLayout';
+import AppLayout from '@/Layouts/AppLayout';
 import ProductImage from '@/Components/ui/ProductImage';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
@@ -157,6 +158,7 @@ export default function Index({ products, filters }) {
     const { auth } = usePage().props;
     const [search, setSearch] = useState(filters.search || '');
     const isAdmin = auth?.user?.role === 'admin';
+    const isLoggedIn = !!auth?.user;
 
     function handleFilter(key, value) {
         router.get('/marketplace', { ...filters, [key]: value || undefined }, {
@@ -178,27 +180,19 @@ export default function Index({ products, filters }) {
     const hasActiveFilters = filters.category || filters.condition || filters.mode || filters.search;
     const totalCount = products.total ?? products.data?.length ?? 0;
 
+    const Layout = isLoggedIn ? AppLayout : NavbarLayout;
+
     return (
-        <NavbarLayout title="Marketplace">
+        <Layout title="Marketplace">
             <Head title="Marketplace — Replate" />
 
             <div className="w-full space-y-6">
                 {/* Header title */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <div className="flex items-center gap-2.5">
-                            <h1 className="text-2xl font-bold text-gray-900">Marketplace</h1>
-                            {isAdmin && (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-200">
-                                    <ShieldCheck size={14} />
-                                    Mode Pengawas BUMDes
-                                </span>
-                            )}
-                        </div>
+                        <h1 className="text-2xl font-bold text-gray-900">Marketplace</h1>
                         <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                            {isAdmin
-                                ? `Pengawasan aktif: ${totalCount} produk pangan beredar di desa (mode pemantauan).`
-                                : `${totalCount} produk sisa pangan & hasil kebun tersedia di desa Anda`}
+                            {totalCount} produk sisa pangan &amp; hasil kebun tersedia di desa Anda
                         </p>
                     </div>
 
@@ -355,6 +349,6 @@ export default function Index({ products, filters }) {
                     </div>
                 )}
             </div>
-        </NavbarLayout>
+        </Layout>
     );
 }

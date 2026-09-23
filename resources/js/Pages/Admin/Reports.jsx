@@ -331,7 +331,7 @@ export default function Reports({ reports = [] }) {
                                         r.appeal_status === 'pending'
                                             ? 'border-gray-400'
                                             : r.status === 'pending'
-                                            ? 'border-amber-300'
+                                            ? 'border-gray-200'
                                             : 'border-gray-200'
                                     }`}
                                 >
@@ -362,17 +362,17 @@ export default function Reports({ reports = [] }) {
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-2.5 self-start">
+                                        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
                                             <Link
                                                 href={`/reports/${r.id}`}
-                                                className="text-xs sm:text-sm text-emerald-800 hover:text-emerald-900 font-bold bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition"
+                                                className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition"
                                                 target="_blank"
                                             >
                                                 Lihat Lengkap ↗
                                             </Link>
                                             <span
-                                                className={`px-3 py-1 rounded-lg text-xs font-bold border ${
-                                                    statusStyles[r.status] || 'bg-gray-100 text-gray-800'
+                                                className={`inline-flex items-center text-xs font-semibold border px-3 py-1.5 rounded-lg ${
+                                                    statusStyles[r.status] || 'bg-gray-100 text-gray-800 border-gray-200'
                                                 }`}
                                             >
                                                 {statusLabels[r.status] || r.status}

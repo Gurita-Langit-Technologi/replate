@@ -159,13 +159,7 @@ export default function Transactions({ transactions = [], filters = {}, periodCo
                 {/* Header (Screen Only) */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
                     <div>
-                        <div className="flex items-center gap-2">
-                            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
-                                BUMDes Supervisor
-                            </span>
-                            <span className="text-xs text-gray-400">Live Audit Log</span>
-                        </div>
-                        <h1 className="text-2xl font-bold text-gray-900 mt-1">
+                        <h1 className="text-2xl font-bold text-gray-900">
                             Monitoring Transaksi Desa
                         </h1>
                         <p className="text-sm text-gray-500 mt-0.5">

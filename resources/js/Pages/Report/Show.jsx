@@ -300,11 +300,6 @@ export default function Show({ report, isReportedUser, isReporter, isAdmin }) {
 
                     <div className="flex items-center gap-2.5 self-start sm:self-auto">
                         <span className="text-xs font-mono font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-md">#{report.id}</span>
-                        {isAdmin && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-gray-900 text-white">
-                                <Shield size={13} /> Mode Pengawas
-                            </span>
-                        )}
                         <span
                             className={`px-3 py-1 rounded-lg text-xs font-semibold border ${
                                 statusConfig[report.status]?.style || 'bg-gray-100 text-gray-800 border-gray-200'
