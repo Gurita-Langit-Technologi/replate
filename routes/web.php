@@ -24,9 +24,9 @@ Route::get('/', function (ImpactAnalyticsService $impactService) {
 })->name('home');
 
 Route::get('/marketplace', [ProductController::class, 'index'])->name('marketplace');
-Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
-Route::get('/seller/{user}', [ProductController::class, 'sellerProfile'])->name('seller.profile');
-Route::get('/user/{user}', [ProductController::class, 'sellerProfile'])->name('user.profile');
+Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show')->whereNumber('product');
+Route::get('/seller/{user}', [ProductController::class, 'sellerProfile'])->name('seller.profile')->whereNumber('user');
+Route::get('/user/{user}', [ProductController::class, 'sellerProfile'])->name('user.profile')->whereNumber('user');
 Route::get('/impact', [ImpactController::class, 'index'])->name('impact');
 Route::get('/impact/report', [ImpactController::class, 'report'])->name('impact.report');
 Route::get('/leaderboard', [ImpactController::class, 'leaderboard'])->name('leaderboard');

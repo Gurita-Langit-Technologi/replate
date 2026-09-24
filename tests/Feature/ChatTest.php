@@ -52,7 +52,7 @@ class ChatTest extends TestCase
 
         $this->assertDatabaseHas('notifications', [
             'user_id' => $receiver->id,
-            'title' => 'Pesan baru',
+            'title' => 'Pesan baru dari ' . $sender->name,
         ]);
     }
 
