@@ -27,6 +27,10 @@ export default function Show({ partner, product, messages: initialMessages }) {
     const [messages, setMessages] = useState(initialMessages);
     const [body, setBody] = useState('');
     const [sending, setSending] = useState(false);
+    const [partnerTyping, setPartnerTyping] = useState(false);
+    const typingTimerRef = useRef(null);
+    const myTypingRef = useRef(false);
+    const channelRef = useRef(null);
 
     // Scroll ke bawah setiap ada pesan baru
     useEffect(() => {
@@ -36,12 +40,11 @@ export default function Show({ partner, product, messages: initialMessages }) {
     // Subscribe ke channel private chat milik user yang sedang login
     // Akan menerima pesan baru secara real-time dari siapa pun yang mengirim
     useEffect(() => {
-        const channel = window.Echo.private(`chat.${auth.user.id}`)
+        const ch = window.Echo.private(`chat.${auth.user.id}`)
             .listen('.MessageSent', (e) => {
                 const msg = e.message ?? e;
 
                 // Hanya tampilkan pesan yang relevan dengan percakapan ini
-                // (dari partner yang sama dan produk yang sama)
                 const samePartner =
                     msg.sender_id === partner.id || msg.receiver_id === partner.id;
                 const sameProduct = product
@@ -50,18 +53,45 @@ export default function Show({ partner, product, messages: initialMessages }) {
 
                 if (samePartner && sameProduct) {
                     setMessages((prev) => {
-                        // Hindari duplikasi jika pesan sudah ada
                         if (prev.some((m) => m.id === msg.id)) return prev;
                         return [...prev, msg];
                     });
+                    // Hilangkan typing indicator saat pesan sudah masuk
+                    setPartnerTyping(false);
                 }
             });
 
+        // Dengarkan typing indicator dari partner via whisper
+        const partnerChannel = window.Echo.private(`chat.${partner.id}`)
+            .listenForWhisper('typing', (e) => {
+                if (e.user_id === partner.id) {
+                    setPartnerTyping(true);
+                    // Auto-dismiss setelah 2.5 detik jika tidak ada update lagi
+                    clearTimeout(typingTimerRef.current);
+                    typingTimerRef.current = setTimeout(() => setPartnerTyping(false), 2500);
+                }
+            });
+
+        channelRef.current = ch;
+
         return () => {
-            channel.stopListening('.MessageSent');
+            ch.stopListening('.MessageSent');
             window.Echo.leave(`chat.${auth.user.id}`);
+            partnerChannel.stopListeningForWhisper('typing');
+            window.Echo.leave(`chat.${partner.id}`);
+            clearTimeout(typingTimerRef.current);
         };
     }, [auth.user.id, partner.id, product?.id]);
+
+    // Broadcast typing indicator ke partner via whisper (tidak melalui server)
+    function handleBodyChange(e) {
+        setBody(e.target.value);
+        if (!myTypingRef.current && channelRef.current) {
+            myTypingRef.current = true;
+            channelRef.current.whisper('typing', { user_id: auth.user.id });
+            setTimeout(() => { myTypingRef.current = false; }, 2000);
+        }
+    }
 
     // Kirim pesan via axios (AJAX) — tidak reload halaman
     async function handleSubmit(e) {
@@ -187,6 +217,18 @@ export default function Show({ partner, product, messages: initialMessages }) {
                             </div>
                         );
                     })}
+
+                    {/* Typing indicator */}
+                    {partnerTyping && (
+                        <div className="flex justify-start">
+                            <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                                <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                                <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                            </div>
+                        </div>
+                    )}
+
                     <div ref={bottomRef} />
                 </div>
 
@@ -195,7 +237,7 @@ export default function Show({ partner, product, messages: initialMessages }) {
                     <input
                         type="text"
                         value={body}
-                        onChange={(e) => setBody(e.target.value)}
+                        onChange={handleBodyChange}
                         placeholder="Ketik pesan..."
                         className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
                         autoFocus

@@ -10,4 +10,5 @@ enum NotificationType: string
     case REPORT = 'report';
     case VERIFICATION = 'verification';
     case PARTNER_TRANSFER = 'partner_transfer';
+    case CHAT = 'chat';
 }

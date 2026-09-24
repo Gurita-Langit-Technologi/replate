@@ -10,9 +10,11 @@ use App\Enums\TransactionMode;
 use App\Enums\TransactionStatus;
 use App\Enums\UserRole;
 use App\Models\Product;
+use App\Models\Review;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\ImageService;
+use App\Services\ImpactAnalyticsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -69,11 +71,24 @@ class ProductController extends Controller
             default => $query->orderBy('created_at', 'desc'), // newest
         };
 
-        $products = $query->paginate(12);
+        $products = $query->paginate(16)->withQueryString();
+
+        // Daftar kecamatan unik dari produk aktif (untuk filter dropdown)
+        $availableKecamatan = Product::whereIn('status', [
+                ProductStatus::ACTIVE,
+                ProductStatus::TIMEOUT_STAGE_1,
+                ProductStatus::TIMEOUT_STAGE_2,
+            ])
+            ->whereNotNull('kecamatan')
+            ->where('kecamatan', '!=', '')
+            ->distinct()
+            ->orderBy('kecamatan')
+            ->pluck('kecamatan');
 
         return Inertia::render('Marketplace/Index', [
-            'products' => $products,
-            'filters' => $request->only(['category', 'condition', 'mode', 'kecamatan', 'search', 'sort']),
+            'products'            => $products,
+            'filters'             => $request->only(['category', 'condition', 'mode', 'kecamatan', 'search', 'sort']),
+            'availableKecamatan'  => $availableKecamatan,
         ]);
     }
 
@@ -332,9 +347,9 @@ class ProductController extends Controller
     }
 
     /**
-     * Profil penjual — lihat semua produk aktif miliknya
+     * Profil publik pengguna / penjual — produk aktif, ulasan, reputasi & dampak lingkungan
      */
-    public function sellerProfile(User $user)
+    public function sellerProfile(User $user, ImpactAnalyticsService $impactService)
     {
         $products = Product::where('user_id', $user->id)
             ->whereIn('status', [ProductStatus::ACTIVE, ProductStatus::TIMEOUT_STAGE_1])
@@ -350,13 +365,73 @@ class ProductController extends Controller
             ->join('products', 'transactions.product_id', '=', 'products.id')
             ->sum('products.weight_grams');
 
+        // Ulasan yang diterima pengguna ini
+        $reviews = Review::where('reviewee_id', $user->id)
+            ->with([
+                'reviewer:id,name,profile_photo',
+                'transaction:id,product_id',
+                'transaction.product:id,title',
+            ])
+            ->latest()
+            ->get()
+            ->map(function ($rev) {
+                return [
+                    'id' => $rev->id,
+                    'rating' => $rev->rating,
+                    'comment' => $rev->comment,
+                    'created_at' => $rev->created_at->format('d M Y'),
+                    'reviewer' => [
+                        'id' => $rev->reviewer?->id,
+                        'name' => $rev->reviewer?->name ?? 'Pengguna Replate',
+                        'profile_photo' => $rev->reviewer?->profile_photo,
+                    ],
+                    'product_title' => $rev->transaction?->product?->title,
+                ];
+            });
+
+        $reviewCount = $reviews->count();
+        $averageRating = $reviewCount > 0 ? round($reviews->avg('rating'), 1) : 0;
+
+        $ratingDistribution = [
+            5 => $reviews->where('rating', 5)->count(),
+            4 => $reviews->where('rating', 4)->count(),
+            3 => $reviews->where('rating', 3)->count(),
+            2 => $reviews->where('rating', 2)->count(),
+            1 => $reviews->where('rating', 1)->count(),
+        ];
+
+        // Ambil data lencana & statistik dampak dari ImpactAnalyticsService
+        $badgeData = $impactService->getUserBadges($user);
+
         return Inertia::render('Seller/Profile', [
-            'seller' => $user,
+            'seller' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'role' => $user->role instanceof \BackedEnum ? $user->role->value : $user->role,
+                'profile_photo' => $user->profile_photo,
+                'desa' => $user->desa,
+                'kecamatan' => $user->kecamatan,
+                'address' => $user->address,
+                'points' => (int) ($user->points ?? 0),
+                'created_at' => $user->created_at->translatedFormat('F Y'),
+                'is_blacklisted' => (bool) $user->is_blacklisted,
+            ],
             'products' => $products,
+            'reviews' => $reviews,
+            'ratings' => [
+                'average' => $averageRating,
+                'count' => $reviewCount,
+                'distribution' => $ratingDistribution,
+            ],
+            'badges' => $badgeData['badges'],
+            'totalBadgesUnlocked' => $badgeData['total_unlocked'],
+            'impactStats' => $badgeData['user_stats'],
             'stats' => [
                 'totalProducts' => $products->count(),
                 'totalSold' => $totalSold,
                 'totalWeight' => $totalWeight,
+                'totalBarter' => $badgeData['user_stats']['barter_count'],
+                'totalDonation' => $badgeData['user_stats']['donation_count'],
             ],
         ]);
     }

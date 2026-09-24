@@ -13,6 +13,7 @@ use App\Enums\ProductStatus;
 use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 
 class ProcessProductTimeout extends Command
 {
@@ -96,8 +97,46 @@ class ProcessProductTimeout extends Command
             ]);
         }
 
+        // Transaksi SALE (COD) yang dikonfirmasi tapi belum ada proof_photo dalam 2 jam → cancel
+        // Pisahkan dari staleConfirmed agar tidak double-cancel
+        // (COD seharusnya diselesaikan cepat; 2 jam cukup toleransi mengingat cron jalan per jam)
+        $staleCodIds = Transaction::where('status', TransactionStatus::CONFIRMED)
+            ->where('type', TransactionType::SALE)
+            ->whereNull('proof_photo')
+            ->where('updated_at', '<=', now()->subHours(2))
+            ->pluck('id');
+
+        if ($staleCodIds->isNotEmpty()) {
+            $staleCod = Transaction::whereIn('id', $staleCodIds)->get();
+            foreach ($staleCod as $transaction) {
+                $transaction->update(['status' => TransactionStatus::CANCELLED]);
+
+                Notification::create([
+                    'user_id' => $transaction->buyer_id,
+                    'title' => 'Batas Waktu Pembayaran COD Habis',
+                    'message' => "Sesi pembayaran COD untuk \"{$transaction->product->title}\" telah berakhir (melebihi 2 jam tanpa bukti) dan transaksi dibatalkan.",
+                    'type' => NotificationType::TRANSACTION,
+                    'related_id' => $transaction->id,
+                    'related_type' => Transaction::class,
+                ]);
+
+                Notification::create([
+                    'user_id' => $transaction->seller_id,
+                    'title' => 'Transaksi COD Dibatalkan',
+                    'message' => "Pembayaran COD untuk \"{$transaction->product->title}\" tidak diselesaikan dan transaksi dibatalkan otomatis.",
+                    'type' => NotificationType::TRANSACTION,
+                    'related_id' => $transaction->id,
+                    'related_type' => Transaction::class,
+                ]);
+            }
+        } else {
+            $staleCodIds = collect();
+        }
+
         // Confirmed lebih dari 48 jam (belum complete) → cancel
+        // Kecualikan yang sudah ditangani sebagai staleCod agar tidak double-cancel
         $staleConfirmed = Transaction::where('status', TransactionStatus::CONFIRMED)
+            ->whereNotIn('id', $staleCodIds)
             ->where('updated_at', '<=', now()->subHours(48))
             ->get();
 
@@ -123,36 +162,7 @@ class ProcessProductTimeout extends Command
             ]);
         }
 
-        // Transaksi Jual (SALE) COD yang sudah dikonfirmasi tapi tidak diselesaikan dalam 15 menit → cancel
-        $staleCod = Transaction::where('status', TransactionStatus::CONFIRMED)
-            ->where('type', TransactionType::SALE)
-            ->whereNull('proof_photo')
-            ->where('updated_at', '<=', now()->subMinutes(15))
-            ->get();
-
-        foreach ($staleCod as $transaction) {
-            $transaction->update(['status' => TransactionStatus::CANCELLED]);
-
-            Notification::create([
-                'user_id' => $transaction->buyer_id,
-                'title' => 'Batas Waktu Pembayaran COD Habis',
-                'message' => "Sesi pembayaran COD 15 menit untuk \"{$transaction->product->title}\" telah berakhir dan transaksi dibatalkan.",
-                'type' => NotificationType::TRANSACTION,
-                'related_id' => $transaction->id,
-                'related_type' => Transaction::class,
-            ]);
-
-            Notification::create([
-                'user_id' => $transaction->seller_id,
-                'title' => 'Transaksi COD Dibatalkan',
-                'message' => "Pembayaran COD untuk \"{$transaction->product->title}\" tidak diselesaikan dalam 15 menit.",
-                'type' => NotificationType::TRANSACTION,
-                'related_id' => $transaction->id,
-                'related_type' => Transaction::class,
-            ]);
-        }
-
-        $total = $stalePending->count() + $staleConfirmed->count() + $staleCod->count();
+        $total = $stalePending->count() + ($staleCodIds->count()) + $staleConfirmed->count();
         $this->info("Stale transactions: {$total} dibatalkan.");
     }
 
@@ -258,12 +268,13 @@ class ProcessProductTimeout extends Command
                 $partner->increment('today_received_kg', $weightKg);
 
                 Transaction::create([
-                    'product_id' => $product->id,
-                    'buyer_id' => $partner->user_id,
-                    'seller_id' => $product->user_id,
-                    'type' => TransactionType::PARTNER_TRANSFER,
-                    'status' => TransactionStatus::PENDING,
-                    'partner_id' => $partner->user_id,
+                    'transaction_code' => 'RPT-TRF-' . strtoupper(Str::random(8)),
+                    'product_id'       => $product->id,
+                    'buyer_id'         => $partner->user_id,
+                    'seller_id'        => $product->user_id,
+                    'type'             => TransactionType::PARTNER_TRANSFER,
+                    'status'           => TransactionStatus::PENDING,
+                    'partner_id'       => $partner->user_id,
                 ]);
 
                 $product->status = ProductStatus::TIMEOUT_STAGE_3;

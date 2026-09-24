@@ -54,11 +54,13 @@ function PodiumCard({ user, rank }) {
                     {m.emoji} {isFirst ? <Crown size={11} className="inline" /> : null} {m.label}
                 </span>
 
-                <Avatar name={user.name} size={isFirst ? 'xl' : 'lg'} ring={m.ring} />
+                <Link href={`/user/${user.id}`} className="group flex flex-col items-center">
+                    <Avatar name={user.name} size={isFirst ? 'xl' : 'lg'} ring={m.ring} />
 
-                <p className={`mt-3 font-extrabold text-gray-900 leading-tight ${isFirst ? 'text-base sm:text-lg' : 'text-sm sm:text-base'} truncate w-full`}>
-                    {user.name}
-                </p>
+                    <p className={`mt-3 font-extrabold text-gray-900 group-hover:text-emerald-700 transition leading-tight ${isFirst ? 'text-base sm:text-lg' : 'text-sm sm:text-base'} truncate w-full`}>
+                        {user.name}
+                    </p>
+                </Link>
                 <p className="text-xs text-gray-500 mt-0.5 truncate w-full">{user.desa}</p>
                 {isFirst && (
                     <span className="mt-2 text-[11px] font-bold text-amber-700">{user.level_title}</span>
@@ -121,21 +123,22 @@ function RankRow({ user }) {
                 {rank}
             </div>
 
-            {/* Avatar */}
-            <Avatar name={user.name} size="sm" ring={isTop1 ? 'ring-amber-300' : isTop2 ? 'ring-slate-300' : isTop3 ? 'ring-orange-300' : 'ring-gray-200'} />
+            {/* Avatar & Name as Link */}
+            <Link href={`/user/${user.id}`} className="flex items-center gap-3 flex-1 min-w-0 group">
+                <Avatar name={user.name} size="sm" ring={isTop1 ? 'ring-amber-300' : isTop2 ? 'ring-slate-300' : isTop3 ? 'ring-orange-300' : 'ring-gray-200'} />
 
-            {/* Name + meta */}
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-bold text-gray-900 truncate">{user.name}</span>
-                    {isTop1 && <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded border border-amber-300 hidden sm:inline">🏆 No. 1</span>}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-bold text-gray-900 group-hover:text-emerald-700 transition truncate">{user.name}</span>
+                        {isTop1 && <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded border border-amber-300 hidden sm:inline">🏆 No. 1</span>}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
+                        <span className="font-semibold text-gray-700 truncate">{user.desa}</span>
+                        <span>·</span>
+                        <span className="truncate">{user.level_title}</span>
+                    </div>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
-                    <span className="font-semibold text-gray-700 truncate">{user.desa}</span>
-                    <span>·</span>
-                    <span className="truncate">{user.level_title}</span>
-                </div>
-            </div>
+            </Link>
 
             {/* Metrics */}
             <div className="flex items-center gap-3 sm:gap-5 flex-shrink-0 text-right">

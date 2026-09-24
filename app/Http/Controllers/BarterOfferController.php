@@ -12,11 +12,15 @@ use App\Models\BarterOffer;
 use App\Models\Notification;
 use App\Models\Product;
 use App\Models\Transaction;
+use App\Services\EmailNotificationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class BarterOfferController extends Controller
 {
+    public function __construct(
+        protected EmailNotificationService $emailService
+    ) {}
     /**
      * Form ajukan barter
      */
@@ -101,6 +105,8 @@ class BarterOfferController extends Controller
                 'timer_paused_at' => now(),
             ]);
         }
+
+        $this->emailService->sendBarterOfferReceived($offer);
 
         return redirect("/products/{$product->id}")
             ->with('success', 'Tawaran barter terkirim! Menunggu respon penjual.');

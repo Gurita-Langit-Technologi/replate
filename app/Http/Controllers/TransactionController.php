@@ -19,6 +19,7 @@ use App\Models\Report;
 use App\Models\Review;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\EmailNotificationService;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +28,8 @@ use Inertia\Inertia;
 class TransactionController extends Controller
 {
     public function __construct(
-        protected ImageService $imageService
+        protected ImageService $imageService,
+        protected EmailNotificationService $emailService
     ) {}
     /**
      * Beli produk
@@ -120,6 +122,8 @@ class TransactionController extends Controller
             return $tx;
         });
 
+        $this->emailService->sendTransactionCreated($transaction);
+
         return redirect("/transactions/{$transaction->id}");
     }
 
@@ -150,6 +154,8 @@ class TransactionController extends Controller
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
         ]);
+
+        $this->emailService->sendTransactionConfirmed($transaction);
 
         return back()->with('success', 'Pesanan dikonfirmasi.');
     }
@@ -251,6 +257,8 @@ class TransactionController extends Controller
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
         ]);
+
+        $this->emailService->sendTransactionCompleted($transaction);
 
         return back()->with('success', 'Transaksi selesai!');
     }
@@ -359,7 +367,7 @@ class TransactionController extends Controller
     public function cancel(Request $request, Transaction $transaction)
     {
         // Pembeli atau penjual bisa batalkan
-        if (!in_array($request->user()->id, [$transaction->buyer_id, $transaction->seller_id])) {
+        if (!in_array($request->user()->id, [$transaction->buyer_id, $transaction->seller_id]) && !$request->user()->isAdmin()) {
             return back()->with('error', 'Anda tidak memiliki akses.');
         }
 
@@ -367,7 +375,12 @@ class TransactionController extends Controller
             return back()->with('error', 'Transaksi tidak bisa dibatalkan.');
         }
 
-        $transaction->update(['status' => TransactionStatus::CANCELLED]);
+        $reason = $request->input('reason', 'Dibatalkan oleh pihak transaksi.');
+
+        $transaction->update([
+            'status' => TransactionStatus::CANCELLED,
+            'notes' => ($transaction->notes ? $transaction->notes . ' | ' : '') . "Dibatalkan: {$reason}",
+        ]);
 
         // Notifikasi ke pihak lain
         $notifyUserId = $request->user()->id === $transaction->buyer_id
@@ -377,11 +390,13 @@ class TransactionController extends Controller
         Notification::create([
             'user_id' => $notifyUserId,
             'title' => 'Transaksi dibatalkan',
-            'message' => "Transaksi untuk \"{$transaction->product->title}\" telah dibatalkan.",
+            'message' => "Transaksi untuk \"{$transaction->product->title}\" telah dibatalkan. Alasan: {$reason}",
             'type' => NotificationType::TRANSACTION,
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
         ]);
+
+        $this->emailService->sendTransactionCancelled($transaction, $reason);
 
         return back()->with('success', 'Transaksi dibatalkan.');
     }
@@ -594,6 +609,8 @@ class TransactionController extends Controller
             return $tx;
         });
 
+        $this->emailService->sendTransactionCreated($transaction);
+
         return redirect("/transactions/{$transaction->id}");
     }
 
@@ -624,6 +641,8 @@ class TransactionController extends Controller
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
         ]);
+
+        $this->emailService->sendTransactionConfirmed($transaction);
 
         return back()->with('success', 'Klaim donasi telah disetujui.');
     }
@@ -662,6 +681,8 @@ class TransactionController extends Controller
             'related_id' => $transaction->id,
             'related_type' => Transaction::class,
         ]);
+
+        $this->emailService->sendTransactionCancelled($transaction, 'Pendonor menolak permohonan donasi.');
 
         return back()->with('success', 'Klaim donasi ditolak. Produk telah kembali tayang.');
     }

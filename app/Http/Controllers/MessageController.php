@@ -121,9 +121,9 @@ class MessageController extends Controller
         // Notifikasi ke penerima (NotificationObserver akan broadcast otomatis)
         Notification::create([
             'user_id'      => $partner->id,
-            'title'        => 'Pesan baru',
-            'message'      => "{$request->user()->name}: " . substr($validated['body'], 0, 50) . (strlen($validated['body']) > 50 ? '...' : ''),
-            'type'         => NotificationType::TRANSACTION,
+            'title'        => 'Pesan baru dari ' . $request->user()->name,
+            'message'      => substr($validated['body'], 0, 80) . (strlen($validated['body']) > 80 ? '...' : ''),
+            'type'         => NotificationType::CHAT,
             'related_id'   => $message->id,
             'related_type' => Message::class,
         ]);

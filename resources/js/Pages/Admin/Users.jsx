@@ -3,7 +3,7 @@ import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import {
     Search, ChevronUp, ChevronDown, ChevronsUpDown,
-    Users, ShieldCheck, Handshake, UserX, UserCheck,
+    Users as UsersIcon, ShieldCheck, Handshake, UserX, UserCheck,
     X, AlertTriangle, Coins,
 } from 'lucide-react';
 
@@ -122,7 +122,7 @@ export default function Users({ users, filters = {}, roleCounts = {} }) {
                     <RoleTab
                         role=""
                         label="Semua"
-                        icon={Users}
+                        icon={UsersIcon}
                         count={roleCounts.all ?? 0}
                         active={!activeRole}
                         onClick={() => navigate({ role: '' })}
@@ -130,7 +130,7 @@ export default function Users({ users, filters = {}, roleCounts = {} }) {
                     <RoleTab
                         role="user"
                         label="User"
-                        icon={Users}
+                        icon={UsersIcon}
                         count={roleCounts.user ?? 0}
                         active={activeRole === 'user'}
                         onClick={() => navigate({ role: 'user' })}

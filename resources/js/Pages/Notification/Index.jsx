@@ -1,6 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link } from '@inertiajs/react';
-import { Bell, ShoppingBasket, ArrowLeftRight, Clock, AlertTriangle, Shield, ChevronRight } from 'lucide-react';
+import { Bell, ShoppingBasket, ArrowLeftRight, Clock, AlertTriangle, Shield, ChevronRight, MessageCircle } from 'lucide-react';
 
 const typeConfig = {
     transaction: { icon: ShoppingBasket, color: 'bg-green-100 text-green-600' },
@@ -9,6 +9,7 @@ const typeConfig = {
     report: { icon: AlertTriangle, color: 'bg-red-100 text-red-600' },
     verification: { icon: Shield, color: 'bg-blue-100 text-blue-600' },
     partner_transfer: { icon: ArrowLeftRight, color: 'bg-orange-100 text-orange-600' },
+    chat: { icon: MessageCircle, color: 'bg-teal-100 text-teal-600' },
 };
 
 function timeAgo(dateString) {
@@ -22,9 +23,13 @@ function timeAgo(dateString) {
 function getNotificationUrl(notif, user) {
     if (!notif.related_id) {
         if (notif.type === 'barter_offer') return '/barter';
+        if (notif.type === 'chat') return '/chat';
         return null;
     }
     const relType = notif.related_type || '';
+    if (notif.type === 'chat' || relType.includes('Message')) {
+        return '/chat';
+    }
     if (relType.includes('Transaction') || notif.type === 'transaction' || notif.type === 'partner_transfer') {
         return `/transactions/${notif.related_id}`;
     }

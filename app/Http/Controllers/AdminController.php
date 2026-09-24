@@ -18,12 +18,17 @@ use App\Models\Report;
 use App\Models\SellerVerification;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\EmailNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class AdminController extends Controller
 {
+    public function __construct(
+        protected EmailNotificationService $emailService
+    ) {}
+
     /**
      * Dashboard admin dengan statistik
      */
@@ -155,6 +160,8 @@ class AdminController extends Controller
             'related_type' => SellerVerification::class,
         ]);
 
+        $this->emailService->sendSellerVerificationResult($verification, true);
+
         return back()->with('success', 'Verifikasi disetujui.');
     }
 
@@ -180,6 +187,8 @@ class AdminController extends Controller
             'related_id' => $verification->id,
             'related_type' => SellerVerification::class,
         ]);
+
+        $this->emailService->sendSellerVerificationResult($verification, false, $validated['admin_notes']);
 
         return back()->with('success', 'Verifikasi ditolak.');
     }
