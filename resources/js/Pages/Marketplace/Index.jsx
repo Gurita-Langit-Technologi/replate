@@ -375,9 +375,9 @@ export default function Index({ products, filters, availableKecamatan = [] }) {
                                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Kondisi</p>
                                 <div className="flex flex-wrap gap-2">
                                     <FilterPill active={!filters.condition} color="emerald" onClick={() => handleFilter('condition', '')}>Semua</FilterPill>
-                                    <FilterPill active={filters.condition === 'layak_konsumsi'} color="emerald" onClick={() => handleFilter('condition', 'layak_konsumsi')}>✅ Siap Konsumsi</FilterPill>
-                                    <FilterPill active={filters.condition === 'layak_olah'} color="amber" onClick={() => handleFilter('condition', 'layak_olah')}>🍳 Perlu Diolah</FilterPill>
-                                    <FilterPill active={filters.condition === 'layak_pakan_kompos'} color="orange" onClick={() => handleFilter('condition', 'layak_pakan_kompos')}>♻️ Pakan / Kompos</FilterPill>
+                                    <FilterPill active={filters.condition === 'layak_konsumsi'} color="emerald" onClick={() => handleFilter('condition', 'layak_konsumsi')}>Siap Konsumsi</FilterPill>
+                                    <FilterPill active={filters.condition === 'layak_olah'} color="amber" onClick={() => handleFilter('condition', 'layak_olah')}>Perlu Diolah</FilterPill>
+                                    <FilterPill active={filters.condition === 'layak_pakan_kompos'} color="orange" onClick={() => handleFilter('condition', 'layak_pakan_kompos')}>Pakan / Kompos</FilterPill>
                                 </div>
                             </div>
 
@@ -386,9 +386,9 @@ export default function Index({ products, filters, availableKecamatan = [] }) {
                                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Mode Transaksi</p>
                                 <div className="flex flex-wrap gap-2">
                                     <FilterPill active={!filters.mode} color="gray" onClick={() => handleFilter('mode', '')}>Semua</FilterPill>
-                                    <FilterPill active={filters.mode === 'sell'} color="emerald" onClick={() => handleFilter('mode', 'sell')}>🛒 Jual Beli</FilterPill>
-                                    <FilterPill active={filters.mode === 'barter'} color="purple" onClick={() => handleFilter('mode', 'barter')}>🔄 Barter</FilterPill>
-                                    <FilterPill active={filters.mode === 'donate'} color="blue" onClick={() => handleFilter('mode', 'donate')}>💙 Donasi</FilterPill>
+                                    <FilterPill active={filters.mode === 'sell'} color="emerald" onClick={() => handleFilter('mode', 'sell')}>Jual Beli</FilterPill>
+                                    <FilterPill active={filters.mode === 'barter'} color="purple" onClick={() => handleFilter('mode', 'barter')}>Barter</FilterPill>
+                                    <FilterPill active={filters.mode === 'donate'} color="blue" onClick={() => handleFilter('mode', 'donate')}>Donasi</FilterPill>
                                 </div>
                             </div>
 
