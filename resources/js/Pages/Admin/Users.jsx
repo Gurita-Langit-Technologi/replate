@@ -15,10 +15,13 @@ const ROLE_META = {
 };
 
 const SORT_OPTIONS = [
-    { value: 'created_at', label: 'Tanggal daftar' },
-    { value: 'name',       label: 'Nama (A–Z)'     },
-    { value: 'points',     label: 'RePoin'         },
-    { value: 'report_count', label: 'Laporan'       },
+    { value: 'created_at_desc',   sort: 'created_at',   direction: 'desc', label: 'Pendaftaran: Terbaru' },
+    { value: 'created_at_asc',    sort: 'created_at',   direction: 'asc',  label: 'Pendaftaran: Terlama' },
+    { value: 'name_asc',          sort: 'name',         direction: 'asc',  label: 'Nama (A–Z)' },
+    { value: 'name_desc',         sort: 'name',         direction: 'desc', label: 'Nama (Z–A)' },
+    { value: 'points_desc',       sort: 'points',       direction: 'desc', label: 'RePoin: Tertinggi' },
+    { value: 'points_asc',        sort: 'points',       direction: 'asc',  label: 'RePoin: Terendah' },
+    { value: 'report_count_desc', sort: 'report_count', direction: 'desc', label: 'Laporan: Terbanyak' },
 ];
 
 /* ── Helpers ─────────────────────────────────────────────── */
@@ -69,7 +72,7 @@ export default function Users({ users, filters = {}, roleCounts = {} }) {
     const activeRole      = filters.role      || '';
     const activeStatus    = filters.status    || '';
     const activeSort      = filters.sort      || 'created_at';
-    const activeDirection = filters.direction || 'desc';
+    const activeDirection = filters.direction || (activeSort === 'name' ? 'asc' : 'desc');
 
     function navigate(overrides) {
         const params = {
@@ -91,8 +94,20 @@ export default function Users({ users, filters = {}, roleCounts = {} }) {
     }
 
     function handleSort(column) {
-        const newDir = activeSort === column && activeDirection === 'desc' ? 'asc' : 'desc';
+        let newDir;
+        if (activeSort === column) {
+            newDir = activeDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            newDir = column === 'name' ? 'asc' : 'desc';
+        }
         navigate({ sort: column, direction: newDir });
+    }
+
+    function handleSelectSort(e) {
+        const selected = SORT_OPTIONS.find((o) => o.value === e.target.value);
+        if (selected) {
+            navigate({ sort: selected.sort, direction: selected.direction });
+        }
     }
 
     function clearFilters() {
@@ -100,7 +115,8 @@ export default function Users({ users, filters = {}, roleCounts = {} }) {
         router.get('/admin/users', {}, { preserveState: true });
     }
 
-    const hasActiveFilters = activeRole || activeStatus || filters.search;
+    const currentSortValue = `${activeSort}_${activeDirection}`;
+    const hasActiveFilters = activeRole || activeStatus || filters.search || (filters.sort && filters.sort !== 'created_at') || (filters.direction && filters.direction !== 'desc');
 
     return (
         <AppLayout>
@@ -204,21 +220,14 @@ export default function Users({ users, filters = {}, roleCounts = {} }) {
                     <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-gray-500 whitespace-nowrap">Urutkan:</span>
                         <select
-                            value={activeSort}
-                            onChange={(e) => navigate({ sort: e.target.value })}
+                            value={currentSortValue}
+                            onChange={handleSelectSort}
                             className="text-xs font-semibold border border-gray-200 rounded-xl px-2.5 py-2 text-gray-700 focus:outline-none focus:border-emerald-500 bg-white cursor-pointer"
                         >
                             {SORT_OPTIONS.map((o) => (
                                 <option key={o.value} value={o.value}>{o.label}</option>
                             ))}
                         </select>
-                        <button
-                            onClick={() => navigate({ direction: activeDirection === 'asc' ? 'desc' : 'asc' })}
-                            title={activeDirection === 'asc' ? 'Ascending' : 'Descending'}
-                            className="p-2 border border-gray-200 rounded-xl hover:border-gray-300 text-gray-500 transition"
-                        >
-                            {activeDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                        </button>
                     </div>
 
                     {/* Reset */}

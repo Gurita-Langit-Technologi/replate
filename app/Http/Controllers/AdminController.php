@@ -481,16 +481,21 @@ class AdminController extends Controller
      */
     public function users(Request $request)
     {
-        $role      = $request->input('role');
-        $status    = $request->input('status');
-        $sort      = $request->input('sort', 'created_at');
-        $direction = $request->input('direction', 'desc');
-        $search    = $request->input('search');
+        $role       = $request->input('role');
+        $status     = $request->input('status');
+        $sort       = $request->input('sort', 'created_at');
+        $defaultDir = $sort === 'name' ? 'asc' : 'desc';
+        $direction  = strtolower($request->input('direction', $defaultDir));
+        $search     = $request->input('search');
 
         // Whitelist sortable columns
         $allowedSorts = ['name', 'created_at', 'report_count', 'points'];
         if (!in_array($sort, $allowedSorts)) {
             $sort = 'created_at';
+        }
+
+        if (!in_array($direction, ['asc', 'desc'])) {
+            $direction = $defaultDir;
         }
 
         $query = User::where('role', '!=', UserRole::ADMIN);
@@ -512,7 +517,11 @@ class AdminController extends Controller
             });
         }
 
-        $query->orderBy($sort, $direction === 'asc' ? 'asc' : 'desc');
+        if ($sort === 'name') {
+            $query->orderByRaw("LOWER(name) {$direction}");
+        } else {
+            $query->orderBy($sort, $direction);
+        }
 
         $users = $query->get();
 
