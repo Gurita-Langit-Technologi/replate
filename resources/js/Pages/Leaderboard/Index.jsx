@@ -11,10 +11,37 @@ import {
 } from 'lucide-react';
 
 /* ─── Helpers ─────────────────────────────────────────── */
-const MEDAL = {
-    1: { emoji: '🥇', label: 'Emas',   ring: 'ring-amber-400',  bg: 'bg-amber-50',  text: 'text-amber-900', badge: 'bg-amber-100 text-amber-800 border-amber-300' },
-    2: { emoji: '🥈', label: 'Perak',  ring: 'ring-slate-400',  bg: 'bg-slate-50',  text: 'text-slate-900', badge: 'bg-slate-100 text-slate-700 border-slate-300' },
-    3: { emoji: '🥉', label: 'Perunggu', ring: 'ring-orange-400', bg: 'bg-orange-50', text: 'text-orange-900', badge: 'bg-orange-100 text-orange-800 border-orange-300' },
+const METALLIC_THEME = {
+    1: {
+        label: '#1 Emas',
+        icon: Crown,
+        border: 'border-amber-300 border-t-4 border-t-amber-400 bg-gradient-to-b from-amber-50/30 via-white to-white',
+        badge: 'bg-amber-50 text-amber-900 border-amber-200/90',
+        iconColor: 'text-amber-500 fill-amber-400',
+        ring: 'ring-4 ring-amber-400/50 ring-offset-2 ring-offset-white',
+        titleBadge: 'bg-amber-100/80 text-amber-900 border border-amber-200',
+        shadow: 'shadow-md hover:shadow-lg shadow-amber-500/10 hover:border-amber-400',
+    },
+    2: {
+        label: '#2 Perak',
+        icon: Medal,
+        border: 'border-slate-300 border-t-4 border-t-slate-400 bg-gradient-to-b from-slate-50/40 via-white to-white',
+        badge: 'bg-slate-50 text-slate-800 border-slate-200',
+        iconColor: 'text-slate-500',
+        ring: 'ring-4 ring-slate-300/60 ring-offset-2 ring-offset-white',
+        titleBadge: 'bg-slate-100 text-slate-700 border border-slate-200',
+        shadow: 'shadow-xs hover:shadow-md hover:border-slate-400',
+    },
+    3: {
+        label: '#3 Perunggu',
+        icon: Medal,
+        border: 'border-orange-200 border-t-4 border-t-amber-700/60 bg-gradient-to-b from-orange-50/30 via-white to-white',
+        badge: 'bg-orange-50/80 text-amber-950 border-orange-200',
+        iconColor: 'text-amber-700',
+        ring: 'ring-4 ring-amber-600/30 ring-offset-2 ring-offset-white',
+        titleBadge: 'bg-orange-50 text-amber-900 border border-orange-200',
+        shadow: 'shadow-xs hover:shadow-md hover:border-orange-300',
+    },
 };
 
 function Avatar({ name = '?', size = 'md', ring = '' }) {
@@ -32,68 +59,72 @@ function Avatar({ name = '?', size = 'md', ring = '' }) {
     );
 }
 
-/* ─── Podium (top 3) ──────────────────────────────────── */
+/* ─── Podium Cards (Clean Minimalist Cards) ────────────── */
 function PodiumCard({ user, rank }) {
-    const m = MEDAL[rank];
+    const theme = METALLIC_THEME[rank];
     const isFirst = rank === 1;
+    const Icon = theme.icon;
 
     return (
         <div
-            className={`flex flex-col items-center gap-0 ${isFirst ? 'order-2 md:order-2' : rank === 2 ? 'order-1 md:order-1' : 'order-3'}`}
+            className={`flex flex-col h-full ${
+                isFirst ? 'order-1 sm:order-2 sm:-translate-y-2.5 z-10' : rank === 2 ? 'order-2 sm:order-1' : 'order-3'
+            }`}
         >
-            {/* Card body */}
             <div
-                className={`w-full rounded-2xl border px-4 pt-5 pb-4 flex flex-col items-center text-center shadow-sm transition hover:shadow-md ${
-                    isFirst
-                        ? 'border-amber-300 bg-gradient-to-b from-amber-50 to-white ring-1 ring-amber-200'
-                        : 'border-gray-200 bg-white'
-                }`}
+                className={`w-full h-full rounded-2xl bg-white border ${theme.border} p-5 sm:p-6 flex flex-col justify-between items-center text-center ${theme.shadow} transition-all duration-200`}
             >
-                {/* Medal badge */}
-                <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border mb-3 ${m.badge}`}>
-                    {m.emoji} {isFirst ? <Crown size={11} className="inline" /> : null} {m.label}
-                </span>
+                {/* Top Rank Badge */}
+                <div className="flex items-center justify-center mb-4">
+                    <span
+                        className={`inline-flex items-center gap-1.5 text-xs font-black tracking-wide px-3 py-1 rounded-full border shadow-2xs ${theme.badge}`}
+                    >
+                        <Icon size={14} className={theme.iconColor} />
+                        {theme.label}
+                    </span>
+                </div>
 
-                <Link href={`/user/${user.id}`} className="group flex flex-col items-center">
-                    <Avatar name={user.name} size={isFirst ? 'xl' : 'lg'} ring={m.ring} />
+                {/* Avatar & User Details */}
+                <div className="flex flex-col items-center w-full">
+                    <Link href={`/user/${user.id}`} className="group flex flex-col items-center w-full">
+                        <Avatar name={user.name} size={isFirst ? 'xl' : 'lg'} ring={theme.ring} />
 
-                    <p className={`mt-3 font-extrabold text-gray-900 group-hover:text-emerald-700 transition leading-tight ${isFirst ? 'text-base sm:text-lg' : 'text-sm sm:text-base'} truncate w-full`}>
-                        {user.name}
-                    </p>
-                </Link>
-                <p className="text-xs text-gray-500 mt-0.5 truncate w-full">{user.desa}</p>
-                {isFirst && (
-                    <span className="mt-2 text-[11px] font-bold text-amber-700">{user.level_title}</span>
-                )}
+                        <p className={`mt-3 font-extrabold text-gray-900 group-hover:text-emerald-700 transition leading-tight ${isFirst ? 'text-base sm:text-lg' : 'text-sm sm:text-base'} truncate w-full px-2`}>
+                            {user.name}
+                        </p>
+                    </Link>
 
-                {/* Stats row */}
-                <div className={`w-full mt-4 pt-3 border-t grid grid-cols-2 gap-2 text-center ${isFirst ? 'border-amber-100' : 'border-gray-100'}`}>
-                    <div>
-                        <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold block">Diselamatkan</span>
-                        <span className={`text-sm font-extrabold ${isFirst ? 'text-green-800 text-base' : 'text-green-700'}`}>
-                            {user.weight_saved_kg} kg
+                    <p className="text-xs text-gray-500 mt-0.5 truncate w-full px-2">{user.desa}</p>
+
+                    <div className="mt-2 min-h-[22px]">
+                        {user.level_title ? (
+                            <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md ${theme.titleBadge}`}>
+                                {user.level_title}
+                            </span>
+                        ) : null}
+                    </div>
+                </div>
+
+                {/* Clean Stat Chips */}
+                <div className="w-full mt-5 pt-4 border-t border-gray-100 grid grid-cols-2 gap-2 text-center">
+                    <div className="bg-emerald-50/70 border border-emerald-100/80 rounded-xl p-2.5 flex flex-col justify-center">
+                        <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold block">
+                            Diselamatkan
+                        </span>
+                        <span className="text-sm sm:text-base font-black text-emerald-800 mt-0.5">
+                            {user.weight_saved_kg} <span className="text-xs font-semibold">kg</span>
                         </span>
                     </div>
-                    <div>
-                        <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold block">RePoin</span>
-                        <span className={`text-sm font-extrabold ${isFirst ? 'text-amber-800 text-base' : 'text-amber-700'}`}>
-                            {user.points}
+
+                    <div className="bg-amber-50/70 border border-amber-100/80 rounded-xl p-2.5 flex flex-col justify-center">
+                        <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold block">
+                            RePoin
+                        </span>
+                        <span className="text-sm sm:text-base font-black text-amber-800 mt-0.5">
+                            {user.points} <span className="text-xs font-semibold">poin</span>
                         </span>
                     </div>
                 </div>
-            </div>
-
-            {/* Podium platform */}
-            <div
-                className={`w-full rounded-b-xl flex items-center justify-center text-xs font-black tracking-widest text-white shadow-inner ${
-                    isFirst
-                        ? 'h-14 bg-gradient-to-b from-amber-400 to-amber-600'
-                        : rank === 2
-                        ? 'h-10 bg-gradient-to-b from-slate-300 to-slate-500'
-                        : 'h-7  bg-gradient-to-b from-orange-300 to-orange-500'
-                }`}
-            >
-                #{rank}
             </div>
         </div>
     );
@@ -224,12 +255,12 @@ function LeaderboardContent({ leaderboard = [], currentUserRank }) {
                 </div>
             )}
 
-            {/* ── Podium ── */}
+            {/* ── Podium (Clean Minimalist Cards) ── */}
             {hasPodium && (
                 <div>
                     <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">🏅 3 Besar Warga Terbaik</p>
-                    {/* grid: 2 - 1 - 3 visually */}
-                    <div className="grid grid-cols-3 gap-3 sm:gap-5 items-end">
+                    {/* grid: 2 - 1 - 3 visually on desktop, stacked on mobile */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 items-stretch">
                         {podiumOrder.map((user, i) => (
                             <PodiumCard key={user.id} user={user} rank={podiumRanks[i]} />
                         ))}
