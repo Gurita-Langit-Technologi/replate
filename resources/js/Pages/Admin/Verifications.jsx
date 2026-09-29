@@ -210,9 +210,9 @@ function VerificationCard({ v, onReject }) {
     const isRejected = (v.status?.value ?? v.status) === 'rejected';
 
     return (
-        <div className={`bg-white rounded-2xl border overflow-hidden ${isPending ? 'border-amber-200' : 'border-gray-200'}`}>
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-xs">
             {/* Card header */}
-            <div className={`px-6 py-4 flex items-center justify-between border-b ${isPending ? 'bg-amber-50 border-amber-100' : 'bg-gray-50 border-gray-100'}`}>
+            <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100 bg-gray-50">
                 <div className="flex items-center gap-3">
                     {/* Avatar */}
                     <div

@@ -300,9 +300,9 @@ export default function Index({ products, filters, availableKecamatan = [] }) {
                         </p>
                     </div>
 
-                    {auth?.user?.role !== 'admin' && auth?.user?.role !== 'partner' && (
+                    {isLoggedIn && auth?.user?.role !== 'admin' && auth?.user?.role !== 'partner' && (
                         <Link
-                            href={auth?.user ? '/products/create' : '/login'}
+                            href="/products/create"
                             className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-xs sm:text-sm font-bold rounded-xl hover:bg-emerald-700 transition self-start sm:self-auto shadow-xs"
                         >
                             <Plus size={16} /> Upload Produk
