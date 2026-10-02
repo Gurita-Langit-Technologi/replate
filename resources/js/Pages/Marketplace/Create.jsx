@@ -1,6 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, useForm, Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
     ArrowLeft,
     Upload,
@@ -14,6 +14,7 @@ import {
     X,
     MapPin,
     Info,
+    AlertCircle,
 } from 'lucide-react';
 
 const modeOptions = [
@@ -50,6 +51,34 @@ export default function Create() {
     });
 
     const [preview, setPreview] = useState(null);
+
+    // Deteksi dini kata larangan yang tidak sesuai kondisi tag
+    const tagCompatibilityWarning = useMemo(() => {
+        const text = `${data.title} ${data.description}`.toLowerCase();
+        const nonFoodMatches = ['pupuk', 'kompos', 'kotoran', 'maggot', 'bangkai'].filter(kw =>
+            new RegExp(`\\b${kw}\\b`, 'i').test(text)
+        );
+        if (nonFoodMatches.length > 0 && ['layak_konsumsi', 'layak_olah'].includes(data.condition)) {
+            return {
+                keyword: nonFoodMatches[0],
+                message: `Produk terdeteksi mengandung "${nonFoodMatches[0]}" yang bukan untuk konsumsi manusia. Produk pupuk/kompos/limbah wajib menggunakan tag "Pakan / Kompos".`,
+                targetCondition: 'layak_pakan_kompos'
+            };
+        }
+
+        const wasteMatches = ['limbah', 'sampah', 'pakan ternak', 'pakan lele', 'pakan ayam'].filter(kw =>
+            new RegExp(`\\b${kw}\\b`, 'i').test(text)
+        );
+        if (wasteMatches.length > 0 && data.condition === 'layak_konsumsi') {
+            return {
+                keyword: wasteMatches[0],
+                message: `Produk dengan indikasi "${wasteMatches[0]}" tidak boleh menggunakan tag "Siap Konsumsi". Silakan gunakan tag "Pakan / Kompos".`,
+                targetCondition: 'layak_pakan_kompos'
+            };
+        }
+
+        return null;
+    }, [data.title, data.description, data.condition]);
 
     function handlePhoto(e) {
         const file = e.target.files[0];
@@ -271,6 +300,28 @@ export default function Create() {
                                 </label>
                             ))}
                         </div>
+
+                        {/* Peringatan Realtime Larangan Kata Tag */}
+                        {tagCompatibilityWarning && (
+                            <div className="mt-3.5 p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-900 flex items-start gap-2.5 animate-fadeIn">
+                                <AlertCircle size={18} className="text-red-600 mt-0.5 shrink-0" />
+                                <div className="space-y-1.5 flex-1">
+                                    <p className="font-bold text-red-900">Peringatan Keselamatan Tag Produk:</p>
+                                    <p className="text-red-800 leading-relaxed">{tagCompatibilityWarning.message}</p>
+                                    <button
+                                        type="button"
+                                        onClick={() => setData('condition', tagCompatibilityWarning.targetCondition)}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-xs transition cursor-pointer shadow-2xs"
+                                    >
+                                        Ubah Tag ke "Pakan / Kompos" Sekarang
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {errors.condition && (
+                            <p className="text-red-600 text-xs font-semibold mt-2.5">{errors.condition}</p>
+                        )}
                     </div>
 
                     {/* Mode Transaksi */}
@@ -461,11 +512,16 @@ export default function Create() {
                     {/* Submit */}
                     <button
                         type="submit"
-                        disabled={processing}
-                        className="w-full py-3.5 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
+                        disabled={processing || !!tagCompatibilityWarning}
+                        className="w-full py-3.5 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:cursor-not-allowed"
                     >
                         {processing ? (
                             'Mengunggah...'
+                        ) : tagCompatibilityWarning ? (
+                            <>
+                                <AlertCircle size={18} />
+                                Perbaiki Tag Kondisi Sebelum Upload
+                            </>
                         ) : (
                             <>
                                 <Upload size={18} />

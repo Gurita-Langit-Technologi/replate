@@ -110,6 +110,7 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
     };
 
     const reportReasons = [
+        { value: 'salah_tag_kategori', label: 'Tag / Kategori Tidak Sesuai (Misal: Pupuk/Kompos masuk Siap Konsumsi)' },
         { value: 'tidak_sesuai_foto', label: 'Tidak sesuai foto / informasi keliru' },
         { value: 'kondisi_buruk', label: 'Kondisi lebih buruk / basi' },
         { value: 'produk_tidak_layak', label: 'Produk tidak layak konsumsi' },
@@ -119,7 +120,7 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
 
     const [reportModal, setReportModal] = useState({
         show: false,
-        reason: 'tidak_sesuai_foto',
+        reason: 'salah_tag_kategori',
         description: '',
         evidence_photo: null,
         evidence_preview: null,
@@ -234,6 +235,14 @@ export default function Show({ product, reservedQty = 0, availableQty }) {
                                     </label>
                                 ))}
                             </div>
+                            {reportModal.reason === 'salah_tag_kategori' && (
+                                <div className="mt-2.5 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2 animate-fadeIn">
+                                    <AlertTriangle size={16} className="text-amber-600 mt-0.5 shrink-0" />
+                                    <p className="leading-relaxed">
+                                        <strong>Pelanggaran Tag Pangan:</strong> Gunakan opsi ini jika produk non-konsumsi manusia (seperti pupuk, kompos, maggot, atau pakan ternak) keliru didaftarkan dengan tag <em>"Siap Konsumsi"</em> atau <em>"Bahan Olahan"</em>.
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         <div>

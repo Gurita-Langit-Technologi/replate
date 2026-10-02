@@ -115,9 +115,16 @@ function TransactionCard({ transaction }) {
                 {/* Price & Status */}
                 <div className="flex flex-col items-end gap-1.5 shrink-0 ml-2">
                     {transaction.price ? (
-                        <p className="text-sm font-bold text-gray-900">
-                            Rp {Number(transaction.price).toLocaleString('id-ID')}
-                        </p>
+                        <div className="text-right">
+                            <p className="text-sm font-bold text-gray-900">
+                                Rp {Number(transaction.price).toLocaleString('id-ID')}
+                            </p>
+                            {(transaction.quantity || 1) > 1 && (
+                                <p className="text-[10px] text-gray-400">
+                                    {transaction.quantity} {product?.unit || 'satuan'} · Rp {Number(product?.discounted_price ?? product?.price ?? Math.round(transaction.price / (transaction.quantity || 1))).toLocaleString('id-ID')}/{product?.unit || 'satuan'}
+                                </p>
+                            )}
+                        </div>
                     ) : transaction.barter_notes ? (
                         <p className="text-xs font-semibold text-purple-700">Barter Barang</p>
                     ) : (

@@ -8,6 +8,8 @@ use App\Models\Transaction;
 use App\Models\BarterOffer;
 use App\Models\PartnerProfile;
 use App\Models\Notification;
+use App\Models\Review;
+use App\Models\PointHistory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
@@ -138,11 +140,11 @@ class DatabaseSeeder extends Seeder
 
         $activeProducts = [
             [
-                'user' => $users[0], 'title' => 'Nasi Kotak Ayam Bakar (25 kotak)',
-                'description' => 'Sisa katering pernikahan kemarin, bersih dan layak konsumsi. Dikemas dalam kotak styrofoam. Nasi masih pulen, ayam bakar utuh.',
+                'user' => $users[0], 'title' => 'Nasi Kotak Ayam Bakar',
+                'description' => 'Sisa katering pernikahan kemarin, bersih dan layak konsumsi. Dikemas dalam kotak styrofoam higienis. Nasi masih pulen, ayam bakar utuh.',
                 'category' => 'mentah', 'condition' => 'layak_konsumsi',
                 'weight_grams' => 7500, 'quantity' => 25, 'unit' => 'kotak',
-                'mode' => 'sell_and_barter', 'price' => 75000, 'barter' => 'Beras, telur, atau hasil kebun',
+                'mode' => 'sell_and_barter', 'price' => 8000, 'barter' => 'Beras, telur, atau hasil kebun',
                 'pickup_type' => 'rumah', 'pickup_address' => 'Rumah Pak Budiman, Dusun Krajan RT 03/RW 01, rumah cat biru',
                 'pickup_notes' => 'Ambil sebelum jam 5 sore, ketuk pintu atau WA dulu',
                 'hours' => 36,
@@ -152,7 +154,7 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Sayuran dari pasar tadi pagi, agak layu tapi masih bisa ditumis atau dijadikan jus. Tidak ada yang busuk.',
                 'category' => 'mentah', 'condition' => 'layak_olah',
                 'weight_grams' => 3000, 'quantity' => 3, 'unit' => 'kg',
-                'mode' => 'sell', 'price' => 8000, 'barter' => null,
+                'mode' => 'sell', 'price' => 3000, 'barter' => null,
                 'pickup_type' => 'drop_point', 'pickup_address' => 'Pos BUMDes Sumbermulyo, Jl. Desa No. 1',
                 'pickup_notes' => 'Sudah dititipkan di pos sejak jam 10 pagi',
                 'hours' => 96,
@@ -172,7 +174,7 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Sisa katering aqiqah, porsi berlebih. Lauk masih segar, baru dimasak 4 jam lalu. Rendang 2kg, sambal goreng 1kg.',
                 'category' => 'mentah', 'condition' => 'layak_konsumsi',
                 'weight_grams' => 4000, 'quantity' => 15, 'unit' => 'porsi',
-                'mode' => 'sell_and_barter', 'price' => 50000, 'barter' => 'Beras 3kg atau telur 1 tray',
+                'mode' => 'sell_and_barter', 'price' => 6000, 'barter' => 'Beras 1kg atau telur per porsi',
                 'pickup_type' => 'rumah', 'pickup_address' => 'Rumah Bu Ning, Dusun Krajan RT 02/RW 01, pagar putih',
                 'pickup_notes' => 'WA dulu sebelum datang, bisa antar kalau dekat',
                 'hours' => 24,
@@ -182,7 +184,7 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Expired besok, masih aman dikonsumsi hari ini. Roti tawar 5 bungkus dan roti manis 10 biji. Kondisi baik, kemasan utuh.',
                 'category' => 'mentah', 'condition' => 'layak_konsumsi',
                 'weight_grams' => 2500, 'quantity' => 15, 'unit' => 'bungkus',
-                'mode' => 'sell', 'price' => 15000, 'barter' => null,
+                'mode' => 'sell', 'price' => 3000, 'barter' => null,
                 'pickup_type' => 'rumah', 'pickup_address' => 'Toko Roti Makmur, Jl. Raya Mulyodadi No. 5',
                 'pickup_notes' => 'Buka jam 7 pagi - 9 malam',
                 'hours' => 18,
@@ -209,40 +211,40 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'user' => $users[10], 'title' => 'Jagung Manis (panen berlebih)',
-                'description' => '3 karung jagung manis, panen terlalu banyak. Mau ditukar dengan kebutuhan dapur. Jagung masih segar, baru dipetik.',
+                'description' => 'Jagung manis panen melimpah dari ladang. Masih segar manis, baru dipetik tadi pagi.',
                 'category' => 'hasil_bumi', 'condition' => 'layak_konsumsi',
-                'weight_grams' => 15000, 'quantity' => 3, 'unit' => 'kg',
-                'mode' => 'sell_and_barter', 'price' => 45000, 'barter' => 'Beras, minyak goreng, gula, atau tepung',
+                'weight_grams' => 15000, 'quantity' => 15, 'unit' => 'kg',
+                'mode' => 'sell_and_barter', 'price' => 5000, 'barter' => 'Beras, minyak goreng, gula, atau tepung',
                 'pickup_type' => 'drop_point', 'pickup_address' => 'Pos BUMDes Sumbermulyo, Jl. Desa No. 1',
                 'pickup_notes' => 'Dititipkan jam 8 pagi, ambil sebelum sore',
                 'hours' => 60,
             ],
             [
                 'user' => $users[9], 'title' => 'Buah-buahan Overripe (pisang, pepaya)',
-                'description' => 'Pisang sudah sangat matang (10 sisir) dan pepaya terlalu lunak (3 buah). Masih bisa untuk selai, smoothie, atau es buah.',
+                'description' => 'Pisang sudah sangat matang dan pepaya terlalu lunak. Masih sangat bagus untuk selai, smoothie, atau es buah.',
                 'category' => 'mentah', 'condition' => 'layak_olah',
                 'weight_grams' => 4000, 'quantity' => 13, 'unit' => 'pcs',
-                'mode' => 'sell', 'price' => 10000, 'barter' => null,
+                'mode' => 'sell', 'price' => 1500, 'barter' => null,
                 'pickup_type' => 'rumah', 'pickup_address' => 'Minimarket Sejahtera, Jl. Desa Sumbermulyo No. 8',
                 'pickup_notes' => 'Ambil di belakang toko, bilang ke kasir',
                 'hours' => 48,
             ],
             [
                 'user' => $users[12], 'title' => 'Sisa Masakan Padang (gulai, ayam pop)',
-                'description' => 'Sisa jualan restoran hari ini. Gulai nangka 2kg, ayam pop 1kg. Masih layak makan, baru dimasak tadi pagi.',
+                'description' => 'Sisa jualan restoran hari ini. Gulai nangka dan ayam pop bersih higienis. Masih layak makan, baru dimasak tadi pagi.',
                 'category' => 'mentah', 'condition' => 'layak_konsumsi',
                 'weight_grams' => 3000, 'quantity' => 10, 'unit' => 'porsi',
-                'mode' => 'sell_and_barter', 'price' => 35000, 'barter' => 'Beras atau sayuran segar',
+                'mode' => 'sell_and_barter', 'price' => 7000, 'barter' => 'Beras atau sayuran segar',
                 'pickup_type' => 'rumah', 'pickup_address' => 'RM Padang Bundo, Jl. Desa Sumbermulyo No. 15',
                 'pickup_notes' => 'Ambil sebelum jam 9 malam, restoran tutup jam 10',
                 'hours' => 12,
             ],
             [
                 'user' => $users[3], 'title' => 'Tempe & Tahu Sisa (agak asam)',
-                'description' => 'Tempe 2kg dan tahu 1kg, sudah agak asam tapi masih bisa digoreng hari ini. Dari pabrik tahu langganan.',
+                'description' => 'Tempe dan tahu dari pabrik langganan, sudah agak asam tapi masih bagus jika digoreng garing atau dibacem hari ini.',
                 'category' => 'mentah', 'condition' => 'layak_olah',
                 'weight_grams' => 3000, 'quantity' => 3, 'unit' => 'kg',
-                'mode' => 'sell', 'price' => 12000, 'barter' => null,
+                'mode' => 'sell', 'price' => 4000, 'barter' => null,
                 'pickup_type' => 'rumah', 'pickup_address' => 'Rumah Mbak Dewi, Jl. Mawar No. 7',
                 'pickup_notes' => 'WA dulu ya, kadang tidak di rumah',
                 'hours' => 20,
@@ -262,21 +264,21 @@ class DatabaseSeeder extends Seeder
         // Produk olahan
         $olahanProducts = [
             [
-                'user' => $verifiedSeller, 'title' => 'Kompos Organik Premium (10 kg)',
+                'user' => $verifiedSeller, 'title' => 'Kompos Organik Premium',
                 'description' => 'Kompos dari sisa sayuran dan buah-buahan. Sudah difermentasi 3 minggu. Siap pakai untuk kebun dan tanaman.',
-                'category' => 'olahan', 'condition' => 'layak_konsumsi',
+                'category' => 'olahan', 'condition' => 'layak_pakan_kompos',
                 'weight_grams' => 10000, 'quantity' => 10, 'unit' => 'kg',
-                'mode' => 'sell_and_barter', 'price' => 25000, 'barter' => 'Sisa sayuran/buah untuk bahan kompos berikutnya',
+                'mode' => 'sell_and_barter', 'price' => 2500, 'barter' => 'Sisa sayuran/buah untuk bahan kompos berikutnya',
                 'pickup_type' => 'rumah', 'pickup_address' => 'UMKM Berkah Kompos, Jl. Kebun Kompos RT 05/RW 02',
                 'pickup_notes' => 'Buka setiap hari jam 8-5, bisa antar kalau beli banyak',
                 'hours' => 720,
             ],
             [
-                'user' => $verifiedSeller, 'title' => 'Pupuk Cair Organik (5 liter)',
+                'user' => $verifiedSeller, 'title' => 'Pupuk Cair Organik',
                 'description' => 'Pupuk cair dari fermentasi sisa buah dan sayuran. Bagus untuk tanaman hortikultura. Sudah diuji di kebun sendiri.',
-                'category' => 'olahan', 'condition' => 'layak_konsumsi',
+                'category' => 'olahan', 'condition' => 'layak_pakan_kompos',
                 'weight_grams' => 5000, 'quantity' => 5, 'unit' => 'liter',
-                'mode' => 'sell', 'price' => 30000, 'barter' => null,
+                'mode' => 'sell', 'price' => 6000, 'barter' => null,
                 'pickup_type' => 'drop_point', 'pickup_address' => 'Pos BUMDes Sumbermulyo, Jl. Desa No. 1',
                 'pickup_notes' => 'Sudah dititipkan, bilang nama ke petugas pos',
                 'hours' => 720,
@@ -337,29 +339,57 @@ class DatabaseSeeder extends Seeder
         }
 
         // ============================================
-        // TRANSAKSI SELESAI — riwayat historis
+        // TRANSAKSI SELESAI — riwayat historis & ulasan
         // ============================================
 
         $completedData = [
-            ['buyer' => $users[1], 'seller' => $users[0], 'type' => 'sale', 'title' => 'Nasi Gudeg Sisa Hajatan', 'weight' => 3000, 'qty' => 12, 'unit' => 'porsi', 'price' => 25000, 'days_ago' => 30],
-            ['buyer' => $users[3], 'seller' => $users[5], 'type' => 'sale', 'title' => 'Sayur Lodeh Sisa Katering', 'weight' => 2000, 'qty' => 8, 'unit' => 'porsi', 'price' => 15000, 'days_ago' => 28],
-            ['buyer' => $users[7], 'seller' => $users[6], 'type' => 'sale', 'title' => 'Roti Tawar Mendekati Expired', 'weight' => 1500, 'qty' => 5, 'unit' => 'bungkus', 'price' => 8000, 'days_ago' => 25],
-            ['buyer' => $users[2], 'seller' => $users[4], 'type' => 'barter', 'title' => 'Nasi Kuning Sisa Warung', 'weight' => 2500, 'qty' => 10, 'unit' => 'porsi', 'price' => null, 'days_ago' => 22],
-            ['buyer' => $users[10], 'seller' => $users[1], 'type' => 'barter', 'title' => 'Sayuran Layu (kangkung, bayam)', 'weight' => 2000, 'qty' => 2, 'unit' => 'kg', 'price' => null, 'days_ago' => 20],
-            ['buyer' => $users[8], 'seller' => $users[12], 'type' => 'sale', 'title' => 'Dendeng & Rendang Sisa', 'weight' => 1500, 'qty' => 6, 'unit' => 'porsi', 'price' => 30000, 'days_ago' => 18],
-            ['buyer' => $users[11], 'seller' => $users[9], 'type' => 'donation', 'title' => 'Buah Pisang Overripe', 'weight' => 3000, 'qty' => 5, 'unit' => 'kg', 'price' => null, 'days_ago' => 15],
-            ['buyer' => $users[3], 'seller' => $users[7], 'type' => 'sale', 'title' => 'Ampas Kelapa & Tahu', 'weight' => 4000, 'qty' => 4, 'unit' => 'kg', 'price' => 5000, 'days_ago' => 12],
-            ['buyer' => $partner1, 'seller' => $users[4], 'type' => 'partner_transfer', 'title' => 'Sisa Nasi Warung (basi ringan)', 'weight' => 8000, 'qty' => 8, 'unit' => 'kg', 'price' => null, 'days_ago' => 10],
-            ['buyer' => $partner2, 'seller' => $users[0], 'type' => 'partner_transfer', 'title' => 'Kulit Buah Campur', 'weight' => 5000, 'qty' => 5, 'unit' => 'kg', 'price' => null, 'days_ago' => 8],
-            ['buyer' => $users[14], 'seller' => $users[5], 'type' => 'sale', 'title' => 'Opor Ayam Sisa Lebaran', 'weight' => 2000, 'qty' => 8, 'unit' => 'porsi', 'price' => 20000, 'days_ago' => 7],
-            ['buyer' => $users[0], 'seller' => $users[10], 'type' => 'barter', 'title' => 'Jagung Rebus Berlebih', 'weight' => 5000, 'qty' => 20, 'unit' => 'pcs', 'price' => null, 'days_ago' => 5],
-            ['buyer' => $partner3, 'seller' => $users[8], 'type' => 'partner_transfer', 'title' => 'Sisa Sayuran Busuk Ringan', 'weight' => 6000, 'qty' => 6, 'unit' => 'kg', 'price' => null, 'days_ago' => 3],
-            ['buyer' => $users[13], 'seller' => $users[6], 'type' => 'donation', 'title' => 'Kue Kering Sisa (masih ok)', 'weight' => 1000, 'qty' => 10, 'unit' => 'bungkus', 'price' => null, 'days_ago' => 2],
-            ['buyer' => $users[2], 'seller' => $verifiedSeller, 'type' => 'sale', 'title' => 'Kompos Organik 5kg', 'weight' => 5000, 'qty' => 5, 'unit' => 'kg', 'price' => 15000, 'days_ago' => 1],
+            // UMKM Berkah Kompos (Verified Seller - seller@replate.com)
+            ['buyer' => $users[2], 'seller' => $verifiedSeller, 'type' => 'sale', 'title' => 'Kompos Organik Super', 'weight' => 5000, 'qty' => 5, 'unit' => 'kg', 'price' => 3000, 'days_ago' => 20, 'rating' => 5, 'comment' => 'Kompos kualitas premium! Tanaman cabai di pekarangan rumah saya jadi subur dan berbuah lebat.'],
+            ['buyer' => $users[0], 'seller' => $verifiedSeller, 'type' => 'sale', 'title' => 'Pupuk Kascing Organik', 'weight' => 3000, 'qty' => 3, 'unit' => 'kg', 'price' => 4000, 'days_ago' => 15, 'rating' => 5, 'comment' => 'Sangat recommended, tanah jadi gembur dan tidak bau. Penjual sangat ramah dan edukatif.'],
+            ['buyer' => $users[3], 'seller' => $verifiedSeller, 'type' => 'sale', 'title' => 'Media Tanam Siap Pakai (10kg)', 'weight' => 10000, 'qty' => 1, 'unit' => 'karung', 'price' => 25000, 'days_ago' => 10, 'rating' => 4, 'comment' => 'Media tanam bagus dan subur. Karung sedikit kotor kena debu saat ambil tapi isinya top markotop.'],
+            ['buyer' => $users[7], 'seller' => $verifiedSeller, 'type' => 'sale', 'title' => 'POC Urin Kelinci Fermentasi (1L)', 'weight' => 1000, 'qty' => 2, 'unit' => 'botol', 'price' => 10000, 'days_ago' => 6, 'rating' => 5, 'comment' => 'Pupuk cairnya ampuh sekali, daun tanaman jadi hijau royo-royo. Pasti repeat order!'],
+            ['buyer' => $users[8], 'seller' => $verifiedSeller, 'type' => 'sale', 'title' => 'Bibit Cabai Rawit & Polybag Kompos', 'weight' => 2000, 'qty' => 5, 'unit' => 'polybag', 'price' => 3000, 'days_ago' => 2, 'rating' => 5, 'comment' => 'Bibit segar dan sehat, packing aman pakai kardus. Terima kasih banyak Berkah Kompos!'],
+
+            // Warga Budiman (user@replate.com)
+            ['buyer' => $users[1], 'seller' => $users[0], 'type' => 'sale', 'title' => 'Nasi Gudeg Sisa Hajatan', 'weight' => 3000, 'qty' => 12, 'unit' => 'porsi', 'price' => 5000, 'days_ago' => 30, 'rating' => 5, 'comment' => 'Gudegnya masih lezat dan ayamnya empuk. Porsi berlimpah, keluarga di rumah senang sekali.'],
+            ['buyer' => $users[10], 'seller' => $users[0], 'type' => 'barter', 'title' => 'Buah Mangga Manalagi Kebun', 'weight' => 4000, 'qty' => 4, 'unit' => 'kg', 'price' => null, 'days_ago' => 14, 'rating' => 5, 'comment' => 'Mangganya manis legit, segar baru dipetik dari pohon. Barter yang sangat menyenangkan!'],
+            ['buyer' => $users[4], 'seller' => $users[0], 'type' => 'sale', 'title' => 'Pisang Raja Matang Pohon', 'weight' => 3500, 'qty' => 2, 'unit' => 'sisir', 'price' => 9000, 'days_ago' => 4, 'rating' => 4, 'comment' => 'Pisang manis dan mulus, pas untuk pisang goreng sore hari. Komunikasi lewat WA sangat lancar.'],
+
+            // Katering Bu Ning (ning@replate.com)
+            ['buyer' => $users[3], 'seller' => $users[5], 'type' => 'sale', 'title' => 'Sayur Lodeh Sisa Katering', 'weight' => 2000, 'qty' => 8, 'unit' => 'porsi', 'price' => 3000, 'days_ago' => 28, 'rating' => 5, 'comment' => 'Sayur lodeh gurih sedap, masih hangat waktu dijemput. Bu Ning ramah sekali.'],
+            ['buyer' => $users[14], 'seller' => $users[5], 'type' => 'sale', 'title' => 'Opor Ayam Sisa Lebaran', 'weight' => 2000, 'qty' => 8, 'unit' => 'porsi', 'price' => 4000, 'days_ago' => 18, 'rating' => 4, 'comment' => 'Ayamnya empuk dan bumbu meresap. Berkah sekali ada platform Replate ini.'],
+            ['buyer' => $users[1], 'seller' => $users[5], 'type' => 'sale', 'title' => 'Nasi Tumpeng Mini Sisa Syukuran', 'weight' => 3500, 'qty' => 7, 'unit' => 'porsi', 'price' => 6000, 'days_ago' => 7, 'rating' => 5, 'comment' => 'Lauk pauk lengkap, higienis dan porsi melimpah. Katering Bu Ning selalu memuaskan!'],
+
+            // Warung Barokah (barokah@replate.com)
+            ['buyer' => $users[2], 'seller' => $users[4], 'type' => 'barter', 'title' => 'Nasi Kuning Sisa Warung', 'weight' => 2500, 'qty' => 10, 'unit' => 'porsi', 'price' => null, 'days_ago' => 22, 'rating' => 4, 'comment' => 'Nasi kuning wangi dan lauk sambal goreng tempenya mantap.'],
+            ['buyer' => $users[11], 'seller' => $users[4], 'type' => 'sale', 'title' => 'Sayur Asem & Tempe Goreng Lengkap', 'weight' => 2000, 'qty' => 5, 'unit' => 'porsi', 'price' => 2500, 'days_ago' => 11, 'rating' => 5, 'comment' => 'Segar banget sayur asemnya, cocok buat makan siang bersama tetangga.'],
+            ['buyer' => $users[9], 'seller' => $users[4], 'type' => 'sale', 'title' => 'Soto Ayam Kuah Bening Sisa Siang', 'weight' => 2500, 'qty' => 6, 'unit' => 'porsi', 'price' => 3000, 'days_ago' => 3, 'rating' => 3, 'comment' => 'Rasa enak dan gurih, tapi pas dijemput bungkus kuahnya agak bocor sedikit. Tapi tetap oke.'],
+
+            // Toko Roti Makmur (roti@replate.com)
+            ['buyer' => $users[7], 'seller' => $users[6], 'type' => 'sale', 'title' => 'Roti Tawar Mendekati Expired', 'weight' => 1500, 'qty' => 5, 'unit' => 'bungkus', 'price' => 2000, 'days_ago' => 25, 'rating' => 5, 'comment' => 'Roti masih sangat lembut, langsung dibikin roti bakar keju sama anak-anak.'],
+            ['buyer' => $users[13], 'seller' => $users[6], 'type' => 'donation', 'title' => 'Kue Kering Sisa Display Toko', 'weight' => 1000, 'qty' => 10, 'unit' => 'bungkus', 'price' => null, 'days_ago' => 12, 'rating' => 5, 'comment' => 'Terima kasih banyak atas donasinya, kuenya enak dan masih renyah.'],
+            ['buyer' => $users[0], 'seller' => $users[6], 'type' => 'sale', 'title' => 'Roti Manis Aneka Rasa (Cokelat & Keju)', 'weight' => 1200, 'qty' => 8, 'unit' => 'pcs', 'price' => 2000, 'days_ago' => 5, 'rating' => 4, 'comment' => 'Kualitas roti Makmur memang tidak diragukan, harga sangat bersahabat.'],
+
+            // Restoran Padang Bundo (bundo@replate.com)
+            ['buyer' => $users[8], 'seller' => $users[12], 'type' => 'sale', 'title' => 'Dendeng & Rendang Sisa', 'weight' => 1500, 'qty' => 6, 'unit' => 'porsi', 'price' => 6000, 'days_ago' => 19, 'rating' => 5, 'comment' => 'Rendangnya mantap luar biasa, rempah Minang asli terasa banget.'],
+            ['buyer' => $users[3], 'seller' => $users[12], 'type' => 'sale', 'title' => 'Gulai Cincang & Sambal Ijo', 'weight' => 1800, 'qty' => 5, 'unit' => 'porsi', 'price' => 5000, 'days_ago' => 8, 'rating' => 5, 'comment' => 'Porsi banyak, sambal ijonya juara. Sangat bermanfaat daripada terbuang percuma.'],
+
+            // Pengguna Komunitas Lainnya
+            ['buyer' => $users[10], 'seller' => $users[1], 'type' => 'barter', 'title' => 'Sayuran Layu (kangkung, bayam)', 'weight' => 2000, 'qty' => 2, 'unit' => 'kg', 'price' => null, 'days_ago' => 20, 'rating' => 4, 'comment' => 'Sayuran masih bisa dipilah dan dimasak tumis enak. Hemat belanja dapur.'],
+            ['buyer' => $users[11], 'seller' => $users[9], 'type' => 'donation', 'title' => 'Buah Pisang Overripe', 'weight' => 3000, 'qty' => 5, 'unit' => 'kg', 'price' => null, 'days_ago' => 16, 'rating' => 5, 'comment' => 'Dibuat bolu pisang kukus hasilnya lembut dan manis alami. Terima kasih!'],
+            ['buyer' => $users[3], 'seller' => $users[7], 'type' => 'sale', 'title' => 'Ampas Kelapa & Tahu', 'weight' => 4000, 'qty' => 4, 'unit' => 'kg', 'price' => 1500, 'days_ago' => 13, 'rating' => 4, 'comment' => 'Bagus sekali untuk tambahan pakan ayam kampung saya.'],
+            ['buyer' => $users[0], 'seller' => $users[10], 'type' => 'barter', 'title' => 'Jagung Rebus Berlebih', 'weight' => 5000, 'qty' => 20, 'unit' => 'pcs', 'price' => null, 'days_ago' => 9, 'rating' => 5, 'comment' => 'Jagungnya manis dan pulen. Barter dengan beras ketan berjalan lancar.'],
+
+            // Penyaluran ke Mitra (tanpa ulasan karena mitra ternak/kompos/maggot)
+            ['buyer' => $partner1, 'seller' => $users[4], 'type' => 'partner_transfer', 'title' => 'Sisa Nasi Warung (basi ringan)', 'weight' => 8000, 'qty' => 8, 'unit' => 'kg', 'price' => null, 'days_ago' => 17],
+            ['buyer' => $partner2, 'seller' => $users[0], 'type' => 'partner_transfer', 'title' => 'Kulit Buah Campur', 'weight' => 5000, 'qty' => 5, 'unit' => 'kg', 'price' => null, 'days_ago' => 15],
+            ['buyer' => $partner3, 'seller' => $users[8], 'type' => 'partner_transfer', 'title' => 'Sisa Sayuran Busuk Ringan', 'weight' => 6000, 'qty' => 6, 'unit' => 'kg', 'price' => null, 'days_ago' => 6],
         ];
 
         foreach ($completedData as $t) {
             $createdAt = now()->subDays($t['days_ago']);
+            $unitPrice = $t['price'];
+            $totalPrice = $unitPrice ? ($unitPrice * $t['qty']) : null;
 
             $product = Product::create([
                 'user_id' => $t['seller']->id,
@@ -372,7 +402,7 @@ class DatabaseSeeder extends Seeder
                 'quantity' => $t['qty'],
                 'unit' => $t['unit'],
                 'transaction_mode' => $t['type'] === 'sale' ? 'sell' : ($t['type'] === 'barter' ? 'barter' : 'donate'),
-                'price' => $t['price'],
+                'price' => $unitPrice,
                 'desa' => $t['seller']->desa,
                 'kecamatan' => $t['seller']->kecamatan,
                 'pickup_type' => 'rumah',
@@ -390,7 +420,8 @@ class DatabaseSeeder extends Seeder
                 'seller_id' => $t['seller']->id,
                 'type' => $t['type'],
                 'status' => 'completed',
-                'price' => $t['price'],
+                'price' => $totalPrice,
+                'quantity' => $t['qty'],
                 'barter_notes' => $t['type'] === 'barter' ? 'Deal tukar dengan hasil kebun' : null,
                 'partner_id' => $t['type'] === 'partner_transfer' ? $t['buyer']->id : null,
                 'created_at' => $createdAt,
@@ -399,26 +430,22 @@ class DatabaseSeeder extends Seeder
 
             // Review for completed sale/barter/donation
             if (in_array($t['type'], ['sale', 'barter', 'donation'])) {
-                $rating = rand(4, 5);
-                $comments = [
-                    'Makanan masih sangat bagus dan penjual sangat ramah!',
-                    'Porsi berlimpah dan bersih. Terima kasih banyak!',
-                    'Kondisi mantap, pengemasan aman. Sangat membantu mengurangi food waste.',
-                    'Pelayanan cepat dan komunikasi lancar via WA.',
-                ];
-                \App\Models\Review::create([
+                $rating = $t['rating'] ?? rand(4, 5);
+                $comment = $t['comment'] ?? 'Pelayanan cepat, kondisi produk baik dan sangat membantu mengurangi food waste.';
+
+                Review::create([
                     'transaction_id' => $tx->id,
                     'reviewer_id' => $t['buyer']->id,
                     'reviewee_id' => $t['seller']->id,
                     'rating' => $rating,
-                    'comment' => $comments[array_rand($comments)],
+                    'comment' => $comment,
                     'created_at' => $createdAt->copy()->addHours(rand(2, 24)),
                 ]);
             }
 
             // Award Points
-            $points = \App\Models\PointHistory::calculatePoints($product);
-            \App\Models\PointHistory::awardPoints(
+            $points = PointHistory::calculatePoints($product);
+            PointHistory::awardPoints(
                 $t['seller'],
                 $points,
                 "Produk \"{$product->title}\" tersalurkan",
@@ -559,7 +586,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // ============================================
-        // TRANSAKSI PENDING
+        // TRANSAKSI PENDING & TRANSAKSI SIAP DIULAS
         // ============================================
 
         $activeProductList = Product::where('status', 'active')->get();
@@ -571,8 +598,44 @@ class DatabaseSeeder extends Seeder
                 'type' => 'sale',
                 'status' => 'pending',
                 'price' => $activeProductList[1]->price,
+                'quantity' => 1,
             ]);
         }
+
+        // Transaksi Selesai yang Belum Diulas (untuk testing flow 'Beri Ulasan' oleh user@replate.com)
+        $unreviewedProduct = Product::create([
+            'user_id' => $verifiedSeller->id,
+            'title' => 'Pupuk Kascing Organik Granul (2kg)',
+            'description' => 'Produk tersalurkan ke Warga Budiman dan menunggu ulasan dari pembeli.',
+            'photo' => 'dummy/placeholder.jpg',
+            'category' => 'olahan',
+            'condition' => 'layak_konsumsi',
+            'weight_grams' => 2000,
+            'quantity' => 1,
+            'unit' => 'karung',
+            'transaction_mode' => 'sell',
+            'price' => 10000,
+            'desa' => $verifiedSeller->desa,
+            'kecamatan' => $verifiedSeller->kecamatan,
+            'pickup_type' => 'rumah',
+            'pickup_address' => $verifiedSeller->address,
+            'timeout_at' => now()->addHours(48),
+            'timeout_stage1_at' => now()->addHours(36),
+            'status' => 'sold',
+            'created_at' => now()->subDays(1),
+        ]);
+
+        Transaction::create([
+            'product_id' => $unreviewedProduct->id,
+            'buyer_id' => $users[0]->id, // Warga Budiman (user@replate.com)
+            'seller_id' => $verifiedSeller->id,
+            'type' => 'sale',
+            'status' => 'completed',
+            'price' => 10000,
+            'quantity' => 1,
+            'created_at' => now()->subDays(1),
+            'updated_at' => now()->subHours(2),
+        ]);
 
         // ============================================
         // NOTIFIKASI

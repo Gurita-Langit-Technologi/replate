@@ -235,23 +235,13 @@ export default function Profile({
 
             <div className="max-w-5xl mx-auto space-y-6 pb-12">
                 {/* Hero / Cover Card */}
-                <div className="relative bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                    {/* Gradient Header Pattern */}
-                    <div className="h-36 sm:h-44 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-800 relative">
-                        <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
-                        
-                        {/* Level Tag di Header */}
-                        {impactStats?.level_title && (
-                            <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md border border-white/30 text-white px-3.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-sm">
-                                <Sparkles size={13} className="text-yellow-300" />
-                                {impactStats.level_title}
-                            </div>
-                        )}
-                    </div>
+                <div className="relative bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
+                    {/* Header Banner */}
+                    <div className="h-28 sm:h-36 bg-emerald-700"></div>
 
                     {/* Profile Detail Strip */}
                     <div className="px-6 pb-6 pt-0 relative">
-                        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-16 sm:-mt-20">
+                        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-16">
                             {/* Avatar & Main Info */}
                             <div className="flex flex-col sm:flex-row sm:items-end gap-4">
                                 <div className="relative">
@@ -259,10 +249,10 @@ export default function Profile({
                                         <img
                                             src={`/storage/${seller.profile_photo}`}
                                             alt={seller.name}
-                                            className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover border-4 border-white shadow-md bg-white"
+                                            className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-white shadow-sm bg-white"
                                         />
                                     ) : (
-                                        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-br from-emerald-100 to-teal-200 border-4 border-white shadow-md flex items-center justify-center text-emerald-800 font-extrabold text-4xl">
+                                        <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-emerald-100 text-emerald-800 border-4 border-white shadow-sm flex items-center justify-center font-bold text-3xl">
                                             {seller.name.charAt(0).toUpperCase()}
                                         </div>
                                     )}
@@ -270,24 +260,24 @@ export default function Profile({
                                     {isVerified && (
                                         <div
                                             title="Penjual Olahan Terverifikasi"
-                                            className="absolute -bottom-1 -right-1 bg-emerald-600 text-white p-1.5 rounded-xl border-2 border-white shadow-xs"
+                                            className="absolute -bottom-1 -right-1 bg-emerald-600 text-white p-1 rounded-lg border-2 border-white shadow-xs"
                                         >
-                                            <ShieldCheck size={18} />
+                                            <CheckCircle2 size={16} />
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="space-y-1 mb-1">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <h1 className="text-2xl font-black text-gray-900">{seller.name}</h1>
+                                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{seller.name}</h1>
                                         {isVerified && (
-                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full text-xs font-bold shadow-2xs">
-                                                <ShieldCheck size={13} className="text-emerald-600" />
-                                                Verified Seller
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full text-xs font-semibold">
+                                                <CheckCircle2 size={13} className="text-emerald-600" />
+                                                Terverifikasi
                                             </span>
                                         )}
                                         {seller.is_blacklisted && (
-                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-bold">
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
                                                 Non-Aktif
                                             </span>
                                         )}
@@ -301,7 +291,7 @@ export default function Profile({
                                         <span>•</span>
                                         <span className="flex items-center gap-1">
                                             <Calendar size={13} className="text-gray-400" />
-                                            Bergabung {seller.created_at}
+                                            Bergabung sejak {seller.created_at}
                                         </span>
                                     </div>
                                 </div>
@@ -312,7 +302,7 @@ export default function Profile({
                                 {isSelf ? (
                                     <Link
                                         href="/profile"
-                                        className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl transition"
+                                        className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-xl transition"
                                     >
                                         Edit Profil Saya
                                     </Link>
@@ -321,7 +311,7 @@ export default function Profile({
                                         {auth?.user && (
                                             <Link
                                                 href={`/chat/${seller.id}`}
-                                                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition"
+                                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs transition"
                                             >
                                                 <MessageCircle size={15} />
                                                 Kirim Pesan
@@ -331,7 +321,7 @@ export default function Profile({
                                             <button
                                                 type="button"
                                                 onClick={() => setReportModal(prev => ({ ...prev, show: true }))}
-                                                className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-gray-200 text-gray-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50/50 rounded-xl text-xs font-medium transition"
+                                                className="inline-flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-gray-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50/50 rounded-xl text-xs font-medium transition"
                                                 title="Laporkan akun ke Admin"
                                             >
                                                 <Flag size={14} />
@@ -343,52 +333,50 @@ export default function Profile({
                             </div>
                         </div>
 
-                        {/* Verified Seller Trust Note */}
+                        {/* Verified Seller Note */}
                         {isVerified && (
-                            <div className="mt-5 p-3.5 bg-gradient-to-r from-emerald-50/90 to-teal-50/90 border border-emerald-200/80 rounded-2xl flex items-start sm:items-center gap-3 text-xs text-emerald-950">
-                                <div className="p-2 bg-emerald-600 text-white rounded-xl shrink-0 shadow-xs">
+                            <div className="mt-4 p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl flex items-center gap-3 text-xs text-emerald-950">
+                                <div className="p-1.5 bg-emerald-600 text-white rounded-lg shrink-0">
                                     <CheckCircle2 size={16} />
                                 </div>
                                 <div className="space-y-0.5">
-                                    <p className="font-bold text-emerald-900">Penjual Olahan Pangan Terverifikasi BUMDes</p>
-                                    <p className="text-emerald-800 text-[11px] leading-relaxed">
-                                        Dapur dan standar higienitas telah lolos uji kelayakan oleh koordinator desa untuk menyajikan makanan olahan & siap santap.
+                                    <p className="font-semibold text-emerald-900">Penjual Olahan Pangan Terverifikasi BUMDes</p>
+                                    <p className="text-emerald-800 text-[11px]">
+                                        Dapur dan standar kebersihan telah diverifikasi oleh koordinator desa.
                                     </p>
                                 </div>
                             </div>
                         )}
 
                         {/* Quick Stats Grid */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
-                            <div className="bg-gray-50/90 hover:bg-gray-50 border border-gray-100 rounded-2xl p-3.5 text-center transition">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+                            <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-center">
                                 <div className="flex items-center justify-center gap-1 text-amber-500 mb-0.5">
                                     <Star size={16} className="fill-amber-400" />
-                                    <span className="text-lg font-black text-gray-900">
+                                    <span className="text-base sm:text-lg font-bold text-gray-900">
                                         {ratings.average > 0 ? ratings.average.toFixed(1) : 'Baru'}
                                     </span>
                                 </div>
                                 <p className="text-[11px] text-gray-500 font-medium">
-                                    {ratings.count > 0 ? `${ratings.count} Ulasan` : 'Belum ada review'}
+                                    {ratings.count > 0 ? `${ratings.count} Ulasan` : 'Belum ada ulasan'}
                                 </p>
                             </div>
 
-                            <div className="bg-emerald-50/50 hover:bg-emerald-50 border border-emerald-100/70 rounded-2xl p-3.5 text-center transition">
-                                <p className="text-lg font-black text-emerald-700">
-                                    {weightKg} <span className="text-xs font-normal">kg</span>
+                            <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-center">
+                                <p className="text-base sm:text-lg font-bold text-gray-900">
+                                    {weightKg} <span className="text-xs font-normal text-gray-500">kg</span>
                                 </p>
-                                <p className="text-[11px] text-emerald-800/80 font-medium">Waste Terselamatkan</p>
+                                <p className="text-[11px] text-gray-500 font-medium">Pangan Diselamatkan</p>
                             </div>
 
-                            <div className="bg-teal-50/50 hover:bg-teal-50 border border-teal-100/70 rounded-2xl p-3.5 text-center transition">
-                                <p className="text-lg font-black text-teal-700">
-                                    {co2SavedKg} <span className="text-xs font-normal">kg</span>
-                                </p>
-                                <p className="text-[11px] text-teal-800/80 font-medium">CO₂ Tercegah</p>
+                            <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-center">
+                                <p className="text-base sm:text-lg font-bold text-gray-900">{stats.totalSold}</p>
+                                <p className="text-[11px] text-gray-500 font-medium">Transaksi Selesai</p>
                             </div>
 
-                            <div className="bg-blue-50/50 hover:bg-blue-50 border border-blue-100/70 rounded-2xl p-3.5 text-center transition">
-                                <p className="text-lg font-black text-blue-700">{stats.totalSold}</p>
-                                <p className="text-[11px] text-blue-800/80 font-medium">Transaksi Sukses</p>
+                            <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-center">
+                                <p className="text-base sm:text-lg font-bold text-gray-900">{products.length}</p>
+                                <p className="text-[11px] text-gray-500 font-medium">Produk di Etalase</p>
                             </div>
                         </div>
                     </div>
@@ -399,7 +387,7 @@ export default function Profile({
                     <button
                         type="button"
                         onClick={() => setActiveTab('products')}
-                        className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition -mb-px ${
+                        className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 transition -mb-px ${
                             activeTab === 'products'
                                 ? 'border-emerald-600 text-emerald-700'
                                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -415,7 +403,7 @@ export default function Profile({
                     <button
                         type="button"
                         onClick={() => setActiveTab('reviews')}
-                        className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition -mb-px ${
+                        className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 transition -mb-px ${
                             activeTab === 'reviews'
                                 ? 'border-emerald-600 text-emerald-700'
                                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -431,14 +419,14 @@ export default function Profile({
                     <button
                         type="button"
                         onClick={() => setActiveTab('badges')}
-                        className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition -mb-px ${
+                        className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 transition -mb-px ${
                             activeTab === 'badges'
                                 ? 'border-emerald-600 text-emerald-700'
                                 : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                     >
                         <Award size={16} />
-                        <span>Lencana & Dampak Hijau</span>
+                        <span>Lencana & Dampak</span>
                         <span className="ml-1 px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[11px] font-semibold">
                             {totalBadgesUnlocked}
                         </span>
@@ -658,88 +646,90 @@ export default function Profile({
                     </div>
                 )}
 
-                {/* Tab 3: Badges & Environmental Impact */}
+                {/* Tab 3: Badges & Impact */}
                 {activeTab === 'badges' && (
                     <div className="space-y-6">
-                        {/* Summary Badges Header */}
-                        <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white rounded-3xl p-6 sm:p-8 shadow-md relative overflow-hidden">
-                            <div className="absolute right-0 bottom-0 opacity-10 translate-x-12 translate-y-12">
-                                <Leaf size={240} />
+                        {/* Ringkasan Kontribusi */}
+                        <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <Award size={18} className="text-emerald-600" />
+                                        <h3 className="font-bold text-gray-900 text-base">
+                                            Status: {impactStats?.level_title || 'Warga Peduli'}
+                                        </h3>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Catatan gotong royong {seller.name} dalam mencegah makanan terbuang di lingkungan desa.
+                                    </p>
+                                </div>
+                                <Link
+                                    href="/leaderboard"
+                                    className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-200 transition shrink-0 self-start sm:self-center"
+                                >
+                                    <span>Papan Peringkat Desa</span>
+                                    <ChevronRight size={13} />
+                                </Link>
                             </div>
-                            <div className="relative z-10 space-y-4 max-w-2xl">
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 rounded-full text-xs font-semibold backdrop-blur-xs">
-                                    <Award size={14} />
-                                    Reputasi Ekologis Komunitas
-                                </span>
-                                <h3 className="text-xl sm:text-2xl font-black leading-snug">
-                                    {impactStats?.level_title || 'Penyelamat Pangan'}
-                                </h3>
-                                <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed">
-                                    Setiap transaksi yang diselesaikan oleh {seller.name} telah berkontribusi nyata mengurangi emisi gas rumah kaca dan mencegah makanan bernutrisi terbuang sia-sia ke TPA.
-                                </p>
 
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
-                                        <p className="text-xl font-black text-emerald-300">{weightKg} kg</p>
-                                        <p className="text-[11px] text-emerald-100/70">Pangan Terselamatkan</p>
-                                    </div>
-                                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
-                                        <p className="text-xl font-black text-teal-300">{co2SavedKg} kg</p>
-                                        <p className="text-[11px] text-teal-100/70">Reduksi CO₂</p>
-                                    </div>
-                                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
-                                        <p className="text-xl font-black text-purple-300">{stats.totalBarter || 0}</p>
-                                        <p className="text-[11px] text-purple-100/70">Barter Sukses</p>
-                                    </div>
-                                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
-                                        <p className="text-xl font-black text-rose-300">{stats.totalDonation || 0}</p>
-                                        <p className="text-[11px] text-rose-100/70">Donasi Disalurkan</p>
-                                    </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-gray-100 text-center">
+                                <div className="p-3 bg-gray-50 rounded-xl">
+                                    <p className="text-base font-bold text-gray-900">{weightKg} kg</p>
+                                    <p className="text-[11px] text-gray-500">Pangan Terselamatkan</p>
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-xl">
+                                    <p className="text-base font-bold text-gray-900">{stats.totalBarter || 0}</p>
+                                    <p className="text-[11px] text-gray-500">Barter Sukses</p>
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-xl">
+                                    <p className="text-base font-bold text-gray-900">{stats.totalDonation || 0}</p>
+                                    <p className="text-[11px] text-gray-500">Donasi Disalurkan</p>
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-xl">
+                                    <p className="text-base font-bold text-gray-900">{totalBadgesUnlocked} / {badges.length}</p>
+                                    <p className="text-[11px] text-gray-500">Lencana Terbuka</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Badges Showcase Grid */}
                         <div className="space-y-4">
-                            <h4 className="text-sm font-bold text-gray-900 flex items-center justify-between">
-                                <span>Koleksi Lencana Pencapaian ({totalBadgesUnlocked}/{badges.length} Terbuka)</span>
-                                <Link href="/leaderboard" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
-                                    Lihat Papan Peringkat Desa <ChevronRight size={13} />
-                                </Link>
+                            <h4 className="text-sm font-bold text-gray-900">
+                                Lencana Pencapaian ({totalBadgesUnlocked}/{badges.length} Terbuka)
                             </h4>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {badges.map((badge) => {
                                     return (
                                         <div
                                             key={badge.id}
-                                            className={`p-4 rounded-2xl border transition flex items-start gap-4 ${
+                                            className={`p-4 rounded-xl border transition flex items-start gap-3.5 ${
                                                 badge.unlocked
-                                                    ? 'bg-white border-emerald-200/80 shadow-xs'
+                                                    ? 'bg-white border-emerald-200 shadow-2xs'
                                                     : 'bg-gray-50/70 border-gray-200 opacity-60'
                                             }`}
                                         >
                                             <div
-                                                className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs ${
+                                                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                                                     badge.unlocked
-                                                        ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white'
+                                                        ? 'bg-emerald-100 text-emerald-700'
                                                         : 'bg-gray-200 text-gray-400'
                                                 }`}
                                             >
-                                                {badge.id === 'pioneer' && <Leaf size={22} />}
-                                                {badge.id === 'first_rescue' && <Award size={22} />}
-                                                {badge.id === 'food_hero' && <Sparkles size={22} />}
-                                                {badge.id === 'circular_knight' && <ShieldCheck size={22} />}
-                                                {badge.id === 'barter_master' && <RefreshCw size={22} />}
-                                                {badge.id === 'generous_donor' && <Heart size={22} />}
-                                                {badge.id === 'active_seller' && <ShoppingBag size={22} />}
+                                                {badge.id === 'pioneer' && <Leaf size={20} />}
+                                                {badge.id === 'first_rescue' && <Award size={20} />}
+                                                {badge.id === 'food_hero' && <Sparkles size={20} />}
+                                                {badge.id === 'circular_knight' && <ShieldCheck size={20} />}
+                                                {badge.id === 'barter_master' && <RefreshCw size={20} />}
+                                                {badge.id === 'generous_donor' && <Heart size={20} />}
+                                                {badge.id === 'active_seller' && <ShoppingBag size={20} />}
                                             </div>
 
                                             <div className="flex-1 space-y-1">
                                                 <div className="flex items-center justify-between">
                                                     <h5 className="text-xs font-bold text-gray-900">{badge.title}</h5>
                                                     <span
-                                                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                                                             badge.unlocked
                                                                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                                                 : 'bg-gray-100 text-gray-500'
@@ -751,7 +741,7 @@ export default function Profile({
                                                 <p className="text-[11px] text-gray-500 leading-relaxed">
                                                     {badge.description}
                                                 </p>
-                                                <div className="pt-1 flex items-center justify-between text-[10px] text-gray-400 font-medium">
+                                                <div className="pt-1 flex items-center justify-between text-[10px] text-gray-400">
                                                     <span>Progres: {badge.progress}</span>
                                                     {badge.unlocked_at && <span>{badge.unlocked_at}</span>}
                                                 </div>

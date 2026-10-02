@@ -38,11 +38,11 @@ export default function TransactionProductCard({ product, transaction }) {
                     {transaction.price ? (
                         <div>
                             <p className="text-base font-bold text-gray-900">
-                                Rp {(transaction.price * (transaction.quantity || 1)).toLocaleString('id-ID')}
+                                Rp {Number(transaction.price).toLocaleString('id-ID')}
                             </p>
                             {(transaction.quantity || 1) > 1 && (
                                 <p className="text-[10px] text-gray-400">
-                                    Rp {Number(transaction.price).toLocaleString('id-ID')} / {product.unit || 'satuan'}
+                                    {transaction.quantity} {product.unit || 'satuan'} · Rp {Number(product.discounted_price ?? product.price ?? Math.round(transaction.price / transaction.quantity)).toLocaleString('id-ID')} / {product.unit || 'satuan'}
                                 </p>
                             )}
                         </div>

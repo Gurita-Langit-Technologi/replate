@@ -52,16 +52,16 @@ class NewEnhancementsTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->post(route('points.redeem'), [
-            'reward_id' => 'rice_25kg', // 50 poin
+            'reward_id' => 'rice_25kg', // 25 poin
         ]);
 
         $response->assertSessionHas('success');
-        $this->assertEquals(50, $user->fresh()->points);
+        $this->assertEquals(75, $user->fresh()->points);
 
         $this->assertDatabaseHas('point_histories', [
             'user_id' => $user->id,
-            'amount' => -50,
-            'balance_after' => 50,
+            'amount' => -25,
+            'balance_after' => 75,
         ]);
 
         $this->assertDatabaseHas('notifications', [

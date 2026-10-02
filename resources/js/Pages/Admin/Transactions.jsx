@@ -488,7 +488,14 @@ export default function Transactions({ transactions = [], filters = {}, periodCo
                                                         {type.label}
                                                     </span>
                                                     {t.price ? (
-                                                        <p className="font-bold text-gray-900 print:text-gray-950 print:text-[10px] text-xs sm:text-sm">{formatRupiah(t.price)}</p>
+                                                        <div>
+                                                            <p className="font-bold text-gray-900 print:text-gray-950 print:text-[10px] text-xs sm:text-sm">{formatRupiah(t.price)}</p>
+                                                            {(t.quantity || 1) > 1 && (
+                                                                <p className="text-[10px] text-gray-400 print:text-gray-600 font-normal">
+                                                                    {t.quantity} {t.product?.unit || 'satuan'} @ {formatRupiah(t.product?.discounted_price ?? t.product?.price ?? Math.round(t.price / (t.quantity || 1)))}
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     ) : t.barter_notes ? (
                                                         <p className="text-xs text-purple-800 italic font-medium truncate max-w-[140px] print:text-gray-700 print:text-[9px]">{t.barter_notes}</p>
                                                     ) : (

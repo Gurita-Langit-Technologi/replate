@@ -177,6 +177,11 @@ class ProductController extends Controller
             return back()->withErrors(['barter_description' => 'Deskripsi barter wajib diisi.']);
         }
 
+        // Validasi kata larangan sesuai tag kondisi
+        if ($tagError = $this->validateTagCompatibility($validated)) {
+            return back()->withErrors(['condition' => $tagError])->withInput();
+        }
+
         // Upload foto teroptimasi
         $photoPath = $this->imageService->storeOptimized($request->file('photo'), 'products');
 
@@ -294,6 +299,11 @@ class ProductController extends Controller
             'pickup_notes' => 'nullable|string|max:255',
         ]);
 
+        // Validasi kata larangan sesuai tag kondisi
+        if ($tagError = $this->validateTagCompatibility($validated)) {
+            return back()->withErrors(['condition' => $tagError])->withInput();
+        }
+
         // Estimasi berat otomatis jika kosong/0
         $weightGrams = (int) ($validated['weight_grams'] ?? 0);
         if ($weightGrams <= 0) {
@@ -379,7 +389,7 @@ class ProductController extends Controller
                     'id' => $rev->id,
                     'rating' => $rev->rating,
                     'comment' => $rev->comment,
-                    'created_at' => $rev->created_at->format('d M Y'),
+                    'created_at' => $rev->created_at->locale('id')->translatedFormat('d M Y'),
                     'reviewer' => [
                         'id' => $rev->reviewer?->id,
                         'name' => $rev->reviewer?->name ?? 'Pengguna Replate',
@@ -413,7 +423,7 @@ class ProductController extends Controller
                 'kecamatan' => $user->kecamatan,
                 'address' => $user->address,
                 'points' => (int) ($user->points ?? 0),
-                'created_at' => $user->created_at->translatedFormat('F Y'),
+                'created_at' => $user->created_at->locale('id')->translatedFormat('F Y'),
                 'is_blacklisted' => (bool) $user->is_blacklisted,
             ],
             'products' => $products,
@@ -434,5 +444,41 @@ class ProductController extends Controller
                 'totalDonation' => $badgeData['user_stats']['donation_count'],
             ],
         ]);
+    }
+
+    /**
+     * Validasi larangan kata produk yang tidak sesuai dengan kondisi/tag
+     */
+    protected function validateTagCompatibility(array $data): ?string
+    {
+        $title = strtolower($data['title'] ?? '');
+        $desc = strtolower($data['description'] ?? '');
+        $content = $title . ' ' . $desc;
+        $condition = $data['condition'] instanceof ProductCondition
+            ? $data['condition']->value
+            : (string) ($data['condition'] ?? '');
+
+        // Kata-kata non-pangan (khusus pupuk, kompos, maggot, kotoran, bangkai)
+        // sama sekali dilarang di "layak_konsumsi" dan "layak_olah"
+        $nonFoodKeywords = ['pupuk', 'kompos', 'kotoran', 'maggot', 'bangkai'];
+        foreach ($nonFoodKeywords as $kw) {
+            if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $content)) {
+                if (in_array($condition, [ProductCondition::LAYAK_KONSUMSI->value, ProductCondition::LAYAK_OLAH->value])) {
+                    return "Produk terdeteksi mengandung '{$kw}' yang bukan makanan/konsumsi manusia. Produk pupuk/kompos/pakan wajib menggunakan tag 'Pakan / Kompos'.";
+                }
+            }
+        }
+
+        // Kata limbah / sampah / pakan ternak dilarang di "layak_konsumsi" (Siap Santap)
+        $wasteKeywords = ['limbah', 'sampah', 'pakan ternak', 'pakan lele', 'pakan ayam'];
+        foreach ($wasteKeywords as $kw) {
+            if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $content)) {
+                if ($condition === ProductCondition::LAYAK_KONSUMSI->value) {
+                    return "Produk dengan indikasi '{$kw}' tidak boleh menggunakan tag 'Siap Konsumsi'. Silakan gunakan tag 'Pakan / Kompos'.";
+                }
+            }
+        }
+
+        return null;
     }
 }

@@ -60,6 +60,8 @@ function getRewardIcon(iconName) {
             return <Egg className="text-amber-500" size={24} />;
         case 'ticket':
             return <Ticket className="text-blue-600" size={24} />;
+        case 'shopping_bag':
+            return <ShoppingBag className="text-teal-600" size={24} />;
         default:
             return <Gift className="text-emerald-600" size={24} />;
     }

@@ -11,6 +11,7 @@ enum ReportReason: string
     case PENIPUAN = 'penipuan';
     case DISPUTE_SPOILED = 'dispute_spoiled';
     case PRODUK_DILARANG = 'produk_dilarang';
+    case SALAH_TAG_KATEGORI = 'salah_tag_kategori';
 
     // Akun Pengguna
     case AKUN_PALSU = 'akun_palsu';
@@ -29,6 +30,7 @@ enum ReportReason: string
             self::PENIPUAN => 'Penipuan / Informasi Palsu',
             self::DISPUTE_SPOILED => 'Pangan Basi Saat Diterima (Dispute)',
             self::PRODUK_DILARANG => 'Produk Dilarang / Melanggar Aturan Desa',
+            self::SALAH_TAG_KATEGORI => 'Tag / Kategori Kondisi Tidak Sesuai (Misal: Pupuk/Kompos Masuk Siap Konsumsi)',
             self::AKUN_PALSU => 'Akun Palsu / Identitas Meragukan',
             self::PELECEHAN_ABUSIVE => 'Perilaku Kasar / Pelecehan',
             self::PENIPUAN_TRANSAKSI => 'Penipuan Transaksi / Pembayaran / Barter',

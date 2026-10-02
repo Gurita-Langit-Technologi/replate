@@ -24,6 +24,15 @@ import {
     Gift,
     ArrowRight,
     Edit3,
+    Wheat,
+    CookingPot,
+    Sprout,
+    Flower2,
+    Egg,
+    Ticket,
+    ShoppingBag,
+    Info,
+    AlertCircle,
 } from 'lucide-react';
 
 const ROLE_LABELS = {
@@ -32,6 +41,66 @@ const ROLE_LABELS = {
     partner: 'Mitra Pengolah',
     user: 'Warga / Pengguna',
 };
+
+function getRewardIcon(iconName) {
+    const iconSize = 22;
+    switch (iconName) {
+        case 'wheat':
+            return (
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                    <Wheat size={iconSize} />
+                </div>
+            );
+        case 'cooking_pot':
+            return (
+                <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                    <CookingPot size={iconSize} />
+                </div>
+            );
+        case 'sprout':
+            return (
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                    <Sprout size={iconSize} />
+                </div>
+            );
+        case 'flower':
+            return (
+                <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                    <Flower2 size={iconSize} />
+                </div>
+            );
+        case 'egg':
+            return (
+                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center flex-shrink-0 border border-amber-200 shadow-2xs">
+                    <Egg size={iconSize} />
+                </div>
+            );
+        case 'ticket':
+            return (
+                <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                    <Ticket size={iconSize} />
+                </div>
+            );
+        case 'shopping_bag':
+            return (
+                <div className="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                    <ShoppingBag size={iconSize} />
+                </div>
+            );
+        case 'package':
+            return (
+                <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                    <Package size={iconSize} />
+                </div>
+            );
+        default:
+            return (
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                    <Gift size={iconSize} />
+                </div>
+            );
+    }
+}
 
 export default function Redeem({
     foundUser,
@@ -90,6 +159,13 @@ export default function Redeem({
                 description: '',
                 selected_reward_id: 'custom',
             });
+            setTimeout(() => {
+                document.getElementById('custom_redeem_amount')?.focus();
+            }, 60);
+            return;
+        }
+
+        if (foundUser && foundUser.points < reward.points) {
             return;
         }
 
@@ -361,63 +437,152 @@ export default function Redeem({
                                         <form onSubmit={handleRedeem} className="space-y-5">
                                             {/* Pilihan Paket Hadiah Standar */}
                                             <div>
-                                                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2.5">
-                                                    Pilihan Reward BUMDes (Klik untuk memilih otomatis):
-                                                </label>
+                                                <div className="flex items-center justify-between mb-2.5">
+                                                    <label className="block text-xs sm:text-sm font-bold text-gray-700">
+                                                        Pilihan Paket Sembako / Reward BUMDes:
+                                                    </label>
+                                                    <span className="text-xs text-gray-500">
+                                                        Saldo Warga: <strong className="text-emerald-800 font-bold">{foundUser.points} RePoin</strong>
+                                                    </span>
+                                                </div>
+
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                                                     {predefinedRewards.map((reward) => {
                                                         const isSelected = redeemForm.data.selected_reward_id === reward.id;
                                                         const isAffordable = foundUser.points >= reward.points;
+                                                        const shortage = reward.points - foundUser.points;
+
                                                         return (
                                                             <button
                                                                 key={reward.id}
                                                                 type="button"
                                                                 onClick={() => handleSelectReward(reward)}
-                                                                className={`p-4 rounded-2xl border-2 text-left transition flex flex-col justify-between shadow-2xs ${
+                                                                disabled={!isAffordable}
+                                                                className={`p-4 rounded-2xl border-2 text-left transition flex flex-col justify-between shadow-2xs relative ${
                                                                     isSelected
-                                                                        ? 'bg-emerald-50/90 border-emerald-600 shadow-xs'
+                                                                        ? 'bg-emerald-50/90 border-emerald-600 shadow-xs ring-2 ring-emerald-500/20'
                                                                         : isAffordable
-                                                                        ? 'bg-white hover:bg-gray-50 border-gray-200'
-                                                                        : 'bg-gray-50 border-gray-200 opacity-75'
+                                                                        ? 'bg-white hover:bg-emerald-50/40 hover:border-emerald-300 border-gray-200 cursor-pointer'
+                                                                        : 'bg-gray-50/70 border-gray-200 opacity-60 cursor-not-allowed'
                                                                 }`}
                                                             >
                                                                 <div className="flex items-start justify-between gap-1">
-                                                                    <span className="text-2xl">{reward.icon}</span>
-                                                                    <span className="text-xs font-bold text-amber-900 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300">
-                                                                        {reward.points} Poin
-                                                                    </span>
+                                                                    {getRewardIcon(reward.icon)}
+                                                                    {isAffordable ? (
+                                                                        <span className="text-xs font-bold text-amber-900 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300">
+                                                                            {reward.points} Poin
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="text-[11px] font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-lg border border-red-200">
+                                                                            Kurang {shortage} Poin
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                                 <div className="mt-3">
                                                                     <p className="text-sm font-bold text-gray-900 line-clamp-1">{reward.title}</p>
-                                                                    <p className="text-xs font-semibold text-gray-600 mt-0.5">{reward.category}</p>
+                                                                    <div className="flex items-center justify-between mt-0.5">
+                                                                        <span className="text-xs font-semibold text-gray-600">{reward.category}</span>
+                                                                        <span className="text-[11px] text-gray-500 font-medium">Stok: {reward.stock}</span>
+                                                                    </div>
+                                                                    {reward.description && (
+                                                                        <p className="text-[11px] text-gray-600 mt-1 line-clamp-2 leading-relaxed">{reward.description}</p>
+                                                                    )}
                                                                 </div>
                                                             </button>
                                                         );
                                                     })}
 
-                                                    {/* Opsi Custom */}
+                                                    {/* Opsi Custom / Bebas Non-Paket */}
                                                     <button
                                                         type="button"
                                                         onClick={() => handleSelectReward('custom')}
-                                                        className={`p-4 rounded-2xl border-2 text-left transition flex flex-col justify-between shadow-2xs ${
+                                                        className={`p-4 rounded-2xl border-2 text-left transition flex flex-col justify-between shadow-2xs cursor-pointer ${
                                                             redeemForm.data.selected_reward_id === 'custom'
-                                                                ? 'bg-emerald-50/90 border-emerald-600 shadow-xs'
-                                                                : 'bg-white hover:bg-gray-50 border-gray-200'
+                                                                ? 'bg-emerald-50/90 border-emerald-600 shadow-xs ring-2 ring-emerald-500/20'
+                                                                : 'bg-white hover:bg-emerald-50/40 hover:border-emerald-300 border-gray-200'
                                                         }`}
                                                     >
                                                         <div className="flex items-start justify-between gap-1">
-                                                            <Edit3 size={22} className="text-gray-800 mt-0.5" />
-                                                            <span className="text-xs font-bold text-gray-700 bg-gray-100 border border-gray-300 px-2.5 py-1 rounded-lg">
-                                                                Bebas
+                                                            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                                                <Edit3 size={20} />
+                                                            </div>
+                                                            <span className="text-xs font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-1 rounded-lg">
+                                                                Bebas / Manual
                                                             </span>
                                                         </div>
                                                         <div className="mt-3">
-                                                            <p className="text-sm font-bold text-gray-900">Custom Reward</p>
-                                                            <p className="text-xs font-semibold text-gray-600 mt-0.5">Input jumlah & nama barang manual</p>
+                                                            <p className="text-sm font-bold text-gray-900">Hadiah Bebas / Non-Paket</p>
+                                                            <p className="text-xs font-semibold text-gray-600 mt-0.5">Input poin & nama barang manual</p>
+                                                            <p className="text-[11px] text-emerald-800 font-semibold mt-1">Untuk barang sembako di luar paket</p>
                                                         </div>
                                                     </button>
                                                 </div>
                                             </div>
+
+                                            {/* Panduan & Bantuan Saat Mode Bebas Dipilih */}
+                                            {redeemForm.data.selected_reward_id === 'custom' && (
+                                                <div className="p-3.5 bg-emerald-50/80 border border-emerald-200 rounded-xl space-y-2.5">
+                                                    <div className="flex items-start gap-2.5">
+                                                        <Info size={18} className="text-emerald-700 mt-0.5 flex-shrink-0" />
+                                                        <div className="text-xs text-emerald-950 space-y-0.5">
+                                                            <p className="font-bold">Mode Hadiah Bebas / Manual Aktif:</p>
+                                                            <p className="text-emerald-800 leading-relaxed">
+                                                                Gunakan opsi ini jika warga ingin menukar barang sembako di luar paket di atas (misal: mie instan, sabun cuci, gula pasir sachet, minyak mini, atau barang lainnya).
+                                                                Silakan tentukan jumlah poin yang dipotong dan ketik nama barangnya pada formulir di bawah.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Quick Point Selector Chips */}
+                                                    <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-emerald-200/60">
+                                                        <span className="text-[11px] text-emerald-900 font-bold mr-1">Isi Cepat Poin:</span>
+                                                        {[5, 10, 15, 20].filter(pts => pts <= foundUser.points).map(pts => (
+                                                            <button
+                                                                key={pts}
+                                                                type="button"
+                                                                onClick={() => redeemForm.setData({
+                                                                    ...redeemForm.data,
+                                                                    amount: String(pts),
+                                                                    selected_reward_id: 'custom'
+                                                                })}
+                                                                className="px-2.5 py-1 text-xs font-bold rounded-lg border border-emerald-300 bg-white hover:bg-emerald-100 text-emerald-900 transition shadow-2xs cursor-pointer"
+                                                            >
+                                                                {pts} Poin
+                                                            </button>
+                                                        ))}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => redeemForm.setData({
+                                                                ...redeemForm.data,
+                                                                amount: String(foundUser.points),
+                                                                selected_reward_id: 'custom'
+                                                            })}
+                                                            className="px-2.5 py-1 text-xs font-bold rounded-lg border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 transition shadow-2xs cursor-pointer"
+                                                        >
+                                                            Semua Saldo ({foundUser.points} Poin)
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Quick Item Suggestions */}
+                                                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                                                        <span className="text-[11px] text-emerald-900 font-bold mr-1">Contoh Cepat Sembako:</span>
+                                                        {['Mie Instan (5 Bungkus)', 'Gula Pasir 1/2 kg', 'Sabun Cuci & Odol Mandi', 'Kecap Manis & Bumbu Dapur'].map((item) => (
+                                                            <button
+                                                                key={item}
+                                                                type="button"
+                                                                onClick={() => redeemForm.setData({
+                                                                    ...redeemForm.data,
+                                                                    description: item,
+                                                                    selected_reward_id: 'custom'
+                                                                })}
+                                                                className="px-2.5 py-1 text-xs font-medium rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 transition shadow-2xs cursor-pointer"
+                                                            >
+                                                                + {item}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             {/* Input Detail Form */}
                                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
@@ -426,6 +591,7 @@ export default function Redeem({
                                                         Jumlah Poin Dipotong *
                                                     </label>
                                                     <input
+                                                        id="custom_redeem_amount"
                                                         type="number"
                                                         value={redeemForm.data.amount}
                                                         onChange={e => redeemForm.setData({
@@ -456,7 +622,7 @@ export default function Redeem({
                                                             description: e.target.value,
                                                             selected_reward_id: 'custom'
                                                         })}
-                                                        placeholder="Contoh: Beras Organik Desa 2.5 kg, Pupuk Kompos 5 kg"
+                                                        placeholder="Contoh: Beras Organik Desa 2.5 kg, Pupuk Kompos 3 kg, Minyakita 1L"
                                                         className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-600 focus:ring-0"
                                                         required
                                                     />
@@ -468,11 +634,24 @@ export default function Redeem({
 
                                             <button
                                                 type="submit"
-                                                disabled={redeemForm.processing || !redeemForm.data.amount || !redeemForm.data.description}
-                                                className="w-full py-3.5 bg-emerald-700 text-white font-bold text-sm sm:text-base rounded-xl hover:bg-emerald-800 transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-xs"
+                                                disabled={
+                                                    redeemForm.processing ||
+                                                    !redeemForm.data.amount ||
+                                                    Number(redeemForm.data.amount) <= 0 ||
+                                                    Number(redeemForm.data.amount) > foundUser.points ||
+                                                    !redeemForm.data.description?.trim()
+                                                }
+                                                className="w-full py-3.5 bg-emerald-700 text-white font-bold text-sm sm:text-base rounded-xl hover:bg-emerald-800 transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:cursor-not-allowed"
                                             >
                                                 <Check size={20} />
-                                                {redeemForm.processing ? 'Memproses...' : `Konfirmasi Penukaran (${redeemForm.data.amount || 0} Poin)`}
+                                                {redeemForm.processing
+                                                    ? 'Memproses...'
+                                                    : (!redeemForm.data.amount || Number(redeemForm.data.amount) <= 0)
+                                                    ? 'Pilih Paket atau Isi Poin Penukaran'
+                                                    : Number(redeemForm.data.amount) > foundUser.points
+                                                    ? `Poin Melebihi Saldo Warga (Maks ${foundUser.points} Poin)`
+                                                    : `Konfirmasi Penukaran (${redeemForm.data.amount} Poin)`
+                                                }
                                             </button>
                                         </form>
                                     ) : (

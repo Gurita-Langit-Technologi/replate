@@ -107,10 +107,10 @@ export default function OfficialInvoicePrint({ transaction, product, status, typ
                                 {product.weight_grams ? `${((product.weight_grams * (transaction.quantity || 1)) / 1000).toFixed(1)} kg` : '1.0 kg'}
                             </td>
                             <td className="border border-gray-300 p-3 text-right font-medium">
-                                {transaction.price ? `Rp ${Number(transaction.price).toLocaleString('id-ID')}` : 'Gratis'}
+                                {transaction.price ? `Rp ${Number(product.discounted_price ?? product.price ?? Math.round(transaction.price / (transaction.quantity || 1))).toLocaleString('id-ID')}` : 'Gratis'}
                             </td>
                             <td className="border border-gray-300 p-3 text-right font-bold text-emerald-900">
-                                {transaction.price ? `Rp ${(transaction.price * (transaction.quantity || 1)).toLocaleString('id-ID')}` : 'Rp 0 (Donasi)'}
+                                {transaction.price ? `Rp ${Number(transaction.price).toLocaleString('id-ID')}` : 'Rp 0 (Donasi)'}
                             </td>
                         </tr>
                     </tbody>
@@ -118,7 +118,7 @@ export default function OfficialInvoicePrint({ transaction, product, status, typ
                         <tr className="bg-gray-50 font-bold">
                             <td colSpan="6" className="border border-gray-300 p-2.5 text-right uppercase text-[11px]">Subtotal Pembayaran:</td>
                             <td className="border border-gray-300 p-2.5 text-right text-emerald-900 text-xs">
-                                {transaction.price ? `Rp ${(transaction.price * (transaction.quantity || 1)).toLocaleString('id-ID')}` : 'Rp 0'}
+                                {transaction.price ? `Rp ${Number(transaction.price).toLocaleString('id-ID')}` : 'Rp 0'}
                             </td>
                         </tr>
                         <tr className="bg-gray-50">
@@ -128,7 +128,7 @@ export default function OfficialInvoicePrint({ transaction, product, status, typ
                         <tr className="bg-emerald-50 text-emerald-950 font-extrabold text-sm">
                             <td colSpan="6" className="border border-gray-300 p-3 text-right uppercase">TOTAL AKHIR TRANSAKSI:</td>
                             <td className="border border-gray-300 p-3 text-right text-base text-emerald-800">
-                                {transaction.price ? `Rp ${(transaction.price * (transaction.quantity || 1)).toLocaleString('id-ID')}` : 'Rp 0 (Donasi Sosial)'}
+                                {transaction.price ? `Rp ${Number(transaction.price).toLocaleString('id-ID')}` : 'Rp 0 (Donasi Sosial)'}
                             </td>
                         </tr>
                     </tfoot>

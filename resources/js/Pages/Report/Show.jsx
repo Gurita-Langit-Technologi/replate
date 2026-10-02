@@ -38,6 +38,7 @@ const reasonLabels = {
     penipuan: 'Penipuan / Informasi Palsu',
     dispute_spoiled: 'Pangan Basi Saat Diterima (Dispute)',
     produk_dilarang: 'Produk Dilarang / Melanggar Aturan',
+    salah_tag_kategori: 'Tag / Kategori Tidak Sesuai (Misal: Pupuk di Siap Konsumsi)',
     akun_palsu: 'Akun Palsu / Identitas Meragukan',
     pelecehan_abusive: 'Perilaku Kasar / Pelecehan',
     penipuan_transaksi: 'Penipuan Transaksi / Barter',
