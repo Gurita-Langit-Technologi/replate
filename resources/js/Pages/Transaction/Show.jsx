@@ -23,6 +23,7 @@ import StatusTracker from './Partials/StatusTracker';
 import DisputeModal from './Partials/DisputeModal';
 import ReviewModal from './Partials/ReviewModal';
 import ProofUploadModal from './Partials/ProofUploadModal';
+import CompleteModal from './Partials/CompleteModal';
 import OfficialInvoicePrint from './Partials/OfficialInvoicePrint';
 import TransactionProductCard from './Partials/TransactionProductCard';
 import PartiesCard from './Partials/PartiesCard';
@@ -46,6 +47,7 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
     const [showDisputeModal, setShowDisputeModal] = useState(false);
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [showProofModal, setShowProofModal] = useState(false);
+    const [showCompleteModal, setShowCompleteModal] = useState(false);
     const [confirmModal, setConfirmModal] = useState({
         show: false,
         title: '',
@@ -96,6 +98,13 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                 <ProofUploadModal
                     transactionId={transaction.id}
                     onClose={() => setShowProofModal(false)}
+                />
+            )}
+
+            {showCompleteModal && (
+                <CompleteModal
+                    transaction={transaction}
+                    onClose={() => setShowCompleteModal(false)}
                 />
             )}
 
@@ -180,10 +189,10 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                 <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
                     <div className="flex items-center justify-between mb-3">
                         <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Bukti Foto Serah Terima</p>
-                        {isSeller && !transaction.proof_photo && !isTerminalStatus && (
+                        {(isSeller || isBuyer) && !transaction.proof_photo && !isTerminalStatus && (
                             <button
                                 onClick={() => setShowProofModal(true)}
-                                className="text-xs font-medium text-green-600 hover:text-green-700 flex items-center gap-1"
+                                className="text-xs font-medium text-emerald-600 hover:text-emerald-700 flex items-center gap-1.5 transition"
                             >
                                 <Camera size={13} /> Unggah Foto
                             </button>
@@ -200,7 +209,12 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                     ) : (
                         <div className="p-4 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-center">
                             <Camera size={24} className="mx-auto text-gray-300 mb-1" />
-                            <p className="text-xs text-gray-400">Belum ada foto bukti serah terima.</p>
+                            <p className="text-xs text-gray-500 font-medium">Belum ada foto bukti serah terima.</p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">
+                                {isBuyer
+                                    ? 'Wajib melampirkan foto produk yang diterima saat menyelesaikan pesanan.'
+                                    : 'Pembeli wajib menyertakan foto saat mengonfirmasi pesanan telah diterima.'}
+                            </p>
                         </div>
                     )}
                 </div>
@@ -318,17 +332,8 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                         {isBuyer && transaction.status === 'confirmed' && (
                             <>
                                 <button
-                                    onClick={() => {
-                                        setConfirmModal({
-                                            show: true,
-                                            title: 'Konfirmasi Barang Diterima',
-                                            message: 'Apakah Anda telah menerima produk dalam kondisi baik dan sesuai?',
-                                            confirmText: 'Selesai & Diterima',
-                                            variant: 'success',
-                                            onConfirm: () => router.patch(`/transactions/${transaction.id}/complete`),
-                                        });
-                                    }}
-                                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition"
+                                    onClick={() => setShowCompleteModal(true)}
+                                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition shadow-sm active:scale-[0.99]"
                                 >
                                     <Check size={18} />
                                     Konfirmasi barang diterima

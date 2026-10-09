@@ -143,6 +143,7 @@ class GapAnalysisFixesTest extends TestCase
             'seller_id' => $donor->id,
             'type' => TransactionType::DONATION,
             'status' => TransactionStatus::CONFIRMED,
+            'proof_photo' => 'proofs/dummy.jpg',
         ]);
 
         $response = $this->actingAs($recipient)
@@ -273,5 +274,70 @@ class GapAnalysisFixesTest extends TestCase
             ->component('Seller/Profile')
             ->where('stats.totalWeight', 1500)
         );
+    }
+
+    public function test_buyer_cannot_complete_transaction_without_proof_photo(): void
+    {
+        $seller = User::factory()->create();
+        $buyer = User::factory()->create();
+
+        $product = Product::factory()->create([
+            'user_id' => $seller->id,
+            'status' => ProductStatus::ACTIVE,
+        ]);
+
+        $transaction = Transaction::create([
+            'product_id' => $product->id,
+            'buyer_id' => $buyer->id,
+            'seller_id' => $seller->id,
+            'type' => TransactionType::SALE,
+            'status' => TransactionStatus::CONFIRMED,
+            'proof_photo' => null,
+        ]);
+
+        $response = $this->actingAs($buyer)
+            ->patch("/transactions/{$transaction->id}/complete");
+
+        $response->assertSessionHas('error', 'Harap unggah foto bukti penerimaan produk sebelum menyelesaikan transaksi.');
+
+        $transaction->refresh();
+        $this->assertEquals(TransactionStatus::CONFIRMED, $transaction->status);
+    }
+
+    public function test_buyer_can_complete_transaction_with_uploaded_proof_photo(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $seller = User::factory()->create();
+        $buyer = User::factory()->create();
+
+        $product = Product::factory()->create([
+            'user_id' => $seller->id,
+            'status' => ProductStatus::ACTIVE,
+            'quantity' => 1,
+        ]);
+
+        $transaction = Transaction::create([
+            'product_id' => $product->id,
+            'buyer_id' => $buyer->id,
+            'seller_id' => $seller->id,
+            'type' => TransactionType::SALE,
+            'status' => TransactionStatus::CONFIRMED,
+            'quantity' => 1,
+            'proof_photo' => null,
+        ]);
+
+        $file = \Illuminate\Http\UploadedFile::fake()->image('received_food.jpg');
+
+        $response = $this->actingAs($buyer)
+            ->post("/transactions/{$transaction->id}/complete", [
+                'proof_photo' => $file,
+            ]);
+
+        $response->assertRedirect();
+
+        $transaction->refresh();
+        $this->assertEquals(TransactionStatus::COMPLETED, $transaction->status);
+        $this->assertNotNull($transaction->proof_photo);
     }
 }

@@ -174,7 +174,22 @@ class TransactionController extends Controller
             return back()->with('error', 'Transaksi belum dikonfirmasi penjual.');
         }
 
-        $transaction->update(['status' => TransactionStatus::COMPLETED]);
+        // Wajib ada foto bukti penerimaan produk (sudah diunggah sebelumnya atau dilampirkan sekarang)
+        if (!$transaction->proof_photo && !$request->hasFile('proof_photo')) {
+            return back()->with('error', 'Harap unggah foto bukti penerimaan produk sebelum menyelesaikan transaksi.');
+        }
+
+        if ($request->hasFile('proof_photo')) {
+            $request->validate([
+                'proof_photo' => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
+            ]);
+            $path = $this->imageService->storeOptimized($request->file('proof_photo'), 'proofs');
+            $transaction->proof_photo = $path;
+        }
+
+        $transaction->status = TransactionStatus::COMPLETED;
+        $transaction->completed_at = now();
+        $transaction->save();
 
         // Update stok produk
         $product = $transaction->product;
