@@ -65,9 +65,19 @@ class BarterOfferController extends Controller
             return back()->with('error', 'Produk ini tidak menerima barter.');
         }
 
-        $availableQty = max(1, (int) ($product->quantity ?? 1));
+        // Hitung sisa stok yang tersedia (dikurangi transaksi pending/confirmed)
+        $reservedQty = (int) Transaction::where('product_id', $product->id)
+            ->whereIn('status', [TransactionStatus::PENDING, TransactionStatus::CONFIRMED])
+            ->sum('quantity');
+
+        $availableQty = max(0, (int) ($product->quantity ?? 1) - $reservedQty);
+
+        if ($availableQty <= 0) {
+            return back()->with('error', "Seluruh stok produk \"{$product->title}\" sedang dalam proses transaksi.");
+        }
+
         $validated = $request->validate([
-            'quantity' => 'nullable|integer|min:1|max:' . $availableQty,
+            'quantity' => 'nullable|integer|min:1|max:' . max(1, $availableQty),
             'offer_description' => 'required|string',
             'offer_photo' => 'nullable|image|max:2048',
         ]);
@@ -163,43 +173,22 @@ class BarterOfferController extends Controller
 
         $product = $offer->product;
         $barterQty = max(1, (int) ($offer->quantity ?? 1));
-        $availableQty = max(1, (int) ($product->quantity ?? 1));
+
+        // Cek sisa stok yang tersedia (dikurangi transaksi pending/confirmed)
+        $reservedQty = (int) Transaction::where('product_id', $product->id)
+            ->whereIn('status', [TransactionStatus::PENDING, TransactionStatus::CONFIRMED])
+            ->sum('quantity');
+
+        $availableQty = max(0, (int) ($product->quantity ?? 1) - $reservedQty);
+
+        if ($barterQty > $availableQty) {
+            return back()->with('error', "Sisa stok tersedia ({$availableQty} {$product->unit}) tidak mencukupi untuk memenuhi barter ini.");
+        }
 
         // Setujui tawaran ini
         $offer->update(['status' => BarterOfferStatus::ACCEPTED]);
 
-        // Perbarui stok produk
-        if ($barterQty >= $availableQty) {
-            $product->update([
-                'quantity' => 0,
-                'status' => ProductStatus::BARTERED,
-            ]);
-
-            // Tolak semua tawaran pending lain untuk produk ini
-            BarterOffer::where('product_id', $offer->product_id)
-                ->where('id', '!=', $offer->id)
-                ->where('status', BarterOfferStatus::PENDING)
-                ->update(['status' => BarterOfferStatus::REJECTED]);
-        } else {
-            $newQty = $availableQty - $barterQty;
-            $newWeight = ($product->weight_grams > 0)
-                ? max(0, (int) round(($product->weight_grams / $availableQty) * $newQty))
-                : 0;
-
-            $product->update([
-                'quantity' => $newQty,
-                'weight_grams' => $newWeight,
-            ]);
-
-            // Tolak tawaran pending lain yang meminta jumlah melebihi sisa stok
-            BarterOffer::where('product_id', $offer->product_id)
-                ->where('id', '!=', $offer->id)
-                ->where('status', BarterOfferStatus::PENDING)
-                ->where('quantity', '>', $newQty)
-                ->update(['status' => BarterOfferStatus::REJECTED]);
-        }
-
-        // Buat transaksi barter
+        // Buat transaksi barter (status CONFIRMED, stok akan resmi dikurangi saat barang diterima di complete())
         $transaction = Transaction::create([
             'product_id' => $offer->product_id,
             'buyer_id' => $offer->offerer_id,
@@ -210,6 +199,32 @@ class BarterOfferController extends Controller
             'notes' => "Jumlah barter: {$barterQty} {$product->unit}",
             'barter_notes' => $offer->offer_description,
         ]);
+
+        // Hitung sisa stok tersedia setelah transaksi barter ini disetujui
+        $remainingAvailable = $availableQty - $barterQty;
+
+        if ($remainingAvailable <= 0) {
+            // Tolak semua tawaran pending lain jika stok habis tereservasi
+            BarterOffer::where('product_id', $offer->product_id)
+                ->where('id', '!=', $offer->id)
+                ->where('status', BarterOfferStatus::PENDING)
+                ->update(['status' => BarterOfferStatus::REJECTED]);
+        } else {
+            // Tolak tawaran pending lain yang meminta jumlah melebihi sisa stok
+            BarterOffer::where('product_id', $offer->product_id)
+                ->where('id', '!=', $offer->id)
+                ->where('status', BarterOfferStatus::PENDING)
+                ->where('quantity', '>', $remainingAvailable)
+                ->update(['status' => BarterOfferStatus::REJECTED]);
+        }
+
+        // Unpause timer produk karena negosiasi barter telah disepakati
+        if ($product->timer_paused) {
+            $product->update([
+                'timer_paused' => false,
+                'timer_paused_at' => null,
+            ]);
+        }
 
         // Notifikasi ke pembarter
         Notification::create([
@@ -238,6 +253,19 @@ class BarterOfferController extends Controller
         }
 
         $offer->update(['status' => BarterOfferStatus::REJECTED]);
+
+        // Cek apakah masih ada tawaran barter pending lain untuk produk ini
+        $hasPendingOffers = BarterOffer::where('product_id', $offer->product_id)
+            ->where('status', BarterOfferStatus::PENDING)
+            ->exists();
+
+        // Unpause timer jika semua tawaran barter telah ditolak
+        if (!$hasPendingOffers && $offer->product->timer_paused) {
+            $offer->product->update([
+                'timer_paused' => false,
+                'timer_paused_at' => null,
+            ]);
+        }
 
         // Notifikasi ke pembarter
         Notification::create([

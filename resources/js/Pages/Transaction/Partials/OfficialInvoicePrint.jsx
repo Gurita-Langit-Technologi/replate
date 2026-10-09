@@ -40,7 +40,7 @@ export default function OfficialInvoicePrint({ transaction, product, status, typ
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="font-semibold text-gray-500">Kode Unik:</span>
-                    <span className="font-mono font-bold text-gray-900">TX-{transaction.id}</span>
+                    <span className="font-mono font-bold text-gray-900">{transaction.transaction_code || `TX-${transaction.id}`}</span>
                 </div>
             </div>
 

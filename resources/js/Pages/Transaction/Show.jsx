@@ -132,7 +132,7 @@ export default function Show({ transaction, isBuyer, isSeller, hasReviewed }) {
                                 <TypeIcon size={20} />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-400">Transaksi #{transaction.id}</p>
+                                <p className="text-sm font-mono text-gray-400">{transaction.transaction_code || `Transaksi #${transaction.id}`}</p>
                                 <p className="text-sm font-medium text-gray-900 capitalize">{type.label}</p>
                             </div>
                         </div>

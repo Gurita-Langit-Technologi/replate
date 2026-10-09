@@ -39,6 +39,22 @@ class Transaction extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::creating(function (Transaction $transaction) {
+            if (empty($transaction->transaction_code)) {
+                $typeVal = $transaction->type instanceof \BackedEnum ? $transaction->type->value : (string) $transaction->type;
+                $prefix = match ($typeVal) {
+                    TransactionType::BARTER->value, 'barter' => 'RPT-BRT-',
+                    TransactionType::DONATION->value, 'donation' => 'RPT-DON-',
+                    TransactionType::PARTNER_TRANSFER->value, 'partner_transfer' => 'RPT-TRF-',
+                    default => 'RPT-TX-',
+                };
+                $transaction->transaction_code = $prefix . strtoupper(\Illuminate\Support\Str::random(8));
+            }
+        });
+    }
+
     // ==================== RELASI ====================
 
     public function product(): BelongsTo
